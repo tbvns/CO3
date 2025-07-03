@@ -1,4 +1,4 @@
-name: "Build Android app"
+name: "Build iOS app (Simulator)"
 
 on:
   push:
@@ -9,38 +9,48 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
+      - name: Check Xcode version
+        run: /usr/bin/xcodebuild -version
+
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Install Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'adopt'
-          cache: gradle
-
-      - name: Validate Gradle wrapper
-        uses: gradle/actions/wrapper-validation@v3
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'yarn'
+          cache: 'npm' # Changed to npm
 
-      - name: Run Yarn Install
+      - name: Install NPM dependencies
+        run: npm install # Changed from yarn
+
+      - name: Install Cocoapod dependencies
         run: |
-          npm i -g corepack
-          yarn install
+          cd ios
+          pod install
 
-      - name: Build application
+      - name: Build for iOS Simulator
         run: |
-          cd android
-          ./gradlew assembleRelease
+          cd ios
+          # Builds a .app file for the simulator, no signing required
+          xcodebuild build \
+            -workspace your_app.xcworkspace \
+            -scheme your_app \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 15'
 
-      - name: Upload application
+      - name: Find and Upload .app file
+        run: |
+          # The .app file is deep in the build directory. This finds it.
+          APP_PATH=$(find build/Build/Products -name "*.app" | head -n 1)
+          echo "Found .app at ${APP_PATH}"
+          # We zip it for easier upload and download
+          zip -r "your_app.zip" "$APP_PATH"
+        working-directory: ./ios
+
+      - name: Upload Simulator App
         uses: actions/upload-artifact@v4
         with:
-          name: app-android
-          path: android/app/build/outputs/apk/release/app-release.apk
+          name: app-ios-simulator
+          path: ios/your_app.zip
           retention-days: 3
