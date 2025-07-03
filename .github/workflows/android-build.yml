@@ -34,6 +34,7 @@ jobs:
       - name: Build application
         run: |
           cd android
+          chmod +X ./gradlew
           ./gradlew assembleDebug # Changed to assembleDebug for dev builds
 
       - name: Upload application
