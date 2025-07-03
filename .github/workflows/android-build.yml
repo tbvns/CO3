@@ -26,16 +26,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm' # Changed from yarn to npm
+          cache: 'npm'
 
       - name: Run NPM Install
-        run: npm install # Changed from yarn
+        run: npm install
 
       - name: Build application
         run: |
           cd android
-          chmod +X ./gradlew
-          ./gradlew assembleDebug # Changed to assembleDebug for dev builds
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
 
       - name: Upload application
         uses: actions/upload-artifact@v4
