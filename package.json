@@ -11,9 +11,12 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
+    "@react-native-async-storage/async-storage": "2.1.2",
     "@react-navigation/bottom-tabs": "^6.5.10",
     "@react-navigation/native": "^6.1.8",
     "babel": "^6.23.0",
+    "expo-asset": "^11.1.7",
+    "expo-sqlite": "~15.2.13",
     "fast-html-parser": "^1.0.1",
     "ky": "^1.8.1",
     "react": "19.1.0",
@@ -21,6 +24,8 @@
     "react-native-html-parser": "^0.1.0",
     "react-native-safe-area-context": "^5.5.1",
     "react-native-screens": "^4.11.1",
+    "react-native-sqlite-storage": "^6.0.1",
+    "react-native-super-grid": "^6.0.1",
     "react-native-vector-icons": "^10.2.0"
   },
   "devDependencies": {
