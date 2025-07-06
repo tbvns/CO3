@@ -13,13 +13,103 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-import BookCard from './components/BookCard';
 import SideMenu from './components/SideMenu';
-import NavItem from './components/NavItem';
 import AddWorkModal from './components/AddWorkModal';
 import DatabaseManager from './database/DatabaseManager';
 import { themes } from './utils/themes';
 import { STORAGE_KEYS } from './utils/constants';
+
+import LibraryScreen from './screens/Library';
+import UpdateScreen from './screens/Update';
+import BrowseScreen from './screens/Browse';
+import HistoryScreen from './screens/History';
+import MoreScreen from './screens/More';
+import databaseManager from './database/DatabaseManager';
+
+const TopBar = ({ currentTheme, activeScreen, setIsSideMenuOpen, searchTerm, setSearchTerm }) => {
+  const showSearch = activeScreen === 'library';
+
+  return (
+    <View style={[styles.header, { backgroundColor: currentTheme.headerBackground }]}>
+      {showSearch ? (
+        <View style={styles.searchContainer}>
+          <Icon name="search" size={20} color={currentTheme.iconColor} />
+          <TextInput
+            style={[
+              styles.searchInput,
+              {
+                backgroundColor: currentTheme.inputBackground,
+                color: currentTheme.textColor,
+                borderColor: currentTheme.borderColor,
+              }
+            ]}
+            placeholder="Search books, authors..."
+            placeholderTextColor={currentTheme.placeholderColor}
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+          />
+        </View>
+      ) : (
+        <View style={styles.titleHeader}>
+          <Text style={[styles.headerTitle, { color: currentTheme.textColor }]}>
+            {activeScreen.charAt(0).toUpperCase() + activeScreen.slice(1)}
+          </Text>
+        </View>
+      )}
+
+      <TouchableOpacity
+        style={[styles.menuButton, { backgroundColor: currentTheme.buttonBackground }]}
+        onPress={() => setIsSideMenuOpen(true)}
+      >
+        <Icon name="menu" size={24} color={currentTheme.iconColor} />
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const BottomNavigation = ({ activeScreen, setActiveScreen, currentTheme }) => {
+  const navItems = [
+    { key: 'library', icon: 'library-books', label: 'Library' },
+    { key: 'update', icon: 'update', label: 'Update' },
+    { key: 'browse', icon: 'book', label: 'Browse' },
+    { key: 'history', icon: 'bookmark', label: 'History' },
+    { key: 'more', icon: 'more-horiz', label: 'More' },
+  ];
+
+  return (
+    <View style={[styles.bottomNav, { backgroundColor: currentTheme.headerBackground }]}>
+      {navItems.map((item) => (
+        <TouchableOpacity
+          key={item.key}
+          style={styles.navItemContainer}
+          onPress={() => {
+            // console.log('Pressed:', item.key); // Debug log
+            setActiveScreen(item.key);
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.navItemContent}>
+            <Icon
+              name={item.icon}
+              size={24}
+              color={activeScreen === item.key ? currentTheme.primaryColor : currentTheme.iconColor}
+            />
+            <Text style={[
+              styles.navItemLabel,
+              {
+                color: activeScreen === item.key ? currentTheme.primaryColor : currentTheme.iconColor,
+                fontSize: 12,
+                marginTop: 4,
+              }
+            ]}>
+              {item.label}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+};
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,16 +120,18 @@ const App = () => {
   const [viewMode, setViewMode] = useState('full');
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeScreen, setActiveScreen] = useState('library');
 
   useEffect(() => {
     initializeApp();
-  }, []);
+    }, []);
 
   const initializeApp = async () => {
     try {
       await DatabaseManager.initializeDatabase();
       await loadSettings();
       await loadBooks();
+      DatabaseManager.addToHistory(65484, 1, 65465, "bookTitle", "bookAuthor").then(r => console.log(r));
     } catch (error) {
       console.error('Error initializing app:', error);
       Alert.alert('Error', 'Failed to initialize app');
@@ -110,10 +202,32 @@ const App = () => {
     }
   };
 
-  const filteredBooks = books.filter(book =>
-    book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    book.author.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const renderScreen = () => {
+    const screenProps = {
+      currentTheme: themes[theme],
+      searchTerm,
+      setSearchTerm,
+      books,
+      viewMode,
+      loadBooks,
+      setIsAddWorkModalOpen,
+    };
+
+    switch (activeScreen) {
+      case 'library':
+        return <LibraryScreen {...screenProps} />;
+      case 'update':
+        return <UpdateScreen currentTheme={themes[theme]} />;
+      case 'browse':
+        return <BrowseScreen currentTheme={themes[theme]} />;
+      case 'history':
+        return <HistoryScreen currentTheme={themes[theme]} />;
+      case 'more':
+        return <MoreScreen currentTheme={themes[theme]} />;
+      default:
+        return <LibraryScreen {...screenProps} />;
+    }
+  };
 
   const currentTheme = themes[theme];
 
@@ -134,70 +248,21 @@ const App = () => {
         backgroundColor={currentTheme.headerBackground}
       />
 
-      <View style={[styles.header, { backgroundColor: currentTheme.headerBackground }]}>
-        <View style={styles.searchContainer}>
-          <Icon name="search" size={20} color={currentTheme.iconColor} />
-          <TextInput
-            style={[
-              styles.searchInput,
-              {
-                backgroundColor: currentTheme.inputBackground,
-                color: currentTheme.textColor,
-                borderColor: currentTheme.borderColor,
-              }
-            ]}
-            placeholder="Search books, authors..."
-            placeholderTextColor={currentTheme.placeholderColor}
-            value={searchTerm}
-            onChangeText={setSearchTerm}
-          />
-        </View>
+      <TopBar
+        currentTheme={currentTheme}
+        activeScreen={activeScreen}
+        setIsSideMenuOpen={setIsSideMenuOpen}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+      />
 
-        <TouchableOpacity
-          style={[styles.menuButton, { backgroundColor: currentTheme.buttonBackground }]}
-          onPress={() => setIsSideMenuOpen(true)}
-        >
-          <Icon name="menu" size={24} color={currentTheme.iconColor} />
-        </TouchableOpacity>
-      </View>
+      {renderScreen()}
 
-      <ScrollView style={styles.mainContent}>
-        <View style={styles.contentContainer}>
-          <View style={styles.titleContainer}>
-            <Text style={[styles.title, { color: currentTheme.textColor }]}>Your Library</Text>
-            <TouchableOpacity
-              style={[styles.addButton, { backgroundColor: currentTheme.primaryColor }]}
-              onPress={() => setIsAddWorkModalOpen(true)}
-            >
-              <Icon name="add" size={24} color="white" />
-            </TouchableOpacity>
-          </View>
-
-          {filteredBooks.length > 0 ? (
-            filteredBooks.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                viewMode={viewMode}
-                theme={currentTheme}
-                onUpdate={loadBooks}
-              />
-            ))
-          ) : (
-            <Text style={[styles.noBooks, { color: currentTheme.placeholderColor }]}>
-              No books found matching your search.
-            </Text>
-          )}
-        </View>
-      </ScrollView>
-
-      <View style={[styles.bottomNav, { backgroundColor: currentTheme.headerBackground }]}>
-        <NavItem icon="library-books" label="Library" active theme={currentTheme} />
-        <NavItem icon="update" label="Update" theme={currentTheme} />
-        <NavItem icon="book" label="Browse" theme={currentTheme} />
-        <NavItem icon="bookmark" label="History" theme={currentTheme} />
-        <NavItem icon="more-horiz" label="More" theme={currentTheme} />
-      </View>
+      <BottomNavigation
+        activeScreen={activeScreen}
+        setActiveScreen={setActiveScreen}
+        currentTheme={currentTheme}
+      />
 
       <SideMenu
         isOpen={isSideMenuOpen}
@@ -246,6 +311,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
+  titleHeader: {
+    flex: 1,
+    marginRight: 12,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
   searchInput: {
     flex: 1,
     marginLeft: 12,
@@ -275,6 +348,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
+  subtitle: {
+    fontSize: 16,
+    marginTop: 8,
+    marginBottom: 20,
+  },
   addButton: {
     width: 48,
     height: 48,
@@ -297,6 +375,20 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
+  },
+  navItemContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+  },
+  navItemContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navItemLabel: {
+    textAlign: 'center',
+    fontWeight: '500',
   },
 });
 

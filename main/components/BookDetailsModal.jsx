@@ -181,7 +181,7 @@ const BookDetailsModal = ({ book, isOpen, onClose, mode, theme, onShowAllTags })
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'transparent', // Removed dark overlay
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -21,6 +21,7 @@
     "ky": "^1.8.1",
     "react": "19.1.0",
     "react-native": "0.80.1",
+    "react-native-calendars": "^1.1313.0",
     "react-native-html-parser": "^0.1.0",
     "react-native-safe-area-context": "^5.5.1",
     "react-native-screens": "^4.11.1",

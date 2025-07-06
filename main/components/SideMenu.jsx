@@ -34,7 +34,7 @@ const SideMenu = ({
 
   const loadHistory = async () => {
     try {
-      const historyData = await DatabaseManager.getHistory();
+      const historyData = await DatabaseManager.getHistory(10); // Limit to 10 recent items
       setHistory(historyData);
     } catch (error) {
       console.error('Error loading history:', error);
@@ -65,6 +65,30 @@ const SideMenu = ({
     );
   };
 
+  const formatDate = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffTime = now - date;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return 'Today';
+    } else if (diffDays === 1) {
+      return 'Yesterday';
+    } else if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
+  const formatChapterInfo = (chapterStart, chapterEnd) => {
+    if (chapterEnd && chapterEnd !== chapterStart) {
+      return `Ch. ${chapterStart}-${chapterEnd}`;
+    }
+    return `Ch. ${chapterStart}`;
+  };
+
   const getThemeIcon = () => {
     switch (theme) {
       case 'light':
@@ -78,7 +102,6 @@ const SideMenu = ({
     }
   };
 
-  // Theme Button Component with proper theming
   const ThemeButton = ({ themeKey, label, isActive, onPress }) => {
     let buttonStyle = [styles.themeButton];
     let textStyle = [styles.themeButtonText];
@@ -109,7 +132,6 @@ const SideMenu = ({
     );
   };
 
-  // View Mode Button Component with proper theming
   const ViewModeButton = ({ mode, label, isActive, onPress }) => {
     let buttonStyle = [styles.viewModeButton];
     let textStyle = [styles.viewModeButtonText];
@@ -132,9 +154,8 @@ const SideMenu = ({
     );
   };
 
-  // Purple switch colors for incognito mode
   const getSwitchColors = () => {
-    const purpleColor = '#8b5cf6'; // Purple color for incognito
+    const purpleColor = '#8b5cf6';
 
     if (theme === 'dark') {
       return {
@@ -280,15 +301,28 @@ const SideMenu = ({
                       key={item.id}
                       style={[styles.historyItem, { backgroundColor: currentTheme.inputBackground }]}
                     >
-                      <Text
-                        style={[styles.historyTitle, { color: currentTheme.textColor }]}
-                        numberOfLines={1}
-                      >
-                        {item.title}
-                      </Text>
-                      <Text style={[styles.historyDate, { color: currentTheme.secondaryTextColor }]}>
-                        {item.date}
-                      </Text>
+                      <View style={styles.historyItemContent}>
+                        <Text
+                          style={[styles.historyTitle, { color: currentTheme.textColor }]}
+                          numberOfLines={1}
+                        >
+                          {item.book_title}
+                        </Text>
+                        <Text
+                          style={[styles.historyAuthor, { color: currentTheme.secondaryTextColor }]}
+                          numberOfLines={1}
+                        >
+                          by {item.book_author}
+                        </Text>
+                        <Text style={[styles.historyChapter, { color: currentTheme.secondaryTextColor }]}>
+                          {formatChapterInfo(item.chapter_start, item.chapter_end)}
+                        </Text>
+                      </View>
+                      <View style={styles.historyMeta}>
+                        <Text style={[styles.historyDate, { color: currentTheme.secondaryTextColor }]}>
+                          {formatDate(item.date_read)}
+                        </Text>
+                      </View>
                     </View>
                   ))}
                 </ScrollView>
@@ -334,7 +368,7 @@ const SideMenu = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'transparent', // Removed dark overlay
+    backgroundColor: 'transparent',
     justifyContent: 'flex-end',
   },
   sideMenu: {
@@ -440,15 +474,30 @@ const styles = StyleSheet.create({
   historyItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
   },
-  historyTitle: {
-    fontSize: 14,
+  historyItemContent: {
     flex: 1,
     marginRight: 8,
+  },
+  historyTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  historyAuthor: {
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  historyChapter: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  historyMeta: {
+    alignItems: 'flex-end',
   },
   historyDate: {
     fontSize: 12,
