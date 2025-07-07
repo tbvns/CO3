@@ -10,18 +10,18 @@ import {
   StatusBar,
   Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Still used for initial settings migration if needed, but primarily for other async storage needs
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import SideMenu from './components/app/SideMenu';
 import AddWorkModal from './components/Library/AddWorkModal';
-import { database } from './database/Database'; // Import the database instance
-import { HistoryDAO } from './database/dao/HistoryDAO'; // Import HistoryDAO
-import { WorkDAO } from './database/dao/WorkDAO'; // Import WorkDAO
-import { SettingsDAO } from './database/dao/SettingsDAO'; // Import SettingsDAO
+import { database } from './database/Database';
+import { HistoryDAO } from './database/dao/HistoryDAO';
+import { WorkDAO } from './database/dao/WorkDAO';
+import { SettingsDAO } from './database/dao/SettingsDAO';
 
 
-import { themes } from './utils/themes'; // This import is crucial for themes object
+import { themes } from './utils/themes';
 import { STORAGE_KEYS } from './utils/constants';
 
 import LibraryScreen from './screens/Library';
@@ -125,15 +125,13 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [activeScreen, setActiveScreen] = useState('library');
 
-  // Initialize DAOs
   const [workDAO, setWorkDAO] = useState(null);
   const [historyDAO, setHistoryDAO] = useState(null);
-  const [settingsDAO, setSettingsDAO] = useState(null); // New state for SettingsDAO
+  const [settingsDAO, setSettingsDAO] = useState(null);
 
   useEffect(() => {
     initializeApp();
     return () => {
-      // Close the database when the component unmounts
       if (database) {
         database.close();
       }
@@ -142,13 +140,12 @@ const App = () => {
 
   const initializeApp = async () => {
     try {
-      const db = await database.open(); // Open the database
-      setWorkDAO(new WorkDAO(db)); // Initialize WorkDAO
-      setHistoryDAO(new HistoryDAO(db)); // Initialize HistoryDAO
-      const newSettingsDAO = new SettingsDAO(db); // Initialize SettingsDAO
+      const db = await database.open();
+      setWorkDAO(new WorkDAO(db));
+      setHistoryDAO(new HistoryDAO(db));
+      const newSettingsDAO = new SettingsDAO(db);
       setSettingsDAO(newSettingsDAO);
 
-      // Load settings from the new DAO
       const loadedSettings = await newSettingsDAO.getSettings();
       setTheme(loadedSettings.theme);
       setIsIncognitoMode(loadedSettings.isIncognitoMode);
@@ -159,7 +156,7 @@ const App = () => {
       if (historyDAO) {
         await historyDAO.add({ workId: 654123, date: Date.now(), chapter: 1, chapterEnd: 654123 });
       } else {
-        const tempHistoryDAO = new HistoryDAO(db); // Use the 'db' instance directly
+        const tempHistoryDAO = new HistoryDAO(db);
         await tempHistoryDAO.add({ workId: 654123, date: Date.now(), chapter: 1, chapterEnd: 654123 });
       }
 
@@ -171,14 +168,10 @@ const App = () => {
     }
   };
 
-  // loadSettings is now handled by initializeApp directly from SettingsDAO
-  // No longer need a separate loadSettings function that reads from AsyncStorage for these specific settings.
-  // Keep AsyncStorage for other potential settings if needed, but theme, incognito, viewMode are now in DB.
-
   const loadBooks = async () => {
     try {
-      if (workDAO) { // Ensure workDAO is initialized before use
-        const booksData = await workDAO.getAll(); // Use workDAO to get all works
+      if (workDAO) {
+        const booksData = await workDAO.getAll();
         setBooks(booksData);
       }
     } catch (error) {
@@ -195,7 +188,6 @@ const App = () => {
         setTheme(newTheme);
       } else {
         console.warn('SettingsDAO not initialized, cannot save theme.');
-        // Fallback to AsyncStorage if settingsDAO is not ready (though it should be)
         await AsyncStorage.setItem(STORAGE_KEYS.THEME, newTheme);
         setTheme(newTheme);
       }
@@ -213,7 +205,6 @@ const App = () => {
         setIsIncognitoMode(mode);
       } else {
         console.warn('SettingsDAO not initialized, cannot save incognito mode.');
-        // Fallback to AsyncStorage if settingsDAO is not ready
         await AsyncStorage.setItem(STORAGE_KEYS.INCOGNITO_MODE, JSON.stringify(mode));
         setIsIncognitoMode(mode);
       }
@@ -231,7 +222,6 @@ const App = () => {
         setViewMode(mode);
       } else {
         console.warn('SettingsDAO not initialized, cannot save view mode.');
-        // Fallback to AsyncStorage if settingsDAO is not ready
         await AsyncStorage.setItem(STORAGE_KEYS.VIEW_MODE, mode);
         setViewMode(mode);
       }
@@ -242,8 +232,8 @@ const App = () => {
 
   const handleAddWork = async (workData) => {
     try {
-      if (workDAO) { // Ensure workDAO is initialized before use
-        await workDAO.add(workData); // Use workDAO to add a new work
+      if (workDAO) {
+        await workDAO.add(workData);
         await loadBooks();
         setIsAddWorkModalOpen(false);
         Alert.alert('Success', 'Work added successfully');
@@ -254,9 +244,6 @@ const App = () => {
     }
   };
 
-  // Defensive assignment for currentTheme
-  // This ensures that if 'themes' is temporarily undefined (e.g., during a very fast reload),
-  // it defaults to 'themes.light' or a basic hardcoded theme.
   const currentTheme = (themes && themes[theme]) ? themes[theme] : (themes?.light || {
     backgroundColor: 'white',
     textColor: 'black',
@@ -274,16 +261,16 @@ const App = () => {
 
   const renderScreen = () => {
     const screenProps = {
-      currentTheme: currentTheme, // Pass the resolved currentTheme
+      currentTheme: currentTheme,
       searchTerm,
       setSearchTerm,
       books,
       viewMode,
       loadBooks,
       setIsAddWorkModalOpen,
-      workDAO, // Pass workDAO to screens that need it
-      historyDAO, // Pass historyDAO to screens that need it
-      settingsDAO, // Pass settingsDAO to screens that need it
+      workDAO,
+      historyDAO,
+      settingsDAO,
     };
 
     switch (activeScreen) {
@@ -302,7 +289,6 @@ const App = () => {
     }
   };
 
-  // Re-enable loading spinner and ensure currentTheme is valid before rendering main app
   if (loading || !currentTheme) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme?.backgroundColor || 'white' }]}>
@@ -346,9 +332,9 @@ const App = () => {
         viewMode={viewMode}
         setViewMode={saveViewMode}
         currentTheme={currentTheme}
-        historyDAO={historyDAO} // Pass historyDAO to SideMenu
-        workDAO={workDAO} // Pass workDAO to SideMenu
-        settingsDAO={settingsDAO} // Pass settingsDAO to SideMenu
+        historyDAO={historyDAO}
+        workDAO={workDAO}
+        settingsDAO={settingsDAO}
       />
 
       <AddWorkModal

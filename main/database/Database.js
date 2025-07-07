@@ -42,7 +42,11 @@ class Database {
                                           bookmarks INTEGER DEFAULT 0,
                                           description TEXT,
                                           currentChapter INTEGER DEFAULT 1,
-                                          chapterCount INTEGER
+                                          chapterCount INTEGER,
+                                          rating TEXT DEFAULT 'Not Rated',
+                                          category TEXT DEFAULT 'None',
+                                          warningStatus TEXT DEFAULT 'NoWarningsApply',
+                                          isCompleted INTEGER
        );`,
       `CREATE TABLE IF NOT EXISTS chapters (
                                              id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,7 +92,6 @@ class Database {
                                                  date INTEGER NOT NULL,
                                                  FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
         );`,
-      // New settings table
       `CREATE TABLE IF NOT EXISTS settings (
                                              id INTEGER PRIMARY KEY, -- Should always be 1
                                              theme TEXT DEFAULT 'light',
@@ -105,7 +108,6 @@ class Database {
       for (const query of queries) {
         await this.db.executeSql(query);
       }
-      // Ensure there's always a settings row, insert default if not exists
       const [settingsCheck] = await this.db.executeSql('SELECT COUNT(*) FROM settings WHERE id = 1');
       if (settingsCheck.rows.item(0)['COUNT(*)'] === 0) {
         await this.db.executeSql(

@@ -1,6 +1,6 @@
 export class Settings {
   constructor({
-                id = 1, // Assuming only one row for settings
+                id = 1,
                 theme = 'light',
                 isIncognitoMode = false,
                 viewMode = 'full',

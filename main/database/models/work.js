@@ -1,20 +1,24 @@
 export class Work {
-  constructor({
-                id = null,
-                title,
-                author,
-                kudos = 0,
-                hits = 0,
-                language = 'English',
-                updated,
-                bookmarks = 0,
-                tags = [],
-                warnings = [],
-                description = '',
-                chapters = [],
-                currentChapter = 1,
-                chapterCount = null,
-              }) {
+    constructor({
+                    id = null,
+                    title,
+                    author,
+                    kudos = 0,
+                    hits = 0,
+                    language = 'English',
+                    updated,
+                    bookmarks = 0,
+                    tags = [],
+                    warnings = [],
+                    description = '',
+                    chapters = [],
+                    currentChapter = 1,
+                    chapterCount = null,
+                    rating = 'Not Rated',
+                    category = 'None',
+                    warningStatus = 'NoWarningsApply',
+                    isCompleted = null
+                }) {
     this.id = id;
     this.title = title;
     this.author = author;
@@ -29,5 +33,9 @@ export class Work {
     this.chapters = chapters;
     this.currentChapter = currentChapter;
     this.chapterCount = chapterCount;
+    this.rating = rating;
+    this.category = category;
+    this.warningStatus = warningStatus;
+    this.isCompleted = isCompleted;
   }
 }

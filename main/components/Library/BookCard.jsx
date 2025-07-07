@@ -9,6 +9,40 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import BookDetailsModal from './BookDetailsModal';
 
+const imageMappings = {
+  rating: {
+    'General Audiences': require('../../res/status/public/icon-general-public.png'),
+    'Teen And Up Audiences': require('../../res/status/public/icon-teen-public.png'),
+    'Mature': require('../../res/status/public/icon-mature-public.png'),
+    'Explicit': require('../../res/status/public/icon-explicite-public.png'),
+    'Not Rated': require('../../res/status/public/icon-unknown-public.png'),
+    'default': require('../../res/status/public/icon-unknown-public.png'),
+  },
+  category: {
+    'F/F': require('../../res/status/relationship/icon-ff-relationships.png'),
+    'F/M': require('../../res/status/relationship/icon-inter-relationships.png'),
+    'M/M': require('../../res/status/relationship/icon-mm-relationships.png'),
+    'Multi': require('../../res/status/relationship/icon-multiple-relationships.png'),
+    'Gen': require('../../res/status/relationship/icon-other-relationships.png'),
+    'Other': require('../../res/status/relationship/icon-other-relationships.png'),
+    'None': require('../../res/status/relationship/icon-none-relationships.png'),
+    'default': require('../../res/status/relationship/icon-unknown-relationships.png'),
+  },
+  warningStatus: {
+    'ChoseNotToWarn': require('../../res/status/warnings/icon-unspecified-warning.png'),
+    'WarningGiven': require('../../res/status/warnings/icon-has-warning.png'),
+    'NoWarningsApply': require('../../res/status/warnings/icon-unknown-warning.png'),
+    'ExternalWork': require('../../res/status/warnings/icon-web-warning.png'),
+    'default': require('../../res/status/warnings/icon-unknown-warning.png'),
+  },
+  isCompleted: {
+    true: require('../../res/status/status/icon-done-status.png'),
+    false: require('../../res/status/status/icon-unfinished-status.png'),
+    null: require('../../res/status/status/icon-unknown-status.png'),
+    undefined: require('../../res/status/status/icon-unknown-status.png'),
+  }
+};
+
 const BookCard = ({ book, viewMode, theme, onUpdate }) => {
   const [isMainModalOpen, setIsMainModalOpen] = useState(false);
   const [isAllTagsModalOpen, setIsAllTagsModalOpen] = useState(false);
@@ -26,121 +60,138 @@ const BookCard = ({ book, viewMode, theme, onUpdate }) => {
     buttonText = "Show Tags, Warnings & Description";
   }
 
+  const ratingImage = imageMappings.rating[book.rating] || imageMappings.rating.default;
+  const categoryImage = imageMappings.category[book.category] || imageMappings.category.default;
+  const warningImage = imageMappings.warningStatus[book.warningStatus] || imageMappings.warningStatus.default;
+  const statusImage = imageMappings.isCompleted[book.isCompleted] || imageMappings.isCompleted.null;
+
+  const images = [ratingImage, categoryImage, warningImage, statusImage];
+  const gridSize = isSmall ? 48 : 100;
+  const imageSize = gridSize / 2;
+
   return (
-    <View style={[
-      styles.card,
-      { backgroundColor: theme.cardBackground, borderColor: theme.borderColor },
-      isSmall && styles.smallCard
-    ]}>
-      <View style={[styles.imageSection, isSmall && styles.smallImageSection]}>
-        <Image
-          source={{ uri: book.image || 'https://via.placeholder.com/100x100' }}
-          style={[styles.image, isSmall && styles.smallImage]}
-        />
-        <View style={styles.titleSection}>
-          <Text style={[
-            styles.title,
-            { color: theme.textColor },
-            isSmall && styles.smallTitle
-          ]}>
-            {book.title}
-          </Text>
-          <Text style={[
-            styles.author,
-            { color: theme.secondaryTextColor },
-            isSmall && styles.smallAuthor
-          ]}>
-            by {book.author}
-          </Text>
-        </View>
-      </View>
-
-      {!isSmall && (
-        <View style={styles.contentSection}>
-          {showTagsWarningsButton && (book.tags.length > 0 || book.warnings.length > 0 || isMed) && (
-            <TouchableOpacity
-              style={styles.tagsButton}
-              onPress={() => setIsMainModalOpen(true)}
-            >
-              <Icon name="local-offer" size={16} color={theme.primaryColor} />
-              <Text style={[styles.tagsButtonText, { color: theme.primaryColor }]}>
-                {buttonText}
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {showDescriptionInCard && (
-            <Text style={[styles.description, { color: theme.textColor }]} numberOfLines={3}>
-              {book.description}
-            </Text>
-          )}
-
-          {showMetadataInCard && (
-            <View style={styles.metadata}>
-              <View style={styles.metadataRow}>
-                <Icon name="schedule" size={14} color={theme.iconColor} />
-                <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
-                  Updated: {book.lastUpdated}
-                </Text>
-              </View>
-              <View style={styles.metadataRow}>
-                <Icon name="favorite" size={14} color="#ef4444" />
-                <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
-                  {book.likes?.toLocaleString() || 0} Likes
-                </Text>
-              </View>
-              <View style={styles.metadataRow}>
-                <Icon name="bookmark" size={14} color="#eab308" />
-                <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
-                  {book.bookmarks?.toLocaleString() || 0} Bookmarks
-                </Text>
-              </View>
-              <View style={styles.metadataRow}>
-                <Icon name="visibility" size={14} color="#8b5cf6" />
-                <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
-                  {book.views?.toLocaleString() || 0} Views
-                </Text>
-              </View>
-              <View style={styles.metadataRow}>
-                <Icon name="language" size={14} color="#22c55e" />
-                <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
-                  {book.language || 'English'}
-                </Text>
-              </View>
+      <View style={[
+        styles.card,
+        { backgroundColor: theme.cardBackground, borderColor: theme.borderColor },
+        isSmall && styles.smallCard
+      ]}>
+        <View style={[styles.imageSection, isSmall && styles.smallImageSection]}>
+          {/* Status image grid */}
+          <View style={[styles.imageGrid, { width: gridSize, height: gridSize }]}>
+            <View style={styles.imageRow}>
+              <Image source={images[0]} style={[styles.statusImage, { width: imageSize, height: imageSize }]} />
+              <Image source={images[1]} style={[styles.statusImage, { width: imageSize, height: imageSize }]} />
             </View>
-          )}
+            <View style={styles.imageRow}>
+              <Image source={images[2]} style={[styles.statusImage, { width: imageSize, height: imageSize }]} />
+              <Image source={images[3]} style={[styles.statusImage, { width: imageSize, height: imageSize }]} />
+            </View>
+          </View>
+
+          <View style={styles.titleSection}>
+            <Text style={[
+              styles.title,
+              { color: theme.textColor },
+              isSmall && styles.smallTitle
+            ]}>
+              {book.title}
+            </Text>
+            <Text style={[
+              styles.author,
+              { color: theme.secondaryTextColor },
+              isSmall && styles.smallAuthor
+            ]}>
+              by {book.author}
+            </Text>
+          </View>
         </View>
-      )}
 
-      {isSmall && (
-        <TouchableOpacity
-          style={[styles.infoButton, { backgroundColor: theme.primaryColor }]}
-          onPress={() => setIsMainModalOpen(true)}
-        >
-          <Icon name="info" size={20} color="white" />
-        </TouchableOpacity>
-      )}
+        {!isSmall && (
+            <View style={styles.contentSection}>
+              {showTagsWarningsButton && (book.tags.length > 0 || book.warnings.length > 0 || isMed) && (
+                  <TouchableOpacity
+                      style={styles.tagsButton}
+                      onPress={() => setIsMainModalOpen(true)}
+                  >
+                    <Icon name="local-offer" size={16} color={theme.primaryColor} />
+                    <Text style={[styles.tagsButtonText, { color: theme.primaryColor }]}>
+                      {buttonText}
+                    </Text>
+                  </TouchableOpacity>
+              )}
 
-      <BookDetailsModal
-        book={book}
-        isOpen={isMainModalOpen}
-        onClose={() => setIsMainModalOpen(false)}
-        mode={isSmall ? 'full' : 'summary'}
-        theme={theme}
-        onShowAllTags={() => {
-          setIsMainModalOpen(false);
-          setIsAllTagsModalOpen(true);
-        }}
-      />
+              {showDescriptionInCard && (
+                  <Text style={[styles.description, { color: theme.textColor }]} numberOfLines={3}>
+                    {book.description}
+                  </Text>
+              )}
 
-      <BookDetailsModal
-        book={book}
-        isOpen={isAllTagsModalOpen}
-        onClose={() => setIsAllTagsModalOpen(false)}
-        mode="allTags"
-        theme={theme}
-      />
-    </View>
+              {showMetadataInCard && (
+                  <View style={styles.metadata}>
+                    <View style={styles.metadataRow}>
+                      <Icon name="schedule" size={14} color={theme.iconColor} />
+                      <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                        Updated: {book.lastUpdated}
+                      </Text>
+                    </View>
+                    <View style={styles.metadataRow}>
+                      <Icon name="favorite" size={14} color="#ef4444" />
+                      <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                        {book.likes?.toLocaleString() || 0} Likes
+                      </Text>
+                    </View>
+                    <View style={styles.metadataRow}>
+                      <Icon name="bookmark" size={14} color="#eab308" />
+                      <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                        {book.bookmarks?.toLocaleString() || 0} Bookmarks
+                      </Text>
+                    </View>
+                    <View style={styles.metadataRow}>
+                      <Icon name="visibility" size={14} color="#8b5cf6" />
+                      <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                        {book.views?.toLocaleString() || 0} Views
+                      </Text>
+                    </View>
+                    <View style={styles.metadataRow}>
+                      <Icon name="language" size={14} color="#22c55e" />
+                      <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                        {book.language || 'English'}
+                      </Text>
+                    </View>
+                  </View>
+              )}
+            </View>
+        )}
+
+        {isSmall && (
+            <TouchableOpacity
+                style={[styles.infoButton, { backgroundColor: theme.primaryColor }]}
+                onPress={() => setIsMainModalOpen(true)}
+            >
+              <Icon name="info" size={20} color="white" />
+            </TouchableOpacity>
+        )}
+
+        <BookDetailsModal
+            book={book}
+            isOpen={isMainModalOpen}
+            onClose={() => setIsMainModalOpen(false)}
+            mode={isSmall ? 'full' : 'summary'}
+            theme={theme}
+            onShowAllTags={() => {
+              setIsMainModalOpen(false);
+              setIsAllTagsModalOpen(true);
+            }}
+        />
+
+        <BookDetailsModal
+            book={book}
+            isOpen={isAllTagsModalOpen}
+            onClose={() => setIsAllTagsModalOpen(false)}
+            mode="allTags"
+            theme={theme}
+        />
+      </View>
   );
 };
 
@@ -166,15 +217,16 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     flex: 1,
   },
-  image: {
-    width: 96,
-    height: 96,
-    borderRadius: 8,
+  imageGrid: {
     marginRight: 16,
+    borderRadius: 4,
+    overflow: 'hidden',
   },
-  smallImage: {
-    width: 48,
-    height: 48,
+  imageRow: {
+    flexDirection: 'row',
+  },
+  statusImage: {
+    resizeMode: 'contain',
   },
   titleSection: {
     flex: 1,
@@ -224,7 +276,7 @@ const styles = StyleSheet.create({
   metadataText: {
     fontSize: 12,
     marginLeft: 4,
-  },
+},
   infoButton: {
     width: 40,
     height: 40,

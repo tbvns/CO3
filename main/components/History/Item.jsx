@@ -3,15 +3,13 @@ import { View, Text, StyleSheet } from 'react-native';
 
 const HistoryItem = ({ item, currentTheme }) => {
   const formatDate = (timestamp) => {
-    // Ensure timestamp is a valid number before proceeding
     if (typeof timestamp !== 'number' || isNaN(timestamp)) {
-      return 'N/A'; // Or 'Invalid Date' as a fallback
+      return 'N/A';
     }
 
     const date = new Date(timestamp);
-    // Check if the Date object is valid (e.g., if timestamp was too large/small)
     if (isNaN(date.getTime())) {
-      return 'N/A'; // Fallback if Date object creation results in an invalid date
+      return 'N/A';
     }
 
     const now = new Date();

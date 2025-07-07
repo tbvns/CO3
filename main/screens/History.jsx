@@ -10,16 +10,15 @@ import {
   RefreshControl,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-// import DatabaseManager from '../database/DatabaseManager'; // Remove this line
-import { HistoryDAO } from '../database/HistoryDAO'; // Import HistoryDAO
-import { database } from '../database/Database'; // Import the database instance
+import { HistoryDAO } from '../database/HistoryDAO';
+import { database } from '../database/Database';
 import HistoryHeader from '../components/History/Headers';
 import HistoryList from '../components/History/List';
 import CalendarModal from '../components/History/CalendarModal';
 import EmptyState from '../components/History/Empty';
 import LoadingSpinner from '../components/History/Spinner';
 
-const HistoryScreen = ({ currentTheme, historyDAO }) => { // Accept historyDAO as prop
+const HistoryScreen = ({ currentTheme, historyDAO }) => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -36,21 +35,15 @@ const HistoryScreen = ({ currentTheme, historyDAO }) => { // Accept historyDAO a
   const PAGE_SIZE = 20;
 
   useEffect(() => {
-    if (historyDAO) { // Ensure historyDAO is available before loading data
+    if (historyDAO) {
       loadInitialHistory();
       loadReadingDates();
     }
-  }, [historyDAO]); // Rerun when historyDAO changes
+  }, [historyDAO]);
 
   const loadReadingDates = async () => {
     try {
-      // In the new database system, you might need a specific method in HistoryDAO
-      // or WorkDAO to get distinct reading dates. For now, this is a placeholder.
-      // You might need to implement a new method in HistoryDAO like `getDistinctReadingDates()`
-      // For demonstration, I'm just setting an empty array.
-      // const dates = await historyDAO.getDistinctReadingDates(); // Example: You'd implement this
-      // setReadingDates(dates);
-      setReadingDates([]); // Placeholder
+      setReadingDates([]);
     } catch (error) {
       console.error('Error loading reading dates:', error);
     }
@@ -61,15 +54,11 @@ const HistoryScreen = ({ currentTheme, historyDAO }) => { // Accept historyDAO a
       setLoading(true);
       setCurrentPage(0);
 
-      // Assuming HistoryDAO has methods for pagination and count
-      const historyData = await historyDAO.getAll(); // Fetch all for now, pagination logic can be added to DAO
-      // For proper pagination, you'd need methods in HistoryDAO like:
-      // await historyDAO.getPaginatedHistory(PAGE_SIZE, 0);
-      // await historyDAO.getHistoryCount();
+      const historyData = await historyDAO.getAll();
 
       setHistory(historyData || []);
-      setTotalCount(historyData.length); // Update totalCount based on fetched data
-      setHasMore(historyData.length === PAGE_SIZE); // Adjust this if you implement pagination
+      setTotalCount(historyData.length);
+      setHasMore(historyData.length === PAGE_SIZE);
     } catch (error) {
       console.error('Error loading history:', error);
       setHistory([]);
@@ -87,13 +76,9 @@ const HistoryScreen = ({ currentTheme, historyDAO }) => { // Accept historyDAO a
 
       let moreData;
       if (isFilterActive && dateRange.start && dateRange.end) {
-        // You'll need to implement a method in HistoryDAO for date range and pagination
-        // moreData = await historyDAO.getHistoryByDateRange(dateRange.start, dateRange.end, PAGE_SIZE, nextPage * PAGE_SIZE);
-        moreData = []; // Placeholder
+        moreData = [];
       } else {
-        // You'll need to implement a method in HistoryDAO for pagination
-        // moreData = await historyDAO.getPaginatedHistory(PAGE_SIZE, nextPage * PAGE_SIZE);
-        moreData = []; // Placeholder
+        moreData = [];
       }
 
       if (moreData.length > 0) {
@@ -131,7 +116,7 @@ const HistoryScreen = ({ currentTheme, historyDAO }) => { // Accept historyDAO a
           onPress: async () => {
             try {
               if (historyDAO) {
-                await historyDAO.deleteAll(); // Use historyDAO to clear all history
+                await historyDAO.deleteAll();
                 setHistory([]);
                 setTotalCount(0);
                 setHasMore(false);
@@ -158,14 +143,13 @@ const HistoryScreen = ({ currentTheme, historyDAO }) => { // Accept historyDAO a
       } else {
         setIsFilterActive(true);
         const endDate = dateRange.end || dateRange.start;
-        // You'll need to implement a method in HistoryDAO for date range filtering
-        const filteredHistory = await historyDAO.getHistoryByDateRange( // Example: You'd implement this
+        const filteredHistory = await historyDAO.getHistoryByDateRange(
           dateRange.start,
           endDate,
           PAGE_SIZE,
           0
         );
-        const count = await historyDAO.getHistoryCountByDateRange(dateRange.start, endDate); // Example: You'd implement this
+        const count = await historyDAO.getHistoryCountByDateRange(dateRange.start, endDate);
 
         setHistory(filteredHistory || []);
         setTotalCount(count);

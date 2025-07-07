@@ -26,23 +26,22 @@ const SideMenu = ({
                     viewMode,
                     setViewMode,
                     currentTheme,
-                    historyDAO, // Accept historyDAO as prop
-                    workDAO,    // Accept workDAO as prop
-                    settingsDAO, // Accept settingsDAO as prop
+                    historyDAO,
+                    workDAO,
+                    settingsDAO,
                   }) => {
   const [history, setHistory] = useState([]);
 
   useEffect(() => {
-    if (isOpen && historyDAO && workDAO) { // Ensure both DAOs are available
+    if (isOpen && historyDAO && workDAO) {
       loadHistory();
     }
-  }, [isOpen, historyDAO, workDAO]); // Rerun when isOpen or DAOs change
+  }, [isOpen, historyDAO, workDAO]);
 
   const loadHistory = async () => {
     try {
-      const historyData = await historyDAO.getAll(); // Get all history items
+      const historyData = await historyDAO.getAll();
 
-      // Fetch work details for each history item
       const historyWithWorkDetails = await Promise.all(
         historyData.map(async (item) => {
           const work = await workDAO.get(item.workId);
@@ -54,8 +53,6 @@ const SideMenu = ({
         })
       );
 
-      // Limit to 10 recent items if needed, after fetching details
-      // You can sort by date and then slice, or implement a getRecentHistory(limit) in HistoryDAO
       const limitedHistory = historyWithWorkDetails.sort((a, b) => b.date - a.date).slice(0, 10);
       setHistory(limitedHistory);
 
@@ -75,8 +72,8 @@ const SideMenu = ({
           style: 'destructive',
           onPress: async () => {
             try {
-              if (historyDAO) { // Ensure historyDAO is available
-                await historyDAO.deleteAll(); // Use historyDAO to clear all history
+              if (historyDAO) {
+                await historyDAO.deleteAll();
                 setHistory([]);
                 Alert.alert('Success', 'History cleared successfully');
               }
@@ -323,7 +320,7 @@ const SideMenu = ({
                 <ScrollView style={styles.historyContainer} nestedScrollEnabled={true}>
                   {history.map((item) => (
                     <View
-                      key={item.id} // Added unique key prop here
+                      key={item.id}
                       style={[styles.historyItem, { backgroundColor: currentTheme.inputBackground }]}
                     >
                       <View style={styles.historyItemContent}>
