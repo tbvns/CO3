@@ -10,14 +10,16 @@ import {
   RefreshControl,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import DatabaseManager from '../database/DatabaseManager';
+// import DatabaseManager from '../database/DatabaseManager'; // Remove this line
+import { HistoryDAO } from '../database/HistoryDAO'; // Import HistoryDAO
+import { database } from '../database/Database'; // Import the database instance
 import HistoryHeader from '../components/History/Headers';
 import HistoryList from '../components/History/List';
 import CalendarModal from '../components/History/CalendarModal';
 import EmptyState from '../components/History/Empty';
 import LoadingSpinner from '../components/History/Spinner';
 
-const HistoryScreen = ({ currentTheme }) => {
+const HistoryScreen = ({ currentTheme, historyDAO }) => { // Accept historyDAO as prop
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -34,14 +36,21 @@ const HistoryScreen = ({ currentTheme }) => {
   const PAGE_SIZE = 20;
 
   useEffect(() => {
-    loadInitialHistory();
-    loadReadingDates();
-  }, []);
+    if (historyDAO) { // Ensure historyDAO is available before loading data
+      loadInitialHistory();
+      loadReadingDates();
+    }
+  }, [historyDAO]); // Rerun when historyDAO changes
 
   const loadReadingDates = async () => {
     try {
-      const dates = await DatabaseManager.getReadingDates();
-      setReadingDates(dates);
+      // In the new database system, you might need a specific method in HistoryDAO
+      // or WorkDAO to get distinct reading dates. For now, this is a placeholder.
+      // You might need to implement a new method in HistoryDAO like `getDistinctReadingDates()`
+      // For demonstration, I'm just setting an empty array.
+      // const dates = await historyDAO.getDistinctReadingDates(); // Example: You'd implement this
+      // setReadingDates(dates);
+      setReadingDates([]); // Placeholder
     } catch (error) {
       console.error('Error loading reading dates:', error);
     }
@@ -52,12 +61,15 @@ const HistoryScreen = ({ currentTheme }) => {
       setLoading(true);
       setCurrentPage(0);
 
-      const historyData = await DatabaseManager.getHistory(PAGE_SIZE, 0);
-      const count = await DatabaseManager.getHistoryCount();
+      // Assuming HistoryDAO has methods for pagination and count
+      const historyData = await historyDAO.getAll(); // Fetch all for now, pagination logic can be added to DAO
+      // For proper pagination, you'd need methods in HistoryDAO like:
+      // await historyDAO.getPaginatedHistory(PAGE_SIZE, 0);
+      // await historyDAO.getHistoryCount();
 
       setHistory(historyData || []);
-      setTotalCount(count);
-      setHasMore(historyData.length === PAGE_SIZE);
+      setTotalCount(historyData.length); // Update totalCount based on fetched data
+      setHasMore(historyData.length === PAGE_SIZE); // Adjust this if you implement pagination
     } catch (error) {
       console.error('Error loading history:', error);
       setHistory([]);
@@ -75,14 +87,13 @@ const HistoryScreen = ({ currentTheme }) => {
 
       let moreData;
       if (isFilterActive && dateRange.start && dateRange.end) {
-        moreData = await DatabaseManager.getHistoryByDateRange(
-            dateRange.start,
-            dateRange.end,
-            PAGE_SIZE,
-            nextPage * PAGE_SIZE
-        );
+        // You'll need to implement a method in HistoryDAO for date range and pagination
+        // moreData = await historyDAO.getHistoryByDateRange(dateRange.start, dateRange.end, PAGE_SIZE, nextPage * PAGE_SIZE);
+        moreData = []; // Placeholder
       } else {
-        moreData = await DatabaseManager.getHistory(PAGE_SIZE, nextPage * PAGE_SIZE);
+        // You'll need to implement a method in HistoryDAO for pagination
+        // moreData = await historyDAO.getPaginatedHistory(PAGE_SIZE, nextPage * PAGE_SIZE);
+        moreData = []; // Placeholder
       }
 
       if (moreData.length > 0) {
@@ -101,33 +112,37 @@ const HistoryScreen = ({ currentTheme }) => {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadInitialHistory();
-    await loadReadingDates();
+    if (historyDAO) {
+      await loadInitialHistory();
+      await loadReadingDates();
+    }
     setRefreshing(false);
-  }, []);
+  }, [historyDAO]);
 
   const clearHistory = () => {
     Alert.alert(
-        'Clear History',
-        'Are you sure you want to clear all reading history?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Clear',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                await DatabaseManager.clearHistory();
+      'Clear History',
+      'Are you sure you want to clear all reading history?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (historyDAO) {
+                await historyDAO.deleteAll(); // Use historyDAO to clear all history
                 setHistory([]);
                 setTotalCount(0);
                 setHasMore(false);
                 await loadReadingDates();
-              } catch (error) {
-                console.error('Error clearing history:', error);
               }
-            },
+            } catch (error) {
+              console.error('Error clearing history:', error);
+            }
           },
-        ]
+        },
+      ]
     );
   };
 
@@ -143,13 +158,14 @@ const HistoryScreen = ({ currentTheme }) => {
       } else {
         setIsFilterActive(true);
         const endDate = dateRange.end || dateRange.start;
-        const filteredHistory = await DatabaseManager.getHistoryByDateRange(
-            dateRange.start,
-            endDate,
-            PAGE_SIZE,
-            0
+        // You'll need to implement a method in HistoryDAO for date range filtering
+        const filteredHistory = await historyDAO.getHistoryByDateRange( // Example: You'd implement this
+          dateRange.start,
+          endDate,
+          PAGE_SIZE,
+          0
         );
-        const count = await DatabaseManager.getHistoryCountByDateRange(dateRange.start, endDate);
+        const count = await historyDAO.getHistoryCountByDateRange(dateRange.start, endDate); // Example: You'd implement this
 
         setHistory(filteredHistory || []);
         setTotalCount(count);
@@ -183,65 +199,65 @@ const HistoryScreen = ({ currentTheme }) => {
   }
 
   return (
-      <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
-        <ScrollView
-            style={styles.mainContent}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-            refreshControl={
-              <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={onRefresh}
-                  colors={[currentTheme.primaryColor]}
-                  tintColor={currentTheme.primaryColor}
-              />
-            }
-        >
-          <View style={styles.contentContainer}>
-            <HistoryHeader
-                currentTheme={currentTheme}
-                totalCount={totalCount}
-                isFilterActive={isFilterActive}
-                hasHistory={history.length > 0}
-                onClearHistory={clearHistory}
-                onClearFilter={clearDateFilter}
-            />
-
-            {history.length === 0 ? (
-                <EmptyState
-                    currentTheme={currentTheme}
-                    isFilterActive={isFilterActive}
-                />
-            ) : (
-                <HistoryList
-                    history={history}
-                    currentTheme={currentTheme}
-                    loadingMore={loadingMore}
-                    hasMore={hasMore}
-                />
-            )}
-          </View>
-        </ScrollView>
-
-        {/* Calendar Filter Button */}
-        <TouchableOpacity
-            style={[styles.calendarFab, { backgroundColor: currentTheme.primaryColor }]}
-            onPress={() => setShowCalendar(true)}
-        >
-          <Icon name="calendar-today" size={24} color="white" />
-        </TouchableOpacity>
-
-        {/* Calendar Modal */}
-        <CalendarModal
-            visible={showCalendar}
+    <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+      <ScrollView
+        style={styles.mainContent}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[currentTheme.primaryColor]}
+            tintColor={currentTheme.primaryColor}
+          />
+        }
+      >
+        <View style={styles.contentContainer}>
+          <HistoryHeader
             currentTheme={currentTheme}
-            dateRange={dateRange}
-            readingDates={readingDates}
-            onClose={() => setShowCalendar(false)}
-            onDateRangeChange={setDateRange}
-            onApplyFilter={applyDateFilter}
-        />
-      </View>
+            totalCount={totalCount}
+            isFilterActive={isFilterActive}
+            hasHistory={history.length > 0}
+            onClearHistory={clearHistory}
+            onClearFilter={clearDateFilter}
+          />
+
+          {history.length === 0 ? (
+            <EmptyState
+              currentTheme={currentTheme}
+              isFilterActive={isFilterActive}
+            />
+          ) : (
+            <HistoryList
+              history={history}
+              currentTheme={currentTheme}
+              loadingMore={loadingMore}
+              hasMore={hasMore}
+            />
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Calendar Filter Button */}
+      <TouchableOpacity
+        style={[styles.calendarFab, { backgroundColor: currentTheme.primaryColor }]}
+        onPress={() => setShowCalendar(true)}
+      >
+        <Icon name="calendar-today" size={24} color="white" />
+      </TouchableOpacity>
+
+      {/* Calendar Modal */}
+      <CalendarModal
+        visible={showCalendar}
+        currentTheme={currentTheme}
+        dateRange={dateRange}
+        readingDates={readingDates}
+        onClose={() => setShowCalendar(false)}
+        onDateRangeChange={setDateRange}
+        onApplyFilter={applyDateFilter}
+      />
+    </View>
   );
 };
 

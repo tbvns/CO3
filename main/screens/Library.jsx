@@ -16,7 +16,8 @@ const LibraryScreen = ({
                          books,
                          viewMode,
                          loadBooks,
-                         setIsAddWorkModalOpen
+                         setIsAddWorkModalOpen,
+                         workDAO // Accept workDAO as prop
                        }) => {
   const filteredBooks = books.filter(book =>
     book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -44,6 +45,7 @@ const LibraryScreen = ({
               viewMode={viewMode}
               theme={currentTheme}
               onUpdate={loadBooks}
+              workDAO={workDAO} // Pass workDAO to BookCard if it needs to interact with works
             />
           ))
         ) : (

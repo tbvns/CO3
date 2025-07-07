@@ -2,95 +2,109 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 const HistoryItem = ({ item, currentTheme }) => {
-    const formatDate = (timestamp) => {
-        const date = new Date(timestamp);
-        const now = new Date();
-        const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+  const formatDate = (timestamp) => {
+    // Ensure timestamp is a valid number before proceeding
+    if (typeof timestamp !== 'number' || isNaN(timestamp)) {
+      return 'N/A'; // Or 'Invalid Date' as a fallback
+    }
 
-        if (diffInDays === 0) {
-            return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-        } else if (diffInDays === 1) {
-            return `Yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-        } else if (diffInDays < 7) {
-            return `${diffInDays} days ago`;
-        } else {
-            return date.toLocaleDateString();
-        }
-    };
+    const date = new Date(timestamp);
+    // Check if the Date object is valid (e.g., if timestamp was too large/small)
+    if (isNaN(date.getTime())) {
+      return 'N/A'; // Fallback if Date object creation results in an invalid date
+    }
 
-    const formatChapterRange = (start, end) => {
-        if (!end || start === end) {
-            return `Chapter ${start}`;
-        }
-        return `Chapters ${start} - ${end}`;
-    };
+    const now = new Date();
+    const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
 
-    return (
-        <View style={[styles.historyItem, { backgroundColor: currentTheme.cardBackground }]}>
-            <View style={styles.itemHeader}>
-                <Text style={[styles.bookTitle, { color: currentTheme.textColor }]} numberOfLines={1}>
-                    {item.book_title || 'Unknown Book'}
-                </Text>
-                <Text style={[styles.readTime, { color: currentTheme.placeholderColor }]}>
-                    {formatDate(item.date_read)}
-                </Text>
-            </View>
+    if (diffInDays === 0) {
+      return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } else if (diffInDays === 1) {
+      return `Yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } else if (diffInDays < 7) {
+      return `${diffInDays} days ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
 
-            <Text style={[styles.bookAuthor, { color: currentTheme.placeholderColor }]} numberOfLines={1}>
-                by {item.book_author || 'Unknown Author'}
-            </Text>
+  const formatChapterRange = (start, end) => {
+    if (!end || start === end) {
+      return `Chapter ${start}`;
+    }
+    return `Chapters ${start} - ${end}`;
+  };
 
-            <View style={styles.chapterInfo}>
-                <Text style={[styles.chapterText, { color: currentTheme.primaryColor }]}>
-                    {formatChapterRange(item.chapter_start, item.chapter_end)}
-                </Text>
-            </View>
-        </View>
-    );
+  return (
+    <View style={[styles.historyItem, { backgroundColor: currentTheme.cardBackground }]}>
+      <View style={styles.itemHeader}>
+        <Text style={[styles.bookTitle, { color: currentTheme.textColor }]} numberOfLines={1}>
+          {/* Use item.book_title if available (from joined data), otherwise fallback */}
+          {item.book_title || 'Unknown Book'}
+        </Text>
+        <Text style={[styles.readTime, { color: currentTheme.placeholderColor }]}>
+          {/* Use item.date from the History model */}
+          {formatDate(item.date)}
+        </Text>
+      </View>
+
+      <Text style={[styles.bookAuthor, { color: currentTheme.placeholderColor }]} numberOfLines={1}>
+        {/* Use item.book_author if available, otherwise fallback */}
+        by {item.book_author || 'Unknown Author'}
+      </Text>
+
+      <View style={styles.chapterInfo}>
+        <Text style={[styles.chapterText, { color: currentTheme.primaryColor }]}>
+          {/* Use item.chapter and item.chapterEnd from the History model */}
+          {formatChapterRange(item.chapter, item.chapterEnd)}
+        </Text>
+      </View>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    historyItem: {
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 8,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3.84,
-        elevation: 5,
+  historyItem: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
     },
-    itemHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 4,
-    },
-    bookTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        flex: 1,
-        marginRight: 8,
-    },
-    readTime: {
-        fontSize: 12,
-        fontWeight: '400',
-    },
-    bookAuthor: {
-        fontSize: 14,
-        marginBottom: 8,
-    },
-    chapterInfo: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    chapterText: {
-        fontSize: 14,
-        fontWeight: '500',
-    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  bookTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+    marginRight: 8,
+  },
+  readTime: {
+    fontSize: 12,
+    fontWeight: '400',
+  },
+  bookAuthor: {
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  chapterInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  chapterText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
 });
 
 export default HistoryItem;

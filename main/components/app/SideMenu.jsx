@@ -11,7 +11,10 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import DatabaseManager from '../../database/DatabaseManager';
+import { HistoryDAO } from '../../database/HistoryDAO'; // Import HistoryDAO
+import { WorkDAO } from '../../database/WorkDAO'; // Import WorkDAO
+import { SettingsDAO } from '../../database/SettingsDAO'; // Import SettingsDAO
+import { database } from '../../database/Database'; // Import the database instance
 
 const SideMenu = ({
                     isOpen,
@@ -23,19 +26,39 @@ const SideMenu = ({
                     viewMode,
                     setViewMode,
                     currentTheme,
+                    historyDAO, // Accept historyDAO as prop
+                    workDAO,    // Accept workDAO as prop
+                    settingsDAO, // Accept settingsDAO as prop
                   }) => {
   const [history, setHistory] = useState([]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && historyDAO && workDAO) { // Ensure both DAOs are available
       loadHistory();
     }
-  }, [isOpen]);
+  }, [isOpen, historyDAO, workDAO]); // Rerun when isOpen or DAOs change
 
   const loadHistory = async () => {
     try {
-      const historyData = await DatabaseManager.getHistory(10); // Limit to 10 recent items
-      setHistory(historyData);
+      const historyData = await historyDAO.getAll(); // Get all history items
+
+      // Fetch work details for each history item
+      const historyWithWorkDetails = await Promise.all(
+        historyData.map(async (item) => {
+          const work = await workDAO.get(item.workId);
+          return {
+            ...item,
+            book_title: work ? work.title : 'Unknown Title',
+            book_author: work ? work.author : 'Unknown Author',
+          };
+        })
+      );
+
+      // Limit to 10 recent items if needed, after fetching details
+      // You can sort by date and then slice, or implement a getRecentHistory(limit) in HistoryDAO
+      const limitedHistory = historyWithWorkDetails.sort((a, b) => b.date - a.date).slice(0, 10);
+      setHistory(limitedHistory);
+
     } catch (error) {
       console.error('Error loading history:', error);
     }
@@ -52,9 +75,11 @@ const SideMenu = ({
           style: 'destructive',
           onPress: async () => {
             try {
-              await DatabaseManager.clearHistory();
-              setHistory([]);
-              Alert.alert('Success', 'History cleared successfully');
+              if (historyDAO) { // Ensure historyDAO is available
+                await historyDAO.deleteAll(); // Use historyDAO to clear all history
+                setHistory([]);
+                Alert.alert('Success', 'History cleared successfully');
+              }
             } catch (error) {
               console.error('Error clearing history:', error);
               Alert.alert('Error', 'Failed to clear history');
@@ -298,29 +323,30 @@ const SideMenu = ({
                 <ScrollView style={styles.historyContainer} nestedScrollEnabled={true}>
                   {history.map((item) => (
                     <View
-                      key={item.id}
+                      key={item.id} // Added unique key prop here
                       style={[styles.historyItem, { backgroundColor: currentTheme.inputBackground }]}
                     >
                       <View style={styles.historyItemContent}>
+                        {/* Assuming history items now directly contain work details or you fetch them */}
                         <Text
                           style={[styles.historyTitle, { color: currentTheme.textColor }]}
                           numberOfLines={1}
                         >
-                          {item.book_title}
+                          {item.book_title || `Work ID: ${item.workId}`} {/* Placeholder if book_title is not directly available */}
                         </Text>
                         <Text
                           style={[styles.historyAuthor, { color: currentTheme.secondaryTextColor }]}
                           numberOfLines={1}
                         >
-                          by {item.book_author}
+                          by {item.book_author || 'Unknown Author'} {/* Placeholder */}
                         </Text>
                         <Text style={[styles.historyChapter, { color: currentTheme.secondaryTextColor }]}>
-                          {formatChapterInfo(item.chapter_start, item.chapter_end)}
+                          {formatChapterInfo(item.chapter, item.chapterEnd)} {/* Use chapter and chapterEnd from History model */}
                         </Text>
                       </View>
                       <View style={styles.historyMeta}>
                         <Text style={[styles.historyDate, { color: currentTheme.secondaryTextColor }]}>
-                          {formatDate(item.date_read)}
+                          {formatDate(item.date)} {/* Use 'date' from History model */}
                         </Text>
                       </View>
                     </View>
