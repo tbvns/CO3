@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import BookCard from '../components/BookCard';
+import BookCard from '../components/Library/BookCard';
 
 const LibraryScreen = ({
                          searchTerm,

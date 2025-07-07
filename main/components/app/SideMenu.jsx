@@ -11,7 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import DatabaseManager from '../database/DatabaseManager';
+import DatabaseManager from '../../database/DatabaseManager';
 
 const SideMenu = ({
                     isOpen,

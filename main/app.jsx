@@ -13,8 +13,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-import SideMenu from './components/SideMenu';
-import AddWorkModal from './components/AddWorkModal';
+import SideMenu from './components/app/SideMenu';
+import AddWorkModal from './components/Library/AddWorkModal';
 import DatabaseManager from './database/DatabaseManager';
 import { themes } from './utils/themes';
 import { STORAGE_KEYS } from './utils/constants';
@@ -24,7 +24,6 @@ import UpdateScreen from './screens/Update';
 import BrowseScreen from './screens/Browse';
 import HistoryScreen from './screens/History';
 import MoreScreen from './screens/More';
-import databaseManager from './database/DatabaseManager';
 
 const TopBar = ({ currentTheme, activeScreen, setIsSideMenuOpen, searchTerm, setSearchTerm }) => {
   const showSearch = activeScreen === 'library';
@@ -131,7 +130,7 @@ const App = () => {
       await DatabaseManager.initializeDatabase();
       await loadSettings();
       await loadBooks();
-      DatabaseManager.addToHistory(65484, 1, 65465, "bookTitle", "bookAuthor").then(r => console.log(r));
+      await DatabaseManager.addToHistory(1751806764527, 1, 654123, 'Hello !', "world");
     } catch (error) {
       console.error('Error initializing app:', error);
       Alert.alert('Error', 'Failed to initialize app');
@@ -231,15 +230,15 @@ const App = () => {
 
   const currentTheme = themes[theme];
 
-  if (loading) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
-        <View style={styles.loadingContainer}>
-          <Text style={[styles.loadingText, { color: currentTheme.textColor }]}>Loading...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+  //       <View style={styles.loadingContainer}>
+  //         <Text style={[styles.loadingText, { color: currentTheme.textColor }]}>Loading...</Text>
+  //       </View>
+  //     </SafeAreaView>
+  //   );
+  // }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
