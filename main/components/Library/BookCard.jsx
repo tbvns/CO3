@@ -66,7 +66,7 @@ const BookCard = ({ book, viewMode, theme, onUpdate }) => {
   const statusImage = imageMappings.isCompleted[book.isCompleted] || imageMappings.isCompleted.null;
 
   const images = [ratingImage, categoryImage, warningImage, statusImage];
-  const gridSize = isSmall ? 48 : 100;
+  const gridSize = isSmall ? 50 : 75;
   const imageSize = gridSize / 2;
 
   return (
@@ -77,14 +77,60 @@ const BookCard = ({ book, viewMode, theme, onUpdate }) => {
       ]}>
         <View style={[styles.imageSection, isSmall && styles.smallImageSection]}>
           {/* Status image grid */}
-          <View style={[styles.imageGrid, { width: gridSize, height: gridSize }]}>
+          <View style={[styles.imageGrid, {
+            width: gridSize,
+            height: gridSize,
+            marginRight: 16,
+            borderRadius: 4,
+            overflow: 'hidden',
+          }]}>
             <View style={styles.imageRow}>
-              <Image source={images[0]} style={[styles.statusImage, { width: imageSize, height: imageSize }]} />
-              <Image source={images[1]} style={[styles.statusImage, { width: imageSize, height: imageSize }]} />
+              <Image
+                  source={images[0]}
+                  style={[
+                    styles.statusImage,
+                    {
+                      width: imageSize,
+                      height: imageSize,
+                      marginRight: -StyleSheet.hairlineWidth,
+                      marginBottom: -StyleSheet.hairlineWidth,
+                    }
+                  ]}
+              />
+              <Image
+                  source={images[1]}
+                  style={[
+                    styles.statusImage,
+                    {
+                      width: imageSize,
+                      height: imageSize,
+                      marginBottom: -StyleSheet.hairlineWidth,
+                    }
+                  ]}
+              />
             </View>
             <View style={styles.imageRow}>
-              <Image source={images[2]} style={[styles.statusImage, { width: imageSize, height: imageSize }]} />
-              <Image source={images[3]} style={[styles.statusImage, { width: imageSize, height: imageSize }]} />
+              <Image
+                  source={images[2]}
+                  style={[
+                    styles.statusImage,
+                    {
+                      width: imageSize,
+                      height: imageSize,
+                      marginRight: -StyleSheet.hairlineWidth,
+                    }
+                  ]}
+              />
+              <Image
+                  source={images[3]}
+                  style={[
+                    styles.statusImage,
+                    {
+                      width: imageSize,
+                      height: imageSize,
+                    }
+                  ]}
+              />
             </View>
           </View>
 
@@ -224,9 +270,11 @@ const styles = StyleSheet.create({
   },
   imageRow: {
     flexDirection: 'row',
+    marginBottom: 0,
   },
   statusImage: {
     resizeMode: 'contain',
+    margin: 0,
   },
   titleSection: {
     flex: 1,

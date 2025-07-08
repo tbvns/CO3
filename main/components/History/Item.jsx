@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 const HistoryItem = ({ item, currentTheme }) => {
+  console.log(item.date);
+
   const formatDate = (timestamp) => {
     if (typeof timestamp !== 'number' || isNaN(timestamp)) {
       return 'N/A';

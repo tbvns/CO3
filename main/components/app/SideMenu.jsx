@@ -11,10 +11,6 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { HistoryDAO } from '../../database/HistoryDAO'; // Import HistoryDAO
-import { WorkDAO } from '../../database/WorkDAO'; // Import WorkDAO
-import { SettingsDAO } from '../../database/SettingsDAO'; // Import SettingsDAO
-import { database } from '../../database/Database'; // Import the database instance
 
 const SideMenu = ({
                     isOpen,
@@ -43,14 +39,14 @@ const SideMenu = ({
       const historyData = await historyDAO.getAll();
 
       const historyWithWorkDetails = await Promise.all(
-        historyData.map(async (item) => {
-          const work = await workDAO.get(item.workId);
-          return {
-            ...item,
-            book_title: work ? work.title : 'Unknown Title',
-            book_author: work ? work.author : 'Unknown Author',
-          };
-        })
+          historyData.map(async (item) => {
+            const work = await workDAO.get(item.workId);
+            return {
+              ...item,
+              book_title: work ? work.title : 'Unknown Title',
+              book_author: work ? work.author : 'Unknown Author',
+            };
+          })
       );
 
       const limitedHistory = historyWithWorkDetails.sort((a, b) => b.date - a.date).slice(0, 10);
@@ -63,27 +59,27 @@ const SideMenu = ({
 
   const clearHistory = async () => {
     Alert.alert(
-      'Clear History',
-      'Are you sure you want to clear all history?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              if (historyDAO) {
-                await historyDAO.deleteAll();
-                setHistory([]);
-                Alert.alert('Success', 'History cleared successfully');
+        'Clear History',
+        'Are you sure you want to clear all history?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Clear',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                if (historyDAO) {
+                  await historyDAO.deleteAll();
+                  setHistory([]);
+                  Alert.alert('Success', 'History cleared successfully');
+                }
+              } catch (error) {
+                console.error('Error clearing history:', error);
+                Alert.alert('Error', 'Failed to clear history');
               }
-            } catch (error) {
-              console.error('Error clearing history:', error);
-              Alert.alert('Error', 'Failed to clear history');
-            }
+            },
           },
-        },
-      ]
+        ]
     );
   };
 
@@ -124,6 +120,30 @@ const SideMenu = ({
     }
   };
 
+  // Fixed theme button handler
+  const handleThemeChange = (newTheme) => {
+    console.log('Theme change requested:', newTheme);
+    if (setTheme && typeof setTheme === 'function') {
+      setTheme(newTheme);
+    }
+  };
+
+  // Fixed view mode handler
+  const handleViewModeChange = (newMode) => {
+    console.log('View mode change requested:', newMode);
+    if (setViewMode && typeof setViewMode === 'function') {
+      setViewMode(newMode);
+    }
+  };
+
+  // Fixed incognito toggle handler
+  const handleIncognitoToggle = () => {
+    console.log('Incognito toggle requested, current state:', isIncognitoMode);
+    if (toggleIncognitoMode && typeof toggleIncognitoMode === 'function') {
+      toggleIncognitoMode();
+    }
+  };
+
   const ThemeButton = ({ themeKey, label, isActive, onPress }) => {
     let buttonStyle = [styles.themeButton];
     let textStyle = [styles.themeButtonText];
@@ -145,12 +165,13 @@ const SideMenu = ({
     }
 
     return (
-      <TouchableOpacity
-        style={buttonStyle}
-        onPress={onPress}
-      >
-        <Text style={textStyle}>{label}</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+            style={buttonStyle}
+            onPress={onPress}
+            activeOpacity={0.7}
+        >
+          <Text style={textStyle}>{label}</Text>
+        </TouchableOpacity>
     );
   };
 
@@ -167,12 +188,13 @@ const SideMenu = ({
     }
 
     return (
-      <TouchableOpacity
-        style={buttonStyle}
-        onPress={onPress}
-      >
-        <Text style={textStyle}>{label}</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+            style={buttonStyle}
+            onPress={onPress}
+            activeOpacity={0.7}
+        >
+          <Text style={textStyle}>{label}</Text>
+        </TouchableOpacity>
     );
   };
 
@@ -200,198 +222,204 @@ const SideMenu = ({
   const switchColors = getSwitchColors();
 
   return (
-    <Modal
-      visible={isOpen}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-    >
-      <SafeAreaView style={styles.overlay}>
-        <View style={[styles.sideMenu, { backgroundColor: currentTheme.cardBackground }]}>
-          <View style={[styles.header, { borderBottomColor: currentTheme.borderColor }]}>
-            <Text style={[styles.title, { color: currentTheme.textColor }]}>Settings</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Icon name="close" size={24} color={currentTheme.iconColor} />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView style={styles.content}>
-            {/* Theme Section */}
-            <View style={[styles.section, { borderBottomColor: currentTheme.borderColor }]}>
-              <View style={styles.sectionHeader}>
-                <Icon name={getThemeIcon()} size={20} color={currentTheme.iconColor} />
-                <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
-                  Theme
-                </Text>
-              </View>
-              <View style={[styles.themeContainer, { backgroundColor: currentTheme.inputBackground }]}>
-                <ThemeButton
-                  themeKey="light"
-                  label="Light"
-                  isActive={theme === 'light'}
-                  onPress={() => setTheme('light')}
-                />
-                <ThemeButton
-                  themeKey="dark"
-                  label="Dark"
-                  isActive={theme === 'dark'}
-                  onPress={() => setTheme('dark')}
-                />
-                <ThemeButton
-                  themeKey="black"
-                  label="Black"
-                  isActive={theme === 'black'}
-                  onPress={() => setTheme('black')}
-                />
-              </View>
+      <Modal
+          visible={isOpen}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={onClose}
+      >
+        <TouchableOpacity
+            style={styles.overlay}
+            activeOpacity={1}
+            onPress={onClose}
+        >
+          <TouchableOpacity
+              style={[styles.sideMenu, { backgroundColor: currentTheme.cardBackground }]}
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+          >
+            <View style={[styles.header, { borderBottomColor: currentTheme.borderColor }]}>
+              <Text style={[styles.title, { color: currentTheme.textColor }]}>Settings</Text>
+              <TouchableOpacity onPress={onClose}>
+                <Icon name="close" size={24} color={currentTheme.iconColor} />
+              </TouchableOpacity>
             </View>
 
-            {/* View Mode Section */}
-            <View style={[styles.section, { borderBottomColor: currentTheme.borderColor }]}>
-              <View style={styles.sectionHeader}>
-                <Icon name="view-module" size={20} color={currentTheme.iconColor} />
-                <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
-                  View Mode
-                </Text>
-              </View>
-              <View style={[styles.viewModeContainer, { backgroundColor: currentTheme.inputBackground }]}>
-                <ViewModeButton
-                  mode="full"
-                  label="Full"
-                  isActive={viewMode === 'full'}
-                  onPress={() => setViewMode('full')}
-                />
-                <ViewModeButton
-                  mode="med"
-                  label="Med"
-                  isActive={viewMode === 'med'}
-                  onPress={() => setViewMode('med')}
-                />
-                <ViewModeButton
-                  mode="small"
-                  label="Small"
-                  isActive={viewMode === 'small'}
-                  onPress={() => setViewMode('small')}
-                />
-              </View>
-            </View>
-
-            {/* Incognito Mode Section */}
-            <View style={[styles.section, { borderBottomColor: currentTheme.borderColor }]}>
-              <View style={styles.switchContainer}>
-                <View style={styles.switchLeft}>
-                  <Icon
-                    name={isIncognitoMode ? 'visibility-off' : 'visibility'}
-                    size={20}
-                    color={currentTheme.iconColor}
-                  />
-                  <Text style={[styles.switchText, { color: currentTheme.textColor }]}>
-                    Incognito Mode
-                  </Text>
-                </View>
-                <Switch
-                  value={isIncognitoMode}
-                  onValueChange={toggleIncognitoMode}
-                  thumbColor={switchColors.thumbColor}
-                  trackColor={switchColors.trackColor}
-                  ios_backgroundColor={switchColors.trackColor.false}
-                />
-              </View>
-            </View>
-
-            {/* History Section */}
-            <View style={[styles.section, { borderBottomColor: currentTheme.borderColor }]}>
-              <View style={styles.historyHeader}>
+            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+              {/* Theme Section */}
+              <View style={[styles.section, { borderBottomColor: currentTheme.borderColor }]}>
                 <View style={styles.sectionHeader}>
-                  <Icon name="history" size={20} color={currentTheme.iconColor} />
+                  <Icon name={getThemeIcon()} size={20} color={currentTheme.iconColor} />
                   <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
-                    Recent History
+                    Theme
                   </Text>
                 </View>
-                {history.length > 0 && (
-                  <TouchableOpacity onPress={clearHistory}>
-                    <Text style={[styles.clearButton, { color: currentTheme.primaryColor }]}>
-                      Clear
+                <View style={[styles.themeContainer, { backgroundColor: currentTheme.inputBackground }]}>
+                  <ThemeButton
+                      themeKey="light"
+                      label="Light"
+                      isActive={theme === 'light'}
+                      onPress={() => handleThemeChange('light')}
+                  />
+                  <ThemeButton
+                      themeKey="dark"
+                      label="Dark"
+                      isActive={theme === 'dark'}
+                      onPress={() => handleThemeChange('dark')}
+                  />
+                  <ThemeButton
+                      themeKey="black"
+                      label="Black"
+                      isActive={theme === 'black'}
+                      onPress={() => handleThemeChange('black')}
+                  />
+                </View>
+              </View>
+
+              {/* View Mode Section */}
+              <View style={[styles.section, { borderBottomColor: currentTheme.borderColor }]}>
+                <View style={styles.sectionHeader}>
+                  <Icon name="view-module" size={20} color={currentTheme.iconColor} />
+                  <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
+                    View Mode
+                  </Text>
+                </View>
+                <View style={[styles.viewModeContainer, { backgroundColor: currentTheme.inputBackground }]}>
+                  <ViewModeButton
+                      mode="full"
+                      label="Full"
+                      isActive={viewMode === 'full'}
+                      onPress={() => handleViewModeChange('full')}
+                  />
+                  <ViewModeButton
+                      mode="med"
+                      label="Med"
+                      isActive={viewMode === 'med'}
+                      onPress={() => handleViewModeChange('med')}
+                  />
+                  <ViewModeButton
+                      mode="small"
+                      label="Small"
+                      isActive={viewMode === 'small'}
+                      onPress={() => handleViewModeChange('small')}
+                  />
+                </View>
+              </View>
+
+              {/* Incognito Mode Section */}
+              <View style={[styles.section, { borderBottomColor: currentTheme.borderColor }]}>
+                <View style={styles.switchContainer}>
+                  <View style={styles.switchLeft}>
+                    <Icon
+                        name={isIncognitoMode ? 'visibility-off' : 'visibility'}
+                        size={20}
+                        color={currentTheme.iconColor}
+                    />
+                    <Text style={[styles.switchText, { color: currentTheme.textColor }]}>
+                      Incognito Mode
                     </Text>
-                  </TouchableOpacity>
+                  </View>
+                  <Switch
+                      value={isIncognitoMode}
+                      onValueChange={handleIncognitoToggle}
+                      thumbColor={switchColors.thumbColor}
+                      trackColor={switchColors.trackColor}
+                      ios_backgroundColor={switchColors.trackColor.false}
+                  />
+                </View>
+              </View>
+
+              {/* History Section */}
+              <View style={[styles.section, { borderBottomColor: currentTheme.borderColor }]}>
+                <View style={styles.historyHeader}>
+                  <View style={styles.sectionHeader}>
+                    <Icon name="history" size={20} color={currentTheme.iconColor} />
+                    <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
+                      Recent History
+                    </Text>
+                  </View>
+                  {history.length > 0 && (
+                      <TouchableOpacity onPress={clearHistory}>
+                        <Text style={[styles.clearButton, { color: currentTheme.primaryColor }]}>
+                          Clear
+                        </Text>
+                      </TouchableOpacity>
+                  )}
+                </View>
+                {history.length > 0 ? (
+                    <ScrollView style={styles.historyContainer} nestedScrollEnabled={true}>
+                      {history.map((item) => (
+                          <View
+                              key={item.id}
+                              style={[styles.historyItem, { backgroundColor: currentTheme.inputBackground }]}
+                          >
+                            <View style={styles.historyItemContent}>
+                              <Text
+                                  style={[styles.historyTitle, { color: currentTheme.textColor }]}
+                                  numberOfLines={1}
+                              >
+                                {item.book_title || `Work ID: ${item.workId}`}
+                              </Text>
+                              <Text
+                                  style={[styles.historyAuthor, { color: currentTheme.secondaryTextColor }]}
+                                  numberOfLines={1}
+                              >
+                                by {item.book_author || 'Unknown Author'}
+                              </Text>
+                              <Text style={[styles.historyChapter, { color: currentTheme.secondaryTextColor }]}>
+                                {formatChapterInfo(item.chapter, item.chapterEnd)}
+                              </Text>
+                            </View>
+                            <View style={styles.historyMeta}>
+                              <Text style={[styles.historyDate, { color: currentTheme.secondaryTextColor }]}>
+                                {formatDate(item.date)}
+                              </Text>
+                            </View>
+                          </View>
+                      ))}
+                    </ScrollView>
+                ) : (
+                    <Text style={[styles.noHistoryText, { color: currentTheme.secondaryTextColor }]}>
+                      No recent history.
+                    </Text>
                 )}
               </View>
-              {history.length > 0 ? (
-                <ScrollView style={styles.historyContainer} nestedScrollEnabled={true}>
-                  {history.map((item) => (
-                    <View
-                      key={item.id}
-                      style={[styles.historyItem, { backgroundColor: currentTheme.inputBackground }]}
-                    >
-                      <View style={styles.historyItemContent}>
-                        {/* Assuming history items now directly contain work details or you fetch them */}
-                        <Text
-                          style={[styles.historyTitle, { color: currentTheme.textColor }]}
-                          numberOfLines={1}
-                        >
-                          {item.book_title || `Work ID: ${item.workId}`} {/* Placeholder if book_title is not directly available */}
-                        </Text>
-                        <Text
-                          style={[styles.historyAuthor, { color: currentTheme.secondaryTextColor }]}
-                          numberOfLines={1}
-                        >
-                          by {item.book_author || 'Unknown Author'} {/* Placeholder */}
-                        </Text>
-                        <Text style={[styles.historyChapter, { color: currentTheme.secondaryTextColor }]}>
-                          {formatChapterInfo(item.chapter, item.chapterEnd)} {/* Use chapter and chapterEnd from History model */}
-                        </Text>
-                      </View>
-                      <View style={styles.historyMeta}>
-                        <Text style={[styles.historyDate, { color: currentTheme.secondaryTextColor }]}>
-                          {formatDate(item.date)} {/* Use 'date' from History model */}
-                        </Text>
-                      </View>
-                    </View>
-                  ))}
-                </ScrollView>
-              ) : (
-                <Text style={[styles.noHistoryText, { color: currentTheme.secondaryTextColor }]}>
-                  No recent history.
-                </Text>
-              )}
-            </View>
-          </ScrollView>
+            </ScrollView>
 
-          {/* Footer */}
-          <View style={[styles.footer, { borderTopColor: currentTheme.borderColor }]}>
-            <View style={styles.supportSection}>
-              <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
-                Support us
-              </Text>
-              <View style={styles.supportContainer}>
-                <TouchableOpacity
-                  style={[styles.supportButton, { backgroundColor: '#22c55e' }]}
-                  onPress={() => console.log('Support AO3 clicked')}
-                >
-                  <Text style={styles.supportButtonText}>AO3</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.supportButton, { backgroundColor: '#6366f1' }]}
-                  onPress={() => console.log('Support CO3 clicked')}
-                >
-                  <Text style={styles.supportButtonText}>CO3</Text>
-                </TouchableOpacity>
+            {/* Footer */}
+            <View style={[styles.footer, { borderTopColor: currentTheme.borderColor }]}>
+              <View style={styles.supportSection}>
+                <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
+                  Support us
+                </Text>
+                <View style={styles.supportContainer}>
+                  <TouchableOpacity
+                      style={[styles.supportButton, { backgroundColor: '#22c55e' }]}
+                      onPress={() => console.log('Support AO3 clicked')}
+                  >
+                    <Text style={styles.supportButtonText}>AO3</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                      style={[styles.supportButton, { backgroundColor: '#6366f1' }]}
+                      onPress={() => console.log('Support CO3 clicked')}
+                  >
+                    <Text style={styles.supportButtonText}>CO3</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
+              <Text style={[styles.version, { color: currentTheme.secondaryTextColor }]}>
+                Version 1.0
+              </Text>
             </View>
-            <Text style={[styles.version, { color: currentTheme.secondaryTextColor }]}>
-              Version 1.0
-            </Text>
-          </View>
-        </View>
-      </SafeAreaView>
-    </Modal>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
   );
 };
 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'transparent',
     justifyContent: 'flex-end',
   },
   sideMenu: {

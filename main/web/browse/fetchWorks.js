@@ -98,88 +98,161 @@ function categorizeTagsByClass(workElement) {
     return categorized;
 }
 
-export async function getRecentWorks() {
+function extractPaginationInfo(doc) {
+    const paginationElement = doc.getElementsByClassName("pagination")[0];
+    if (!paginationElement) return { currentPage: 1, maxPages: 1 };
+
+    const pageLinks = Array.from(paginationElement.getElementsByTagName("a"));
+    const pageNumbers = pageLinks
+        .map(link => {
+            const href = link.getAttribute("href");
+            if (href) {
+                const match = href.match(/[?&]page=(\d+)/);
+                return match ? parseInt(match[1], 10) : null;
+            }
+            return null;
+        })
+        .filter(num => num !== null);
+
+    const currentSpan = paginationElement.getElementsByClassName("current")[0];
+    const currentPage = currentSpan ? parseInt(getElementText(currentSpan), 10) : 1;
+    const maxPages = pageNumbers.length > 0 ? Math.max(...pageNumbers) : currentPage;
+
+    return { currentPage, maxPages };
+}
+
+function parseWorkElements(workElements) {
+    return workElements.map(workElement => {
+        const workId = workElement.getAttribute("id")?.replace("work_", "") || null;
+
+        const heading = workElement.getElementsByTagName("h4")[0];
+        const titleElement = heading?.getElementsByTagName("a")[0];
+        const authorElement = Array.from(heading?.getElementsByTagName("a") || [])
+            .find(a => a.getAttribute("rel") === "author");
+
+        const requiredTags = extractRequiredTags(workElement);
+        const categorizedTags = categorizeTagsByClass(workElement);
+
+        const allTags = [
+            ...categorizedTags.relationships,
+            ...categorizedTags.characters,
+            ...categorizedTags.freeforms
+        ];
+
+        const summaryElement = workElement.getElementsByClassName("userstuff summary")[0]?.getElementsByTagName("p")[0];
+        const dateElement = workElement.getElementsByClassName("datetime")[0];
+        const dateText = getElementText(dateElement);
+
+        const stats = {};
+        const statElements = workElement.getElementsByClassName("stats")[0];
+
+        if (statElements) {
+            const ddElements = Array.from(statElements.getElementsByTagName("dd"));
+            ddElements.forEach(dd => {
+                const className = dd.getAttribute("class") || "";
+                const value = getElementText(dd);
+                if (value) {
+                    stats[className] = value;
+                }
+            });
+        }
+
+        const chapterInfo = parseChapters(stats.chapters);
+
+        const parseNumber = (str) => {
+            if (!str) return 0;
+            const num = parseInt(str.replace(/,/g, ''), 10);
+            return isNaN(num) ? 0 : num;
+        };
+
+        return new Work({
+            id: workId,
+            title: getElementText(titleElement),
+            author: getElementText(authorElement),
+            kudos: parseNumber(stats.kudos),
+            hits: parseNumber(stats.hits),
+            language: stats.language || 'English',
+            updated: parseDate(dateText),
+            bookmarks: parseNumber(stats.bookmarks),
+            tags: allTags,
+            warnings: categorizedTags.warnings,
+            description: getElementText(summaryElement),
+            chapters: [],
+            currentChapter: chapterInfo.current,
+            chapterCount: chapterInfo.total,
+            rating: requiredTags.rating || 'Not Rated',
+            category: requiredTags.category || 'None',
+            warningStatus: requiredTags.warningStatus || 'NoWarningsApply',
+            isCompleted: requiredTags.isCompleted
+        });
+    });
+}
+
+export async function fetchFilteredWorks(filters = {}, page = 1) {
     try {
-        const response = await ky.get("https://archiveofourown.org/works").text();
+        let url = "https://archiveofourown.org/works";
+
+        // If filters are provided, use search endpoint
+        if (Object.keys(filters).length > 0) {
+            url = "https://archiveofourown.org/works/search";
+            const params = new URLSearchParams();
+
+            // Add all filter parameters
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== null && value !== undefined && value !== '') {
+                    if (Array.isArray(value)) {
+                        value.forEach(v => params.append(key, v));
+                    } else {
+                        params.append(key, value);
+                    }
+                }
+            });
+
+            // Add page parameter
+            if (page > 1) {
+                params.append('page', page.toString());
+            }
+
+            params.append('commit', 'Search');
+            url += '?' + params.toString();
+        } else {
+            // For browsing recent works, add page parameter if needed
+            if (page > 1) {
+                url += `?page=${page}`;
+            }
+        }
+
+        console.log(`Fetching works from: ${url}`);
+        const response = await ky.get(url).text();
         const doc = new DomParser().parseFromString(response, "text/html");
 
         const workElements = Array.from(doc.getElementsByTagName("li"))
             .filter(li => li.getAttribute("class")?.includes("work blurb"));
 
-        console.log(`Found ${workElements.length} work elements`);
+        const works = parseWorkElements(workElements);
+        const paginationInfo = extractPaginationInfo(doc);
 
-        return workElements.map(workElement => {
-            const workId = workElement.getAttribute("id")?.replace("work_", "") || null;
+        console.log(`Found ${works.length} works on page ${paginationInfo.currentPage} of ${paginationInfo.maxPages}`);
 
-            const heading = workElement.getElementsByTagName("h4")[0];
-            const titleElement = heading?.getElementsByTagName("a")[0];
-            const authorElement = Array.from(heading?.getElementsByTagName("a") || [])
-                .find(a => a.getAttribute("rel") === "author");
-
-            const fandomElements = Array.from(
-                workElement.getElementsByClassName("fandoms")[0]?.getElementsByTagName("a") || []
-            );
-
-            const requiredTags = extractRequiredTags(workElement);
-
-            const categorizedTags = categorizeTagsByClass(workElement);
-
-            const allTags = [
-                ...categorizedTags.relationships,
-                ...categorizedTags.characters,
-                ...categorizedTags.freeforms
-            ];
-
-            const summaryElement = workElement.getElementsByClassName("userstuff summary")[0]?.getElementsByTagName("p")[0];
-
-            const dateElement = workElement.getElementsByClassName("datetime")[0];
-            const dateText = getElementText(dateElement);
-
-            const stats = {};
-            const statElements = workElement.getElementsByClassName("stats")[0];
-
-            if (statElements) {
-                const ddElements = Array.from(statElements.getElementsByTagName("dd"));
-                ddElements.forEach(dd => {
-                    const className = dd.getAttribute("class") || "";
-                    const value = getElementText(dd);
-                    if (value) {
-                        stats[className] = value;
-                    }
-                });
-            }
-
-            const chapterInfo = parseChapters(stats.chapters);
-
-            const parseNumber = (str) => {
-                if (!str) return 0;
-                const num = parseInt(str.replace(/,/g, ''), 10);
-                return isNaN(num) ? 0 : num;
-            };
-
-            return new Work({
-                id: workId,
-                title: getElementText(titleElement),
-                author: getElementText(authorElement),
-                kudos: parseNumber(stats.kudos),
-                hits: parseNumber(stats.hits),
-                language: stats.language || 'English',
-                updated: parseDate(dateText),
-                bookmarks: parseNumber(stats.bookmarks),
-                tags: allTags,
-                warnings: categorizedTags.warnings,
-                description: getElementText(summaryElement),
-                chapters: [],
-                currentChapter: chapterInfo.current,
-                chapterCount: chapterInfo.total,
-                rating: requiredTags.rating || 'Not Rated',
-                category: requiredTags.category || 'None',
-                warningStatus: requiredTags.warningStatus || 'NoWarningsApply',
-                isCompleted: requiredTags.isCompleted
-            });
-        });
+        return {
+            works,
+            currentPage: paginationInfo.currentPage,
+            maxPages: paginationInfo.maxPages,
+            hasMore: paginationInfo.currentPage < paginationInfo.maxPages
+        };
     } catch (error) {
-        console.error("Error:", error);
-        return [];
+        console.error("Error fetching works:", error);
+        return {
+            works: [],
+            currentPage: 1,
+            maxPages: 1,
+            hasMore: false
+        };
     }
+}
+
+// Keep the old function for backward compatibility
+export async function getRecentWorks() {
+    const result = await fetchFilteredWorks({}, 1);
+    return result.works;
 }

@@ -103,7 +103,6 @@ const CalendarModal = ({
     return (
         <Modal
             visible={visible}
-            animationType="slide"
             transparent={true}
             onRequestClose={onClose}
         >

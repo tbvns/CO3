@@ -10,7 +10,7 @@ const HistoryList = ({ history, currentTheme, loadingMore, hasMore }) => {
 
         const groups = {};
         historyItems.forEach(item => {
-            const date = new Date(item.date_read);
+            const date = new Date(item.date);
             const dateKey = date.toDateString();
 
             if (!groups[dateKey]) {
@@ -27,6 +27,7 @@ const HistoryList = ({ history, currentTheme, loadingMore, hasMore }) => {
             {groupHistoryByDate(history).map(([dateKey, items]) => (
                 <View key={dateKey} style={styles.dateGroup}>
                     <Text style={[styles.dateHeader, { color: currentTheme.textColor }]}>
+                        {/* This part correctly formats the valid dateKey for display */}
                         {new Date(dateKey).toLocaleDateString('en-US', {
                             weekday: 'long',
                             year: 'numeric',
@@ -44,6 +45,7 @@ const HistoryList = ({ history, currentTheme, loadingMore, hasMore }) => {
                 </View>
             ))}
 
+            {/* Loading indicator for pagination */}
             {loadingMore && (
                 <View style={styles.loadingMore}>
                     <ActivityIndicator size="small" color={currentTheme.primaryColor} />
@@ -53,6 +55,7 @@ const HistoryList = ({ history, currentTheme, loadingMore, hasMore }) => {
                 </View>
             )}
 
+            {/* End of list message */}
             {!hasMore && history.length > 0 && (
                 <View style={styles.endOfList}>
                     <Text style={[styles.endOfListText, { color: currentTheme.placeholderColor }]}>

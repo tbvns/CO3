@@ -141,9 +141,12 @@ const App = () => {
   const initializeApp = async () => {
     try {
       const db = await database.open();
-      setWorkDAO(new WorkDAO(db));
-      setHistoryDAO(new HistoryDAO(db));
+      const newWorkDAO = new WorkDAO(db);
+      const newHistoryDAO = new HistoryDAO(db);
       const newSettingsDAO = new SettingsDAO(db);
+
+      setWorkDAO(newWorkDAO);
+      setHistoryDAO(newHistoryDAO);
       setSettingsDAO(newSettingsDAO);
 
       const loadedSettings = await newSettingsDAO.getSettings();
@@ -151,14 +154,17 @@ const App = () => {
       setIsIncognitoMode(loadedSettings.isIncognitoMode);
       setViewMode(loadedSettings.viewMode);
 
-      await loadBooks();
+      // Load books here after setting workDAO
+      const booksData = await newWorkDAO.getAll();
+      setBooks(booksData);
 
-      if (historyDAO) {
-        await historyDAO.add({ workId: 654123, date: Date.now(), chapter: 1, chapterEnd: 654123 });
-      } else {
-        const tempHistoryDAO = new HistoryDAO(db);
-        await tempHistoryDAO.add({ workId: 654123, date: Date.now(), chapter: 1, chapterEnd: 654123 });
-      }
+      // Add test history entry
+      await newHistoryDAO.add({
+        workId: 654123,
+        date: Date.now(),
+        chapter: 1,
+        chapterEnd: 654123
+      });
 
     } catch (error) {
       console.error('Error initializing app:', error);
@@ -167,6 +173,12 @@ const App = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (workDAO) {
+      loadBooks();
+    }
+  }, [workDAO]);
 
   const loadBooks = async () => {
     try {
