@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import BookDetailsModal from './BookDetailsModal';
+import More from "../../screens/More";
+import MoreScreen from "../../screens/More";
 
 const imageMappings = {
   rating: {
@@ -43,7 +45,7 @@ const imageMappings = {
   }
 };
 
-const BookCard = ({ book, viewMode, theme, onUpdate }) => {
+const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens }) => {
   const [isMainModalOpen, setIsMainModalOpen] = useState(false);
   const [isAllTagsModalOpen, setIsAllTagsModalOpen] = useState(false);
 
@@ -70,7 +72,10 @@ const BookCard = ({ book, viewMode, theme, onUpdate }) => {
   const imageSize = gridSize / 2;
 
   return (
-      <View style={[
+      <TouchableOpacity
+          onPress={() => {setScreens([...screens, <MoreScreen currentTheme={theme} />])}}
+          activeOpacity={0.7}
+          style={[
         styles.card,
         { backgroundColor: theme.cardBackground, borderColor: theme.borderColor },
         isSmall && styles.smallCard
@@ -237,7 +242,7 @@ const BookCard = ({ book, viewMode, theme, onUpdate }) => {
             mode="allTags"
             theme={theme}
         />
-      </View>
+      </TouchableOpacity>
   );
 };
 

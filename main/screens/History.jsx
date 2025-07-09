@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { HistoryDAO } from '../database/HistoryDAO';
-import { database } from '../database/Database';
+import { database } from '../../database/Database';
 import HistoryHeader from '../components/History/Headers';
 import HistoryList from '../components/History/List';
 import CalendarModal from '../components/History/CalendarModal';
@@ -315,8 +315,8 @@ const styles = StyleSheet.create({
   },
   calendarFab: {
     position: 'absolute',
-    right: 20,
-    bottom: 90,
+    right: 16,
+    bottom: 100,
     width: 56,
     height: 56,
     borderRadius: 28,

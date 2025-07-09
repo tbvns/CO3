@@ -13,6 +13,7 @@ import {
 import { fetchFilteredWorks } from '../web/browse/fetchWorks';
 import BookCard from '../components/Library/BookCard';
 import AdvancedSearchScreen from './advancedSearch';
+import screen from "react-native-screens/src/components/Screen";
 
 // Simple SVG Filter Icon
 const FilterIcon = ({ color, size }) => (
@@ -30,7 +31,7 @@ const ClearIcon = ({ color, size }) => (
     </View>
 );
 
-const BrowseScreen = ({ currentTheme, viewMode = 'med' }) => {
+const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens }) => {
   const [works, setWorks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -206,27 +207,27 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med' }) => {
 
   if (error) {
     return (
-        <View style={[styles.centerContainer, { backgroundColor: currentTheme.backgroundColor }]}>
-          <View style={[styles.errorContainer, { backgroundColor: currentTheme.cardBackground, borderColor: currentTheme.borderColor }]}>
-            <Text style={[styles.errorTitle, { color: currentTheme.textColor }]}>
-              Failed to Load Works
-            </Text>
-            <Text style={[styles.errorMessage, { color: currentTheme.secondaryTextColor }]}>
-              {error.message}
-            </Text>
-            {error.status !== 'Unknown' && (
-                <Text style={[styles.errorDetails, { color: currentTheme.placeholderColor }]}>
-                  HTTP {error.status}: {error.statusText}
-                </Text>
-            )}
-            <TouchableOpacity
-                style={[styles.retryButton, { backgroundColor: currentTheme.primaryColor }]}
-                onPress={() => loadWorks(true)}
-            >
-              <Text style={styles.retryButtonText}>Retry</Text>
-            </TouchableOpacity>
-          </View>
+      <View style={[styles.centerContainer, { backgroundColor: currentTheme.backgroundColor }]}>
+        <View style={[styles.errorContainer, { backgroundColor: currentTheme.cardBackground, borderColor: currentTheme.borderColor }]}>
+          <Text style={[styles.errorTitle, { color: currentTheme.textColor }]}>
+            Failed to Load Works
+          </Text>
+          <Text style={[styles.errorMessage, { color: currentTheme.secondaryTextColor }]}>
+            {error.message}
+          </Text>
+          {error.status !== 'Unknown' && (
+              <Text style={[styles.errorDetails, { color: currentTheme.placeholderColor }]}>
+                HTTP {error.status}: {error.statusText}
+              </Text>
+          )}
+          <TouchableOpacity
+              style={[styles.retryButton, { backgroundColor: currentTheme.primaryColor }]}
+              onPress={() => loadWorks(true)}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
         </View>
+      </View>
     );
   }
 
@@ -267,6 +268,8 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med' }) => {
                         viewMode={viewMode}
                         theme={currentTheme}
                         onUpdate={() => {}}
+                        setScreens={setScreens}
+                        screens={screens}
                     />
                 ))}
                 {renderFooter()}
@@ -402,7 +405,7 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 16,
-    bottom: 120,
+    bottom: 100,
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -416,8 +419,8 @@ const styles = StyleSheet.create({
   },
   clearFab: {
     position: 'absolute',
-    right: 16,
-    bottom: 190,
+    right: 20,
+    bottom: 170,
     width: 48,
     height: 48,
     borderRadius: 24,

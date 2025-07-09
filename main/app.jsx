@@ -114,6 +114,7 @@ const BottomNavigation = ({ activeScreen, setActiveScreen, currentTheme }) => {
   );
 };
 
+
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
@@ -128,6 +129,8 @@ const App = () => {
   const [workDAO, setWorkDAO] = useState(null);
   const [historyDAO, setHistoryDAO] = useState(null);
   const [settingsDAO, setSettingsDAO] = useState(null);
+
+  const [screens, setScreens] = useState([]);
 
   useEffect(() => {
     initializeApp();
@@ -283,6 +286,8 @@ const App = () => {
       workDAO,
       historyDAO,
       settingsDAO,
+      screens,
+      setScreens,
     };
 
     switch (activeScreen) {
@@ -309,6 +314,16 @@ const App = () => {
         </View>
       </SafeAreaView>
     );
+  }
+
+  //render the screen if set instead of rendering the main menu
+  if (screens.length !== 0) {
+    console.log(screens);
+    return (
+        <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+          {screens[screens.length - 1]}
+        </SafeAreaView>
+    )
   }
 
   return (
