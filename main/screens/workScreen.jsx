@@ -69,6 +69,7 @@ const ChapterInfoScreen = ({
 
       setWork(workData);
       setChapters(chaptersData);
+
     } catch (err) {
       console.error('Error loading work data:', err);
       setError(err.message || 'Failed to load work data');
@@ -124,7 +125,6 @@ const ChapterInfoScreen = ({
     language: work.language,
   }), []);
 
-  chapters.reverse();
 
   const renderDescription = () => {
     if (!work?.description) return null;
@@ -384,10 +384,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
   },
-  // Removed scrollView style as FlatList will handle scrolling
   workInfo: {
     padding: 16,
-    paddingBottom: 0, // Adjust padding as the header of FlatList
+    paddingBottom: 0,
   },
   workTitle: {
     fontSize: 24,
@@ -400,7 +399,7 @@ const styles = StyleSheet.create({
   },
   actionButtonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-evenly',
     alignItems: 'center',
     marginBottom: 20,
     paddingHorizontal: 8,
@@ -410,7 +409,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 0,
     minWidth: 80,
     flex: 1,
   },
