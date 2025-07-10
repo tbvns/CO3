@@ -46,7 +46,7 @@ const imageMappings = {
   }
 };
 
-const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens }) => {
+const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, libraryDAO, workDAO }) => {
   const [isMainModalOpen, setIsMainModalOpen] = useState(false);
   const [isAllTagsModalOpen, setIsAllTagsModalOpen] = useState(false);
 
@@ -78,6 +78,8 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens }) => {
             <ChapterInfoScreen
               workId={book.id}
               currentTheme={theme}
+              libraryDAO={libraryDAO}
+              workDAO={workDAO}
             />
 
           ])}}

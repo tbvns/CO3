@@ -127,7 +127,6 @@ const SideMenu = ({
     }
   };
 
-  // Fixed view mode handler
   const handleViewModeChange = (newMode) => {
     console.log('View mode change requested:', newMode);
     if (setViewMode && typeof setViewMode === 'function') {

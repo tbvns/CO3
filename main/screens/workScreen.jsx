@@ -15,6 +15,7 @@ import { LinearGradient } from 'react-native-linear-gradient';
 import BookDetailsModal from '../components/Library/BookDetailsModal';
 import { fetchChapters } from '../web/browse/fetchChapters';
 import { fetchWorkFromWorkID } from '../web/browse/fetchWork';
+import { LibraryDAO } from '../database/dao/LibraryDAO';
 
 const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress }) => (
   <TouchableOpacity
@@ -42,6 +43,8 @@ const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress }) => (
 const ChapterInfoScreen = ({
                              workId,
                              currentTheme,
+                             libraryDAO,
+                             workDAO,
                            }) => {
   const [work, setWork] = useState(null);
   const [chapters, setChapters] = useState([]);
@@ -78,10 +81,36 @@ const ChapterInfoScreen = ({
     }
   };
 
-  const handleAddToLibrary = useCallback(() => {
-    setInLibrary(prevInLibrary => !prevInLibrary);
-    //todo Add to library
-  }, []); // Depend on nothing for functional update
+  useEffect(() => {
+    const checkLibraryStatus = async () => {
+      try {
+        const isInLib = await libraryDAO.isInLibrary(workId);
+        setInLibrary(isInLib);
+      } catch (error) {
+        console.error('Error checking library status:', error);
+      }
+    };
+    checkLibraryStatus();
+  }, [workId, libraryDAO]);
+
+  const handleAddToLibrary = useCallback(async () => {
+    try {
+      if (inLibrary) {
+        await libraryDAO.remove(workId);
+        setInLibrary(false);
+      } else {
+        workDAO.get(workId).then(a => {
+            if (a) return;
+            workDAO.add(work);
+        });
+
+        await libraryDAO.add(workId);
+        setInLibrary(true);
+      }
+    } catch (error) {
+      console.error('Error updating library:', error);
+    }
+  }, [inLibrary, workId, libraryDAO, work]);
 
   const handleLike = useCallback(() => {
     setLiked(prevLiked => !prevLiked);
@@ -253,8 +282,6 @@ const ChapterInfoScreen = ({
 
   // Calculate item layout for FlatList performance
   const getItemLayout = useCallback((data, index) => (
-    // Assuming each chapter item has a consistent height. Adjust '60' if needed.
-    // This value includes padding, text height, etc. You might need to measure it accurately.
     { length: 60, offset: 60 * index, index }
   ), []);
 

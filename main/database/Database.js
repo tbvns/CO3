@@ -32,7 +32,7 @@ class Database {
   async initializeSchema() {
     const queries = [
       `CREATE TABLE IF NOT EXISTS works (
-                                          id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                          id TEXT PRIMARY KEY,
                                           title TEXT NOT NULL,
                                           author TEXT NOT NULL,
                                           kudos INTEGER DEFAULT 0,
@@ -50,7 +50,7 @@ class Database {
        );`,
       `CREATE TABLE IF NOT EXISTS chapters (
                                              id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                             workId INTEGER NOT NULL,
+                                             workId TEXT NOT NULL,
                                              number INTEGER NOT NULL,
                                              name TEXT,
                                              date INTEGER,
@@ -62,7 +62,7 @@ class Database {
                                          name TEXT UNIQUE NOT NULL
        );`,
       `CREATE TABLE IF NOT EXISTS work_tags (
-                                              workId INTEGER NOT NULL,
+                                              workId TEXT NOT NULL,
                                               tagId INTEGER NOT NULL,
                                               FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE,
         FOREIGN KEY (tagId) REFERENCES tags (id) ON DELETE CASCADE,
@@ -73,7 +73,7 @@ class Database {
                                              name TEXT UNIQUE NOT NULL
        );`,
       `CREATE TABLE IF NOT EXISTS work_warnings (
-                                                  workId INTEGER NOT NULL,
+                                                  workId TEXT NOT NULL,
                                                   warningId INTEGER NOT NULL,
                                                   FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE,
         FOREIGN KEY (warningId) REFERENCES warnings (id) ON DELETE CASCADE,
@@ -81,14 +81,14 @@ class Database {
         );`,
       `CREATE TABLE IF NOT EXISTS history (
                                             id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                            workId INTEGER NOT NULL,
+                                            workId TEXT NOT NULL,
                                             date INTEGER NOT NULL,
                                             chapter INTEGER NOT NULL,
                                             chapterEnd INTEGER,
                                             FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
         );`,
       `CREATE TABLE IF NOT EXISTS kudo_history (
-                                                 workId INTEGER PRIMARY KEY,
+                                                 workId TEXT PRIMARY KEY,
                                                  date INTEGER NOT NULL,
                                                  FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
         );`,
@@ -98,10 +98,21 @@ class Database {
                                              isIncognitoMode INTEGER DEFAULT 0, -- SQLite stores booleans as 0 or 1
                                              viewMode TEXT DEFAULT 'full'
        );`,
+      `CREATE TABLE IF NOT EXISTS library (
+                                            workId TEXT PRIMARY KEY,
+                                            dateAdded INTEGER NOT NULL,
+                                            collection TEXT DEFAULT 'default',
+                                            readIndex INTEGER DEFAULT 0,
+                                            FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
+        );`,
       `CREATE INDEX IF NOT EXISTS idx_chapters_workId ON chapters (workId);`,
       `CREATE INDEX IF NOT EXISTS idx_history_workId ON history (workId);`,
       `CREATE INDEX IF NOT EXISTS idx_tags_name ON tags (name);`,
       `CREATE INDEX IF NOT EXISTS idx_warnings_name ON warnings (name);`,
+
+      `CREATE INDEX IF NOT EXISTS idx_library_readIndex ON library (readIndex);`,
+      `CREATE INDEX IF NOT EXISTS idx_library_dateAdded ON library (dateAdded);`,
+      `CREATE INDEX IF NOT EXISTS idx_library_collection ON library (collection);`
     ];
 
     try {

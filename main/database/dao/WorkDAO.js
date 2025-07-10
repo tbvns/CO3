@@ -7,6 +7,7 @@ export class WorkDAO {
 
   async add(work) {
     const {
+      id,
       title,
       author,
       kudos,
@@ -25,23 +26,27 @@ export class WorkDAO {
       warnings = []
     } = work;
 
-    const [result] = await this.db.executeSql(
-        `INSERT INTO works (
-          title, author, kudos, hits, language, updated, bookmarks,
+    // Ensure ID is provided
+    if (!id) {
+      throw new Error('Work ID is required');
+    }
+
+    await this.db.executeSql(
+      `INSERT OR REPLACE INTO works (
+          id, title, author, kudos, hits, language, updated, bookmarks,
           description, currentChapter, chapterCount, rating, category,
           warningStatus, isCompleted
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          title, author, kudos, hits, language, updated, bookmarks,
-          description, currentChapter, chapterCount, rating, category,
-          warningStatus, isCompleted
-        ]
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id, title, author, kudos, hits, language, updated, bookmarks,
+        description, currentChapter, chapterCount, rating, category,
+        warningStatus, isCompleted
+      ]
     );
 
-    const workId = result.insertId;
-    await this._syncTags(workId, tags);
-    await this._syncWarnings(workId, warnings);
-    return workId;
+    await this._syncTags(id, tags);
+    await this._syncWarnings(id, warnings);
+    return id;
   }
 
   async get(id) {
@@ -83,18 +88,23 @@ export class WorkDAO {
       warningStatus, isCompleted, tags, warnings
     } = work;
 
+    // Ensure ID is provided
+    if (!id) {
+      throw new Error('Work ID is required');
+    }
+
     await this.db.executeSql(
-        `UPDATE works SET 
-        title = ?, author = ?, kudos = ?, hits = ?, language = ?, 
-        updated = ?, bookmarks = ?, description = ?, currentChapter = ?, 
-        chapterCount = ?, rating = ?, category = ?, warningStatus = ?, 
-        isCompleted = ?
-      WHERE id = ?`,
-        [
-          title, author, kudos, hits, language, updated, bookmarks,
-          description, currentChapter, chapterCount, rating, category,
-          warningStatus, isCompleted, id
-        ]
+      `UPDATE works SET
+                      title = ?, author = ?, kudos = ?, hits = ?, language = ?,
+                      updated = ?, bookmarks = ?, description = ?, currentChapter = ?,
+                      chapterCount = ?, rating = ?, category = ?, warningStatus = ?,
+                      isCompleted = ?
+       WHERE id = ?`,
+      [
+        title, author, kudos, hits, language, updated, bookmarks,
+        description, currentChapter, chapterCount, rating, category,
+        warningStatus, isCompleted, id
+      ]
     );
 
     await this._syncTags(id, tags);
@@ -104,8 +114,8 @@ export class WorkDAO {
   async getWorksByTag(tagName) {
     const query = `
       SELECT w.* FROM works w
-      JOIN work_tags wt ON w.id = wt.workId
-      JOIN tags t ON wt.tagId = t.id
+                        JOIN work_tags wt ON w.id = wt.workId
+                        JOIN tags t ON wt.tagId = t.id
       WHERE t.name = ?
     `;
 
@@ -130,6 +140,11 @@ export class WorkDAO {
     await this.db.executeSql('DELETE FROM works WHERE id = ?', [id]);
   }
 
+  async exists(id) {
+    const [results] = await this.db.executeSql('SELECT COUNT(*) as count FROM works WHERE id = ?', [id]);
+    return results.rows.item(0).count > 0;
+  }
+
   async getTagsForWork(workId) {
     const [results] = await this.db.executeSql(`
       SELECT t.name FROM tags t
@@ -143,7 +158,7 @@ export class WorkDAO {
   async getWarningsForWork(workId) {
     const [results] = await this.db.executeSql(`
       SELECT w.name FROM warnings w
-      JOIN work_warnings ww ON w.id = ww.warningId
+                           JOIN work_warnings ww ON w.id = ww.warningId
       WHERE ww.workId = ?
     `, [workId]);
 

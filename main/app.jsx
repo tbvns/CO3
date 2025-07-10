@@ -31,6 +31,7 @@ import HistoryScreen from './screens/History';
 import MoreScreen from './screens/More';
 import { fetchChapters } from './web/browse/fetchChapters';
 import { fetchWorkFromWorkID } from './web/browse/fetchWork';
+import { LibraryDAO } from './database/dao/LibraryDAO';
 
 const TopBar = ({ currentTheme, activeScreen, setIsSideMenuOpen, searchTerm, setSearchTerm }) => {
   const showSearch = activeScreen === 'library';
@@ -131,6 +132,7 @@ const App = () => {
   const [workDAO, setWorkDAO] = useState(null);
   const [historyDAO, setHistoryDAO] = useState(null);
   const [settingsDAO, setSettingsDAO] = useState(null);
+  const [libraryDAO, setLibraryDAO] = useState(null);
 
   const [screens, setScreens] = useState([]);
 
@@ -171,10 +173,12 @@ const App = () => {
       const newWorkDAO = new WorkDAO(db);
       const newHistoryDAO = new HistoryDAO(db);
       const newSettingsDAO = new SettingsDAO(db);
+      const newLibraryDAO = new LibraryDAO(db);
 
       setWorkDAO(newWorkDAO);
       setHistoryDAO(newHistoryDAO);
       setSettingsDAO(newSettingsDAO);
+      setLibraryDAO(newLibraryDAO);
 
       const loadedSettings = await newSettingsDAO.getSettings();
       setTheme(loadedSettings.theme);
@@ -312,6 +316,8 @@ const App = () => {
       settingsDAO,
       screens,
       setScreens,
+      libraryDAO,
+      setActiveScreen
     };
 
     switch (activeScreen) {

@@ -72,7 +72,6 @@ const CustomDropdown = ({
     const itemHeight = 48; // Approximate height per item
     const actualContentHeight = Math.min(options.length * itemHeight, maxHeight);
 
-    // Adjust if modal would go off screen
     const adjustedTop = modalTop + actualContentHeight > screenHeight ?
       y - actualContentHeight - 2 : modalTop;
     const adjustedLeft = modalLeft + width > screenWidth ?
