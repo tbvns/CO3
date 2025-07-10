@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
   Dimensions,
-  FlatList,
+  FlatList, StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LinearGradient } from 'react-native-linear-gradient';
@@ -328,7 +328,10 @@ const ChapterInfoScreen = ({
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
-      <View style={[styles.header, { backgroundColor: currentTheme.backgroundColor, borderBottomColor: currentTheme.borderColor }]}>
+      <StatusBar
+        backgroundColor={currentTheme.headerBackground}
+      />
+      <View style={[styles.header, { backgroundColor: currentTheme.headerBackground, borderBottomColor: currentTheme.borderColor }]}>
         <TouchableOpacity /*todo implement back button*/ /*onPress={}*/ style={styles.backButton}>
           <Icon name="arrow-back" size={24} color={currentTheme.iconColor} />
         </TouchableOpacity>
