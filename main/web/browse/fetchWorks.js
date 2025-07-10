@@ -216,7 +216,6 @@ export async function fetchFilteredWorks(filters = {}, page = 1) {
             params.append('commit', 'Search');
             url += '?' + params.toString();
         } else {
-            // For browsing recent works, add page parameter if needed
             if (page > 1) {
                 url += `?page=${page}`;
             }

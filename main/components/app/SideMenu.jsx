@@ -120,7 +120,6 @@ const SideMenu = ({
     }
   };
 
-  // Fixed theme button handler
   const handleThemeChange = (newTheme) => {
     console.log('Theme change requested:', newTheme);
     if (setTheme && typeof setTheme === 'function') {
@@ -136,7 +135,6 @@ const SideMenu = ({
     }
   };
 
-  // Fixed incognito toggle handler
   const handleIncognitoToggle = () => {
     console.log('Incognito toggle requested, current state:', isIncognitoMode);
     if (toggleIncognitoMode && typeof toggleIncognitoMode === 'function') {

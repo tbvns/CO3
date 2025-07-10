@@ -10,9 +10,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-
-// --- Autocomplete Service Logic (from autoComplete.js) ---
+import CustomDropdown from "../components/common/CustomDropdown";
 
 const AO3_BASE_URL = 'https://archiveofourown.org/autocomplete';
 
@@ -243,8 +241,162 @@ const warningOptions = [ { label: 'Creator Chose Not To Use Archive Warnings', v
 const categoryOptions = [ { label: 'F/F', value: '116' }, { label: 'F/M', value: '22' }, { label: 'Gen', value: '21' }, { label: 'M/M', value: '23' }, { label: 'Multi', value: '2246' }, { label: 'Other', value: '24' }, ];
 const crossoverOptions = [ { label: 'Include crossovers', value: '' }, { label: 'Exclude crossovers', value: 'F' }, { label: 'Only crossovers', value: 'T' }, ];
 const completionOptions = [ { label: 'All works', value: '' }, { label: 'Complete works only', value: 'T' }, { label: 'Works in progress only', value: 'F' }, ];
-const languageOptions = [ { label: "Any", value: "" }, { label: "English", value: "en" }, { label: "Español", value: "es" }, { label: "Français", value: "fr" }, { label: "Deutsch", value: "de" }, { label: "Português brasileiro", value: "ptBR" }, { label: "Português europeu", value: "ptPT" }, { label: "日本語", value: "ja" }, { label: "中文-普通话 國語", value: "zh" }, { label: "한국어", value: "ko" }, { label: "Русский", value: "ru" }, { label: "Italiano", value: "it" }, ];
-
+const languageOptions = [
+  { label: "Any", value: "" },
+  { label: "English", value: "en" },
+  { label: "Español", value: "es" },
+  { label: "Français", value: "fr" },
+  { label: "Deutsch", value: "de" },
+  { label: "Português brasileiro", value: "ptBR" },
+  { label: "Português europeu", value: "ptPT" },
+  { label: "日本語", value: "ja" },
+  { label: "中文-普通话 國語", value: "zh" },
+  { label: "한국어", value: "ko" },
+  { label: "Русский", value: "ru" },
+  { label: "Italiano", value: "it" },
+  { label: "العربية", value: "ar" },
+  { label: "Nederlands", value: "nl" },
+  { label: "Polski", value: "pl" },
+  { label: "Türkçe", value: "tr" },
+  { label: "Tiếng Việt", value: "vi" },
+  { label: "Bahasa Indonesia", value: "id" },
+  { label: "ไทย", value: "th" },
+  { label: "فارسی", value: "fa" },
+  { label: "עברית", value: "he" },
+  { label: "हिन्दी", value: "hi" },
+  { label: "বাংলা", value: "bn" },
+  { label: "Filipino", value: "fil" },
+  { label: "українська", value: "uk" },
+  { label: "ελληνικά", value: "el" },
+  { label: "Română", value: "ro" },
+  { label: "magyar", value: "hu" },
+  { label: "Svenska", value: "sv" },
+  { label: "Čeština", value: "cs" },
+  { label: "Dansk", value: "da" },
+  { label: "suomi", value: "fi" },
+  { label: "Norsk", value: "no" },
+  { label: "Bahasa Malaysia", value: "ms" },
+  { label: "Hrvatski", value: "hr" },
+  { label: "Català", value: "ca" },
+  { label: "Eesti", value: "et" },
+  { label: "Slovenčina", value: "sk" },
+  { label: "Afrikaans", value: "afr" },
+  { label: "Български", value: "bg" },
+  { label: "Latviešu", value: "lv" },
+  { label: "Lietuvių", value: "lt" },
+  { label: "Slovenščina", value: "slv" },
+  { label: "Srpski", value: "sr" },
+  { label: "Kiswahili", value: "sw" },
+  { label: "Kurdî", value: "ku" },
+  { label: "اردو", value: "urd" },
+  { label: "தமிழ்", value: "ta" },
+  { label: "తెలుగు", value: "tel" },
+  { label: "ਪੰਜਾਬੀ", value: "pa" },
+  { label: "മലയാളം", value: "ml" },
+  { label: "ქართული", value: "kat" },
+  { label: "հայերեն", value: "hy" },
+  { label: "Kreyòl ayisyen", value: "ht" },
+  { label: "Gaeilge", value: "ga" },
+  { label: "Cymraeg", value: "cy" },
+  { label: "Asturianu", value: "ast" },
+  { label: "Euskara", value: "eu" },
+  { label: "Galego", value: "gl" },
+  { label: "Brezhoneg", value: "br" },
+  { label: "Esperanto", value: "eo" },
+  { label: "American Sign Language", value: "ase" },
+  { label: "British Sign Language", value: "bfi" },
+  { label: "Langue des signes québécoise", value: "fcs" },
+  { label: "中文-广东话 粵語", value: "yue" },
+  { label: "中文-闽南话 臺語", value: "nan" },
+  { label: "中文-客家话", value: "hak" },
+  { label: "中文-吴语", value: "wuu" },
+  { label: "ʻŌlelo Hawaiʻi", value: "haw" },
+  { label: "te reo Māori", value: "mri" },
+  { label: "Chinuk Wawa", value: "chn" },
+  { label: "Anishinaabemowin", value: "oji" },
+  { label: "Diné bizaad", value: "nav" },
+  { label: "Lingua latina", value: "la" },
+  { label: "Eald Englisċ", value: "ang" },
+  { label: "tlhIngan-Hol", value: "tlh" },
+  { label: "Quenya", value: "qya" },
+  { label: "Sindarin", value: "sjn" },
+  { label: "toki pona", value: "tok" },
+  { label: "Volapük", value: "vol" },
+  { label: "af Soomaali", value: "so" },
+  { label: "Aynu itak | アイヌ イタㇰ", value: "ain" },
+  { label: "𒀝𒅗𒁺𒌑", value: "akk" },
+  { label: "አማርኛ", value: "amh" },
+  { label: "𓂋𓏺𓈖 𓆎𓅓𓏏𓊖", value: "egy" },
+  { label: "ܐܪܡܝܐ | ארמיא", value: "arc" },
+  { label: "Azərbaycan dili | آذربایجان دیلی", value: "azj" },
+  { label: "Basa Jawa", value: "jv" },
+  { label: "Башҡорт теле", value: "ba" },
+  { label: "беларуская", value: "be" },
+  { label: "Boarisch", value: "bar" },
+  { label: "Bosanski", value: "bos" },
+  { label: "Буряад хэлэн | ᠪᠤᠷᠢᠶᠠᠳ ᠮᠣᠩᠭᠣᠯ ᠬᠡᠯᠡ", value: "bua" },
+  { label: "Cebuano", value: "ceb" },
+  { label: "къырымтатар тили | qırımtatar tili", value: "crh" },
+  { label: "Creolese", value: "gyn" },
+  { label: "Hausa | هَرْشَن هَوْسَ", value: "hau" },
+  { label: "Interlingua", value: "ia" },
+  { label: "isiZulu", value: "zu" },
+  { label: "Íslenska", value: "is" },
+  { label: "Kalaallisut", value: "kal" },
+  { label: "Хальмг Өөрдин келн", value: "xal" },
+  { label: "ಕನ್ನಡ", value: "kan" },
+  { label: "Kernewek", value: "cor" },
+  { label: "ភាសាខ្មែរ", value: "khm" },
+  { label: "Khuzdul", value: "qkz" },
+  { label: "Кыргызча", value: "kir" },
+  { label: "Lëtzebuergesch", value: "lb" },
+  { label: "македонски", value: "mk" },
+  { label: "Malti", value: "mt" },
+  { label: "ᠮᠠᠨᠵᡠ ᡤᡳᠰᡠᠨ", value: "mnc" },
+  { label: "Mando'a", value: "qmd" },
+  { label: "मराठी", value: "mr" },
+  { label: "Mikisúkî", value: "mik" },
+  { label: "ᠮᠣᠩᠭᠣᠯ ᠪᠢᠴᠢᠭ᠌ | Монгол Кирилл үсэг", value: "mon" },
+  { label: "မြန်မာဘာသာ", value: "my" },
+  { label: "Эрзянь кель", value: "myv" },
+  { label: "Nāhuatl", value: "nah" },
+  { label: "Nawat", value: "ppl" },
+  { label: "Нохчийн мотт", value: "ce" },
+  { label: "O’odham Ñiok", value: "ood" },
+  { label: "لسان عثمانى", value: "ota" },
+  { label: "پښتو", value: "ps" },
+  { label: "Plattdüütsch", value: "nds" },
+  { label: "Pulaar", value: "fuc" },
+  { label: "qazaqşa | қазақша", value: "kaz" },
+  { label: "Uncategorized Constructed Languages", value: "qlq" },
+  { label: "RRomani Ćhib", value: "rom" },
+  { label: "Sámi", value: "smi" },
+  { label: "саха тыла", value: "sah" },
+  { label: "Scots", value: "sco" },
+  { label: "Shqip", value: "sq" },
+  { label: "සිංහල", value: "si" },
+  { label: "Slověnьskъ Językъ", value: "sla" },
+  { label: "Sprēkō Þiudiskō", value: "gem" },
+  { label: "татар теле", value: "tat" },
+  { label: "ትግርኛ", value: "tir" },
+  { label: "Thermian", value: "tqx" },
+  { label: "བོད་སྐད་", value: "bod" },
+  { label: "ϯⲙⲉⲧⲣⲉⲙⲛ̀ⲭⲏⲙⲓ", value: "cop" },
+  { label: "Trinidadian Creole", value: "trf" },
+  { label: "τσακώνικα", value: "tsd" },
+  { label: "ᏣᎳᎩ ᎦᏬᏂᎯᏍᏗ", value: "chr" },
+  { label: "Unangam Tunuu", value: "ale" },
+  { label: "ئۇيغۇر تىلى", value: "uig" },
+  { label: "יידיש", value: "yi" },
+  { label: "maayaʼ tʼàan", value: "yua" },
+  { label: "𒅴𒂠", value: "sux" },
+  { label: "𐌲𐌿𐍄𐌹𐍃𐌺𐌰", value: "got" },
+  { label: "Furlan", value: "fur" },
+  { label: "Friisk", value: "frr" },
+  { label: "Frysk", value: "fry" },
+  { label: "Gàidhlig", value: "gd" },
+  { label: "Finuʼ Chamorro", value: "cha" }
+];
 
 // --- Main Advanced Search Screen ---
 
@@ -262,7 +414,6 @@ const AdvancedSearchScreen = ({ currentTheme, onClose, onSearch, savedFilters = 
   const [wordCount, setWordCount] = useState(savedFilters['work_search[word_count]'] || '');
   const [language, setLanguage] = useState(savedFilters['work_search[language_id]'] || '');
 
-  // Work Tags fields - now using arrays of objects for autocomplete items
   const [fandoms, setFandoms] = useState(stringToItems(savedFilters['work_search[fandom_names]']));
   const [rating, setRating] = useState(savedFilters['work_search[rating_ids]'] || '');
   const [warnings, setWarnings] = useState(savedFilters['work_search[archive_warning_ids][]'] || []);
@@ -365,10 +516,10 @@ const AdvancedSearchScreen = ({ currentTheme, onClose, onSearch, savedFilters = 
             </View>
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: currentTheme.textColor }]}>Language</Text>
-              <View style={[styles.pickerContainer, { borderColor: currentTheme.borderColor, backgroundColor: currentTheme.inputBackground }]}>
-                <Picker selectedValue={language} onValueChange={(itemValue) => setLanguage(itemValue)} style={{ color: currentTheme.textColor }} dropdownIconColor={currentTheme.textColor}>
-                  {languageOptions.map(opt => <Picker.Item key={opt.value} label={opt.label} value={opt.value} />)}
-                </Picker>
+              <View style={[styles.CustomDropdownContainer, { borderColor: currentTheme.borderColor, backgroundColor: currentTheme.inputBackground }]}>
+                <CustomDropdown theme={currentTheme} selectedValue={language} onValueChange={(itemValue) => setLanguage(itemValue)} style={{ color: currentTheme.textColor }} dropdownIconColor={currentTheme.textColor}>
+                  {languageOptions.map(opt => <CustomDropdown.Item key={opt.value} label={opt.label} value={opt.value} />)}
+                </CustomDropdown>
               </View>
             </View>
           </FilterSection>
@@ -384,11 +535,11 @@ const AdvancedSearchScreen = ({ currentTheme, onClose, onSearch, savedFilters = 
             />
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: currentTheme.textColor }]}>Rating</Text>
-              <View style={[styles.pickerContainer, { borderColor: currentTheme.borderColor, backgroundColor: currentTheme.inputBackground }]}>
-                <Picker selectedValue={rating} onValueChange={(itemValue) => setRating(itemValue)} style={{ color: currentTheme.textColor }} dropdownIconColor={currentTheme.textColor}>
-                  <Picker.Item label="Any Rating" value="" />
-                  {ratingOptions.map(opt => <Picker.Item key={opt.value} label={opt.label} value={opt.value} />)}
-                </Picker>
+              <View style={[styles.CustomDropdownContainer, { borderColor: currentTheme.borderColor, backgroundColor: currentTheme.inputBackground }]}>
+                <CustomDropdown theme={currentTheme} selectedValue={rating} onValueChange={(itemValue) => setRating(itemValue)} style={{ color: currentTheme.textColor }} dropdownIconColor={currentTheme.textColor}>
+                  <CustomDropdown.Item label="Any Rating" value="" />
+                  {ratingOptions.map(opt => <CustomDropdown.Item key={opt.value} label={opt.label} value={opt.value} />)}
+                </CustomDropdown>
               </View>
             </View>
             <CheckboxGroup title="Warnings" options={warningOptions} selected={warnings} onSelect={setWarnings} theme={currentTheme} />
@@ -441,18 +592,18 @@ const AdvancedSearchScreen = ({ currentTheme, onClose, onSearch, savedFilters = 
           <FilterSection title="Search Options" theme={currentTheme} defaultOpen={true}>
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: currentTheme.textColor }]}>Sort by</Text>
-              <View style={[styles.pickerContainer, { borderColor: currentTheme.borderColor, backgroundColor: currentTheme.inputBackground }]}>
-                <Picker selectedValue={sortBy} onValueChange={(itemValue) => setSortBy(itemValue)} style={{ color: currentTheme.textColor }} dropdownIconColor={currentTheme.textColor}>
-                  {sortOptions.map(opt => <Picker.Item key={opt.value} label={opt.label} value={opt.value} />)}
-                </Picker>
+              <View style={[styles.CustomDropdownContainer, { borderColor: currentTheme.borderColor, backgroundColor: currentTheme.inputBackground }]}>
+                <CustomDropdown theme={currentTheme} selectedValue={sortBy} onValueChange={(itemValue) => setSortBy(itemValue)} style={{ color: currentTheme.textColor }} dropdownIconColor={currentTheme.textColor}>
+                  {sortOptions.map(opt => <CustomDropdown.Item key={opt.value} label={opt.label} value={opt.value} />)}
+                </CustomDropdown>
               </View>
             </View>
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: currentTheme.textColor }]}>Sort Direction</Text>
-              <View style={[styles.pickerContainer, { borderColor: currentTheme.borderColor, backgroundColor: currentTheme.inputBackground }]}>
-                <Picker selectedValue={sortDirection} onValueChange={(itemValue) => setSortDirection(itemValue)} style={{ color: currentTheme.textColor }} dropdownIconColor={currentTheme.textColor}>
-                  {sortDirectionOptions.map(opt => <Picker.Item key={opt.value} label={opt.label} value={opt.value} />)}
-                </Picker>
+              <View style={[styles.CustomDropdownContainer, { borderColor: currentTheme.borderColor, backgroundColor: currentTheme.inputBackground }]}>
+                <CustomDropdown theme={currentTheme} selectedValue={sortDirection} onValueChange={(itemValue) => setSortDirection(itemValue)} style={{ color: currentTheme.textColor }} dropdownIconColor={currentTheme.textColor}>
+                  {sortDirectionOptions.map(opt => <CustomDropdown.Item key={opt.value} label={opt.label} value={opt.value} />)}
+                </CustomDropdown>
               </View>
             </View>
           </FilterSection>
@@ -476,7 +627,7 @@ const styles = StyleSheet.create({
   inputGroup: { marginBottom: 16 },
   label: { fontSize: 16, fontWeight: '500', marginBottom: 8 },
   input: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 },
-  pickerContainer: { borderWidth: 1, borderRadius: 8, justifyContent: 'center' },
+  CustomDropdownContainer: { borderWidth: 1, borderRadius: 8, justifyContent: 'center' },
   sectionContainer: { borderWidth: 1, borderRadius: 8, marginBottom: 16, overflow: 'hidden' },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 12 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold' },

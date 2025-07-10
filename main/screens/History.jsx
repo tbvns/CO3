@@ -95,7 +95,6 @@ const HistoryScreen = ({ currentTheme, historyDAO }) => {
 
       let moreData;
       if (isFilterActive && dateRange.start) {
-        // --- Add the same conversion logic here ---
         const startTimestamp = new Date(dateRange.start).setHours(0, 0, 0, 0);
         const endDateString = dateRange.end || dateRange.start;
         const endTimestamp = new Date(endDateString).setHours(23, 59, 59, 999);
@@ -131,7 +130,7 @@ const HistoryScreen = ({ currentTheme, historyDAO }) => {
       await loadReadingDates();
     }
     setRefreshing(false);
-  }, [historyDAO, isFilterActive, dateRange]); // Added dependencies
+  }, [historyDAO, isFilterActive, dateRange]);
 
   const clearHistory = () => {
     Alert.alert(

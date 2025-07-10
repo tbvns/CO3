@@ -8,7 +8,7 @@ import {
   ScrollView,
   SafeAreaView,
   StatusBar,
-  Alert,
+  Alert, BackHandler,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -29,6 +29,8 @@ import UpdateScreen from './screens/Update';
 import BrowseScreen from './screens/Browse';
 import HistoryScreen from './screens/History';
 import MoreScreen from './screens/More';
+import { fetchChapters } from './web/browse/fetchChapters';
+import { fetchWorkFromWorkID } from './web/browse/fetchWork';
 
 const TopBar = ({ currentTheme, activeScreen, setIsSideMenuOpen, searchTerm, setSearchTerm }) => {
   const showSearch = activeScreen === 'library';
@@ -140,6 +142,28 @@ const App = () => {
       }
     };
   }, []);
+
+  // Handle pressing the back button
+  useEffect(() => {
+    const backAction = () => {
+      if (screens.length > 0) {
+        setScreens(prev => {
+          const newScreens = [...prev];
+          newScreens.pop();
+          return newScreens;
+        });
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [screens]);
 
   const initializeApp = async () => {
     try {

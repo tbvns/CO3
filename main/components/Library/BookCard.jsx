@@ -10,6 +10,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import BookDetailsModal from './BookDetailsModal';
 import More from "../../screens/More";
 import MoreScreen from "../../screens/More";
+import ChapterInfoScreen from '../../screens/workScreen';
 
 const imageMappings = {
   rating: {
@@ -73,7 +74,13 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens }) => {
 
   return (
       <TouchableOpacity
-          onPress={() => {setScreens([...screens, <MoreScreen currentTheme={theme} />])}}
+          onPress={() => {setScreens([...screens,
+            <ChapterInfoScreen
+              workId={book.id}
+              currentTheme={theme}
+            />
+
+          ])}}
           activeOpacity={0.7}
           style={[
         styles.card,
