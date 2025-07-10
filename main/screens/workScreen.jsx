@@ -89,7 +89,7 @@ const ChapterInfoScreen = ({
   }, []); // Depend on nothing for functional update
 
   const handleMoreInfo = useCallback(() => {
-    setModalMode('summary');
+    setModalMode('full');
     setModalVisible(true);
   }, []);
 
