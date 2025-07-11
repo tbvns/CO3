@@ -3,19 +3,21 @@ import {
   StyleSheet,
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   SafeAreaView,
-  Dimensions,
-  FlatList, StatusBar,
+  FlatList,
+  StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LinearGradient } from 'react-native-linear-gradient';
 import BookDetailsModal from '../components/Library/BookDetailsModal';
-import { fetchChapters } from '../web/browse/fetchChapters';
-import { fetchWorkFromWorkID } from '../web/browse/fetchWork';
-import { LibraryDAO } from '../database/dao/LibraryDAO';
+import { fetchChapters } from '../web/worksScreen/fetchChapters';
+import { fetchWorkFromWorkID } from '../web/worksScreen/fetchWork';
+import { fetchChapter } from '../web/worksScreen/fetchChapter';
+import ChapterReader from './chapterReader';
+import { navigateToNextChapter, navigateToPreviousChapter } from '../utils/ChapterNavigationHelpers';
+
 
 const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress }) => (
   <TouchableOpacity
@@ -40,11 +42,100 @@ const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress }) => (
   </TouchableOpacity>
 ));
 
+/**
+ * A wrapper component that manages the state and logic for the ChapterReader.
+ * It handles chapter navigation and provides a consistent header with a back button.
+ */
+const ReaderWrapper = ({
+                         initialChapterData,
+                         currentTheme,
+                         setScreens,
+                         chapterList,
+                         historyDAO, // Optional: for logging read history
+                       }) => {
+  const [chapterData, setChapterData] = useState(initialChapterData);
+  const [loading, setLoading] = useState(false);
+
+  // Removes the reader from the screen stack to go back.
+  const handleBack = () => {
+    setScreens(prev => prev.slice(0, -1));
+  };
+
+  // Callback for when a new chapter's content has been fetched.
+  const handleChapterChange = (newChapterData) => {
+    if (newChapterData) {
+      setChapterData(prevData => ({
+        ...newChapterData,
+        workTitle: prevData.workTitle
+      }));
+    }
+    setLoading(false);
+  };
+
+  // Fetches and displays the next chapter.
+  const handleNextChapter = useCallback(async (newChapterData) => {
+    if (loading || !chapterData.hasNextChapter) return;
+    setLoading(true);
+    await navigateToNextChapter({
+      workId: chapterData.workId,
+      chapterList: chapterList,
+      currentChapterIndex: chapterData.chapterIndex,
+      currentTheme: currentTheme,
+      onChapterChange: handleChapterChange,
+      historyDAO,
+    });
+  }, [loading, chapterData, chapterList, currentTheme, historyDAO]);
+
+  // Fetches and displays the previous chapter.
+  const handlePreviousChapter = useCallback(async () => {
+    if (loading || !chapterData.hasPreviousChapter) return;
+    setLoading(true);
+    await navigateToPreviousChapter({
+      workId: chapterData.workId,
+      chapterList: chapterList,
+      currentChapterIndex: chapterData.chapterIndex,
+      currentTheme: currentTheme,
+      onChapterChange: handleChapterChange,
+      historyDAO,
+    });
+  }, [loading, chapterData, chapterList, currentTheme, historyDAO]);
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+      <StatusBar backgroundColor={currentTheme.headerBackground} />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={currentTheme.primaryColor} />
+        </View>
+      ) : (
+        <ChapterReader
+          currentTheme={currentTheme}
+          workId={chapterData.workId}
+          workTitle={chapterData.workTitle}
+          chapterTitle={chapterData.chapterTitle}
+          htmlContent={chapterData.htmlContent}
+          currentChapterIndex={chapterData.chapterIndex}
+          totalChapters={chapterList.length}
+          hasNextChapter={chapterData.hasNextChapter}
+          hasPreviousChapter={chapterData.hasPreviousChapter}
+          onNextChapter={handleNextChapter}
+          onPreviousChapter={handlePreviousChapter}
+          onProgressUpdate={(progress) => {
+            //todo: This could be used for more granular progress tracking in the future.
+          }}
+        />
+      )}
+    </SafeAreaView>
+  );
+};
+
+
 const ChapterInfoScreen = ({
                              workId,
                              currentTheme,
                              libraryDAO,
                              workDAO,
+                             setScreens
                            }) => {
   const [work, setWork] = useState(null);
   const [chapters, setChapters] = useState([]);
@@ -100,8 +191,8 @@ const ChapterInfoScreen = ({
         setInLibrary(false);
       } else {
         workDAO.get(workId).then(a => {
-            if (a) return;
-            workDAO.add(work);
+          if (a) return;
+          workDAO.add(work);
         });
 
         await libraryDAO.add(workId);
@@ -115,7 +206,7 @@ const ChapterInfoScreen = ({
   const handleLike = useCallback(() => {
     setLiked(prevLiked => !prevLiked);
     //todo Kudo request and all of that...
-  }, []); // Depend on nothing for functional update
+  }, []);
 
   const handleMoreInfo = useCallback(() => {
     setModalMode('full');
@@ -131,10 +222,42 @@ const ChapterInfoScreen = ({
     //todo Open a webview
   }, []);
 
-  const handleChapterPress = useCallback((chapter, index) => {
-    //todo open a webview
-    console.log(`Opening chapter: ${chapter.name || `Chapter ${index + 1}`}`);
-  }, []);
+  const handleChapterPress = useCallback(async (chapter, originalIndex) => { // Accept originalIndex
+    try {
+      const chapterContent = await fetchChapter(workId, chapter.id, currentTheme);
+      if (!chapterContent) {
+        console.error("Could not fetch chapter content. Please try again.");
+        return;
+      }
+
+      const initialChapterData = {
+        workId: workId,
+        workTitle: work.title,
+        chapterId: chapter.id,
+        chapterTitle: chapter.name,
+        htmlContent: chapterContent,
+        chapterIndex: originalIndex, // Use originalIndex here
+        hasNextChapter: originalIndex < chapters.length - 1,
+        hasPreviousChapter: originalIndex > 0,
+      };
+
+      const chapterListForNav = chapters.map(c => ({ id: c.id, title: c.name })); // Still uses the original 'chapters' state
+
+      setScreens(prevScreens => [
+        ...prevScreens,
+        <ReaderWrapper
+          key={chapter.id}
+          initialChapterData={initialChapterData}
+          currentTheme={currentTheme}
+          setScreens={setScreens}
+          chapterList={chapterListForNav}
+        />
+      ]);
+
+    } catch (error) {
+      console.error('Error opening chapter reader:', error);
+    }
+  }, [workId, work, chapters, currentTheme, setScreens]); // 'chapters' dependency is correctly used for original list
 
   const formatWork = useCallback((work) => ({
     id: work.id,
@@ -270,22 +393,20 @@ const ChapterInfoScreen = ({
     </View>
   );
 
-  // Helper function to render each chapter item for FlatList
-  const renderChapterItem = useCallback(({ item, index }) => (
+  const renderChapterItem = useCallback(({ item }) => (
     <ChapterItem
       chapter={item}
-      index={index}
+      // You might use item.originalIndex here for display if you want chapter numbers to reflect original order
+      index={item.originalIndex} // Or `item.originalIndex + 1` if you want 1-based numbering
       currentTheme={currentTheme}
-      onPress={() => handleChapterPress(item, index)}
+      onPress={() => handleChapterPress(item, item.originalIndex)} // Pass the stored originalIndex
     />
-  ), [currentTheme, handleChapterPress]); // Dependencies for useCallback
+  ), [currentTheme, handleChapterPress]);
 
-  // Calculate item layout for FlatList performance
   const getItemLayout = useCallback((data, index) => (
     { length: 60, offset: 60 * index, index }
   ), []);
 
-  // Header component for FlatList to include work details
   const ListHeaderComponent = () => (
     <View style={styles.workInfo}>
       <Text style={[styles.workTitle, { color: currentTheme.textColor }]}>
@@ -353,13 +474,14 @@ const ChapterInfoScreen = ({
     );
   }
 
+  // Inside the return statement of ChapterInfoScreen:
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
       <StatusBar
         backgroundColor={currentTheme.headerBackground}
       />
       <View style={[styles.header, { backgroundColor: currentTheme.headerBackground, borderBottomColor: currentTheme.borderColor }]}>
-        <TouchableOpacity /*todo implement back button*/ /*onPress={}*/ style={styles.backButton}>
+        <TouchableOpacity onPress={() => setScreens(prev => prev.slice(0, -1))} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color={currentTheme.iconColor} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: currentTheme.textColor }]} numberOfLines={1}>
@@ -367,18 +489,17 @@ const ChapterInfoScreen = ({
         </Text>
       </View>
 
-      {/* Replaced ScrollView for chapters with FlatList */}
       <FlatList
-        data={chapters}
+        // THIS IS THE CRUCIAL LINE FOR REVERSAL AND ORIGINAL INDEXING:
+        data={[...chapters].map((chapter, originalIndex) => ({ ...chapter, originalIndex })).reverse()}
         renderItem={renderChapterItem}
-        keyExtractor={(item, index) => item.id ? String(item.id) : String(index)}
-        ListHeaderComponent={ListHeaderComponent} // The top section now acts as the header for the FlatList
-        // Performance optimizations
-        initialNumToRender={10} // Render more items initially to fill the screen
-        maxToRenderPerBatch={5} // Control how many items are rendered in each batch
-        windowSize={21} // Maintain a certain number of items in memory (current + 10 above/below)
-        getItemLayout={getItemLayout} // Essential for smooth scrolling with many items
-        contentContainerStyle={styles.chaptersListContentContainer} // Apply styles to the content container
+        keyExtractor={(item) => item.id ? String(item.id) : String(item.originalIndex)} // Updated keyExtractor
+        ListHeaderComponent={ListHeaderComponent} // Ensure this is present and correct
+        initialNumToRender={10}
+        maxToRenderPerBatch={5}
+        windowSize={21}
+        getItemLayout={getItemLayout}
+        contentContainerStyle={styles.chaptersListContentContainer}
         showsVerticalScrollIndicator={false}
       />
 
@@ -472,8 +593,8 @@ const styles = StyleSheet.create({
     marginTop: -15,
     zIndex: 1,
   },
-  chaptersListContentContainer: { // Added style for FlatList content
-    paddingBottom: 16, // Add some padding at the bottom of the list
+  chaptersListContentContainer: {
+    paddingBottom: 16,
   },
   sectionHeader: {
     flexDirection: 'row',

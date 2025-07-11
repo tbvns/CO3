@@ -78,9 +78,9 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
       setHasMore(result.hasMore);
 
     } catch (err) {
-      console.error('Error loading works:', err);
+      console.error('Error loading worksScreen:', err);
       setError({
-        message: err.message || 'Failed to load works',
+        message: err.message || 'Failed to load worksScreen',
         status: err.response?.status || 'Unknown',
         statusText: err.response?.statusText || 'Network Error'
       });

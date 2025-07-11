@@ -29,8 +29,8 @@ import UpdateScreen from './screens/Update';
 import BrowseScreen from './screens/Browse';
 import HistoryScreen from './screens/History';
 import MoreScreen from './screens/More';
-import { fetchChapters } from './web/browse/fetchChapters';
-import { fetchWorkFromWorkID } from './web/browse/fetchWork';
+import { fetchChapters } from './web/worksScreen/fetchChapters';
+import { fetchWorkFromWorkID } from './web/worksScreen/fetchWork';
 import { LibraryDAO } from './database/dao/LibraryDAO';
 
 const TopBar = ({ currentTheme, activeScreen, setIsSideMenuOpen, searchTerm, setSearchTerm }) => {

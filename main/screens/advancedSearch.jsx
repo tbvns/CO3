@@ -240,7 +240,7 @@ const ratingOptions = [ { label: 'Not Rated', value: '9' }, { label: 'General Au
 const warningOptions = [ { label: 'Creator Chose Not To Use Archive Warnings', value: '14' }, { label: 'Graphic Depictions Of Violence', value: '17' }, { label: 'Major Character Death', value: '18' }, { label: 'No Archive Warnings Apply', value: '16' }, { label: 'Rape/Non-Con', value: '19' }, { label: 'Underage Sex', value: '20' }, ];
 const categoryOptions = [ { label: 'F/F', value: '116' }, { label: 'F/M', value: '22' }, { label: 'Gen', value: '21' }, { label: 'M/M', value: '23' }, { label: 'Multi', value: '2246' }, { label: 'Other', value: '24' }, ];
 const crossoverOptions = [ { label: 'Include crossovers', value: '' }, { label: 'Exclude crossovers', value: 'F' }, { label: 'Only crossovers', value: 'T' }, ];
-const completionOptions = [ { label: 'All works', value: '' }, { label: 'Complete works only', value: 'T' }, { label: 'Works in progress only', value: 'F' }, ];
+const completionOptions = [ { label: 'All worksScreen', value: '' }, { label: 'Complete worksScreen only', value: 'T' }, { label: 'Works in progress only', value: 'F' }, ];
 const languageOptions = [
   { label: "Any", value: "" },
   { label: "English", value: "en" },

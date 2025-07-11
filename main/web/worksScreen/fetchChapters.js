@@ -55,7 +55,7 @@ function parseChapterElements(chapterElements, workId) {
 
 export async function fetchChapters(workId) {
   try {
-    const url = `https://archiveofourown.org/works/${workId}/navigate`;
+    const url = `https://archiveofourown.org/works/${workId}/navigate?view_adult=true`;
 
     console.log(`Fetching chapters from: ${url}`);
     const response = await ky.get(url).text();
@@ -74,7 +74,6 @@ export async function fetchChapters(workId) {
     const chapters = parseChapterElements(chapterElements, workId);
 
     console.log(`Found ${chapters.length} chapters for work ${workId}`);
-    chapters.reverse(); //Idk if that should be here but idc it works
     return chapters;
   } catch (error) {
     console.error("Error fetching chapters:", error);

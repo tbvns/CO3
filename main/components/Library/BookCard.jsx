@@ -80,6 +80,7 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, librar
               currentTheme={theme}
               libraryDAO={libraryDAO}
               workDAO={workDAO}
+              setScreens={setScreens}
             />
 
           ])}}

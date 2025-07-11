@@ -240,7 +240,7 @@ export async function fetchFilteredWorks(filters = {}, page = 1) {
             hasMore: paginationInfo.currentPage < paginationInfo.maxPages
         };
     } catch (error) {
-        console.error("Error fetching works:", error);
+        console.error("Error fetching worksScreen:", error);
         return {
             works: [],
             currentPage: 1,
@@ -250,7 +250,7 @@ export async function fetchFilteredWorks(filters = {}, page = 1) {
     }
 }
 
-// Keep the old function for backward compatibility
+//Old function for backward compatibility
 export async function getRecentWorks() {
     const result = await fetchFilteredWorks({}, 1);
     return result.works;

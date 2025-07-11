@@ -1,4 +1,3 @@
-// ao3AutocompleteService.js
 // Service for fetching autocomplete suggestions from AO3
 
 const AO3_BASE_URL = 'https://archiveofourown.org/autocomplete';

@@ -145,7 +145,7 @@ const LibraryScreen = ({
       setHasMore(libraryEntries.length === pageSize && works.length + worksWithLibraryData.length < count);
 
     } catch (err) {
-      console.error('Error loading works:', err);
+      console.error('Error loading worksScreen:', err);
       setError({
         message: err.message || 'Failed to load library',
         details: err.toString()
@@ -424,7 +424,7 @@ const LibraryScreen = ({
             <Text style={[styles.emptyText, { color: currentTheme.secondaryTextColor }]}>
               {isSearching
                 ? `No works found matching "${searchTerm}"`
-                : 'Browse and add some works to get started!'
+                : 'Browse and add some worksScreen to get started!'
               }
             </Text>
             {!isSearching && (
