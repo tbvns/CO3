@@ -54,8 +54,15 @@ class Database {
                                              number INTEGER NOT NULL,
                                              name TEXT,
                                              date INTEGER,
-                                             progress REAL DEFAULT 0.0,
                                              FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
+        );`,
+      `CREATE TABLE IF NOT EXISTS progress_entries (
+                                                     workId TEXT NOT NULL,
+                                                     chapterID INTEGER NOT NULL,
+                                                     progress REAL DEFAULT 0.0,
+                                                     PRIMARY KEY (workId, chapterID),
+        FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE,
+        FOREIGN KEY (chapterID) REFERENCES chapters (id) ON DELETE CASCADE
         );`,
       `CREATE TABLE IF NOT EXISTS tags (
                                          id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -109,6 +116,7 @@ class Database {
       `CREATE INDEX IF NOT EXISTS idx_history_workId ON history (workId);`,
       `CREATE INDEX IF NOT EXISTS idx_tags_name ON tags (name);`,
       `CREATE INDEX IF NOT EXISTS idx_warnings_name ON warnings (name);`,
+      `CREATE INDEX IF NOT EXISTS idx_progress_workId_chapterId ON progress_entries (workId, chapterID);`,
 
       `CREATE INDEX IF NOT EXISTS idx_library_readIndex ON library (readIndex);`,
       `CREATE INDEX IF NOT EXISTS idx_library_dateAdded ON library (dateAdded);`,

@@ -37,8 +37,6 @@ export async function fetchChapter(workId, chapterId, currentTheme = null) {
 
     console.log(`Successfully fetched chapter ${chapterId} from work ${workId}`);
 
-    console.log(completeHtml);
-
     return completeHtml;
   } catch (error) {
     console.error("Error fetching chapter:", error);

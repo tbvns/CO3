@@ -10,15 +10,14 @@ import {
   RefreshControl,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { HistoryDAO } from '../database/HistoryDAO';
-import { database } from '../../database/Database';
+
 import HistoryHeader from '../components/History/Headers';
 import HistoryList from '../components/History/List';
 import CalendarModal from '../components/History/CalendarModal';
 import EmptyState from '../components/History/Empty';
 import LoadingSpinner from '../components/History/Spinner';
 
-const HistoryScreen = ({ currentTheme, historyDAO }) => {
+const HistoryScreen = ({ currentTheme, historyDAO, workDAO }) => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -35,15 +34,15 @@ const HistoryScreen = ({ currentTheme, historyDAO }) => {
   const PAGE_SIZE = 20;
 
   useEffect(() => {
-    if (historyDAO) {
+    if (historyDAO && workDAO) { // Ensure both DAOs are available
       loadInitialHistory();
       loadReadingDates();
     }
-  }, [historyDAO]);
+  }, [historyDAO, loadInitialHistory, loadReadingDates, workDAO]); // Add workDAO to dependency array
 
   const loadReadingDates = async () => {
     try {
-      const datesAsTimestamps = await historyDAO.getReadingDates(); // e.g., [1751993361703, ...]
+      const datesAsTimestamps = await historyDAO.getReadingDates();
       const datesAsStrings = datesAsTimestamps.map(timestamp => {
         return new Date(timestamp).toISOString().split('T')[0];
       });
@@ -52,6 +51,34 @@ const HistoryScreen = ({ currentTheme, historyDAO }) => {
       console.error('Error loading reading dates:', error);
     }
   };
+
+  const fetchAndCombineHistory = async (historyData) => {
+    if (!historyData || historyData.length === 0) {
+      return [];
+    }
+
+    const combinedHistory = await Promise.all(
+      historyData.map(async (item) => {
+        try {
+          const work = await workDAO.get(item.workId); // Fetch work details using workId
+          return {
+            ...item,
+            book_title: work ? work.title : 'Unknown Book', // Get title from Work object
+            book_author: work ? work.author : 'Unknown Author', // Get author from Work object
+          };
+        } catch (error) {
+          console.error(`Error fetching work for history item ${item.id}:`, error);
+          return {
+            ...item,
+            book_title: 'Unknown Book',
+            book_author: 'Unknown Author',
+          };
+        }
+      })
+    );
+    return combinedHistory;
+  };
+
   const loadInitialHistory = async () => {
     try {
       setLoading(true);
@@ -61,19 +88,24 @@ const HistoryScreen = ({ currentTheme, historyDAO }) => {
       let count;
       if (isFilterActive && dateRange.start) {
         const endDate = dateRange.end || dateRange.start;
+        const startTimestamp = new Date(dateRange.start).setHours(0, 0, 0, 0);
+        const endTimestamp = new Date(endDate).setHours(23, 59, 59, 999);
+
+        // Assuming historyDAO returns items with workId
         historyData = await historyDAO.getHistoryByDateRange(
-            dateRange.start,
-            endDate,
-            PAGE_SIZE,
-            0
+          startTimestamp,
+          endTimestamp,
+          PAGE_SIZE,
+          0
         );
-        count = await historyDAO.getHistoryCountByDateRange(dateRange.start, endDate);
+        count = await historyDAO.getHistoryCountByDateRange(startTimestamp, endTimestamp);
       } else {
-        historyData = await historyDAO.getPaginatedHistory(PAGE_SIZE, 0);
+        historyData = await historyDAO.getPaginatedHistory(PAGE_SIZE, 0); // Assuming historyDAO returns items with workId
         count = await historyDAO.getTotalHistoryCount();
       }
 
-      setHistory(historyData || []);
+      const combinedHistory = await fetchAndCombineHistory(historyData);
+      setHistory(combinedHistory || []);
       setTotalCount(count);
       setHasMore(historyData.length === PAGE_SIZE);
     } catch (error) {
@@ -100,17 +132,18 @@ const HistoryScreen = ({ currentTheme, historyDAO }) => {
         const endTimestamp = new Date(endDateString).setHours(23, 59, 59, 999);
 
         moreData = await historyDAO.getHistoryByDateRange(
-            startTimestamp,
-            endTimestamp,
-            PAGE_SIZE,
-            offset
+          startTimestamp,
+          endTimestamp,
+          PAGE_SIZE,
+          offset
         );
       } else {
         moreData = await historyDAO.getPaginatedHistory(PAGE_SIZE, offset);
       }
 
       if (moreData.length > 0) {
-        setHistory(prev => [...prev, ...moreData]);
+        const combinedMoreData = await fetchAndCombineHistory(moreData);
+        setHistory(prev => [...prev, ...combinedMoreData]);
         setCurrentPage(nextPage);
         setHasMore(moreData.length === PAGE_SIZE);
       } else {
@@ -125,37 +158,37 @@ const HistoryScreen = ({ currentTheme, historyDAO }) => {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    if (historyDAO) {
+    if (historyDAO && workDAO) {
       await loadInitialHistory();
       await loadReadingDates();
     }
     setRefreshing(false);
-  }, [historyDAO, isFilterActive, dateRange]);
+  }, [historyDAO, workDAO, loadInitialHistory, loadReadingDates]);
 
   const clearHistory = () => {
     Alert.alert(
-        'Clear History',
-        'Are you sure you want to clear all reading history?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Clear',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                if (historyDAO) {
-                  await historyDAO.deleteAll();
-                  setHistory([]);
-                  setTotalCount(0);
-                  setHasMore(false);
-                  await loadReadingDates();
-                }
-              } catch (error) {
-                console.error('Error clearing history:', error);
+      'Clear History',
+      'Are you sure you want to clear all reading history?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (historyDAO) {
+                await historyDAO.deleteAll();
+                setHistory([]);
+                setTotalCount(0);
+                setHasMore(false);
+                await loadReadingDates();
               }
-            },
+            } catch (error) {
+              console.error('Error clearing history:', error);
+            }
           },
-        ]
+        },
+      ]
     );
   };
 
@@ -170,29 +203,26 @@ const HistoryScreen = ({ currentTheme, historyDAO }) => {
         setIsFilterActive(false);
         const historyData = await historyDAO.getPaginatedHistory(PAGE_SIZE, 0);
         const count = await historyDAO.getTotalHistoryCount();
-        setHistory(historyData || []);
+        const combinedHistory = await fetchAndCombineHistory(historyData);
+        setHistory(combinedHistory || []);
         setTotalCount(count);
         setHasMore(historyData.length === PAGE_SIZE);
       } else {
         setIsFilterActive(true);
 
-        // Convert start date string to a timestamp for the beginning of that day
         const startTimestamp = new Date(dateRange.start).setHours(0, 0, 0, 0);
-
-        // Use the end date of the range, or the start date if only one day is selected
         const endDateString = dateRange.end || dateRange.start;
-        // Convert end date string to a timestamp for the very end of that day
         const endTimestamp = new Date(endDateString).setHours(23, 59, 59, 999);
 
         const filteredHistory = await historyDAO.getHistoryByDateRange(
-            startTimestamp,
-            endTimestamp,
-            PAGE_SIZE,
-            0
+          startTimestamp,
+          endTimestamp,
+          PAGE_SIZE,
+          0
         );
         const count = await historyDAO.getHistoryCountByDateRange(startTimestamp, endTimestamp);
-
-        setHistory(filteredHistory || []);
+        const combinedFilteredHistory = await fetchAndCombineHistory(filteredHistory);
+        setHistory(combinedFilteredHistory || []);
         setTotalCount(count);
         setHasMore(filteredHistory.length === PAGE_SIZE);
       }
@@ -208,13 +238,13 @@ const HistoryScreen = ({ currentTheme, historyDAO }) => {
     setIsFilterActive(false);
     setShowCalendar(false);
 
-    // Explicitly load all history instead of calling loadInitialHistory
     try {
       setLoading(true);
       setCurrentPage(0);
       const historyData = await historyDAO.getPaginatedHistory(PAGE_SIZE, 0);
       const count = await historyDAO.getTotalHistoryCount();
-      setHistory(historyData || []);
+      const combinedHistory = await fetchAndCombineHistory(historyData);
+      setHistory(combinedHistory || []);
       setTotalCount(count);
       setHasMore(historyData.length === PAGE_SIZE);
     } catch (error) {
@@ -239,65 +269,65 @@ const HistoryScreen = ({ currentTheme, historyDAO }) => {
   }
 
   return (
-      <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
-        <ScrollView
-            style={styles.mainContent}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-            refreshControl={
-              <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={onRefresh}
-                  colors={[currentTheme.primaryColor]}
-                  tintColor={currentTheme.primaryColor}
-              />
-            }
-        >
-          <View style={styles.contentContainer}>
-            <HistoryHeader
-                currentTheme={currentTheme}
-                totalCount={totalCount}
-                isFilterActive={isFilterActive}
-                hasHistory={history.length > 0}
-                onClearHistory={clearHistory}
-                onClearFilter={clearDateFilter}
-            />
-
-            {history.length === 0 ? (
-                <EmptyState
-                    currentTheme={currentTheme}
-                    isFilterActive={isFilterActive}
-                />
-            ) : (
-                <HistoryList
-                    history={history}
-                    currentTheme={currentTheme}
-                    loadingMore={loadingMore}
-                    hasMore={hasMore}
-                />
-            )}
-          </View>
-        </ScrollView>
-
-        {/* Calendar Filter Button */}
-        <TouchableOpacity
-            style={[styles.calendarFab, { backgroundColor: currentTheme.primaryColor }]}
-            onPress={() => setShowCalendar(true)}
-        >
-          <Icon name="calendar-today" size={24} color="white" />
-        </TouchableOpacity>
-
-        {/* Calendar Modal */}
-        <CalendarModal
-            visible={showCalendar}
+    <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+      <ScrollView
+        style={styles.mainContent}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[currentTheme.primaryColor]}
+            tintColor={currentTheme.primaryColor}
+          />
+        }
+      >
+        <View style={styles.contentContainer}>
+          <HistoryHeader
             currentTheme={currentTheme}
-            dateRange={dateRange}
-            readingDates={readingDates}
-            onClose={() => setShowCalendar(false)}
-            onDateRangeChange={setDateRange}
-            onApplyFilter={applyDateFilter}
-        />
-      </View>
+            totalCount={totalCount}
+            isFilterActive={isFilterActive}
+            hasHistory={history.length > 0}
+            onClearHistory={clearHistory}
+            onClearFilter={clearDateFilter}
+          />
+
+          {history.length === 0 ? (
+            <EmptyState
+              currentTheme={currentTheme}
+              isFilterActive={isFilterActive}
+            />
+          ) : (
+            <HistoryList
+              history={history}
+              currentTheme={currentTheme}
+              loadingMore={loadingMore}
+              hasMore={hasMore}
+            />
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Calendar Filter Button */}
+      <TouchableOpacity
+        style={[styles.calendarFab, { backgroundColor: currentTheme.primaryColor }]}
+        onPress={() => setShowCalendar(true)}
+      >
+        <Icon name="calendar-today" size={24} color="white" />
+      </TouchableOpacity>
+
+      {/* Calendar Modal */}
+      <CalendarModal
+        visible={showCalendar}
+        currentTheme={currentTheme}
+        dateRange={dateRange}
+        readingDates={readingDates}
+        onClose={() => setShowCalendar(false)}
+        onDateRangeChange={setDateRange}
+        onApplyFilter={applyDateFilter}
+      />
+    </View>
   );
 };
 

@@ -32,7 +32,10 @@ const LibraryScreen = ({
                          workDAO,
                          setScreens,
                          screens,
-                         setActiveScreen
+                         setActiveScreen,
+                         settingsDAO,
+                         historyDAO,
+                         progressDAO,
                        }) => {
   const [works, setWorks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +50,7 @@ const LibraryScreen = ({
   const [hasMore, setHasMore] = useState(false);
 
   // Filter and sort state
-  const [sortType, setSortType] = useState('lastRead'); // 'lastRead', 'alphabetical', 'dateAdded'
+  const [sortType, setSortType] = useState('lastRead');
   const [selectedCollection, setSelectedCollection] = useState(null);
   const [collections, setCollections] = useState([]);
   const [showSortModal, setShowSortModal] = useState(false);
@@ -450,6 +453,9 @@ const LibraryScreen = ({
                 libraryDAO={libraryDAO}
                 workDAO={workDAO}
                 isInLibrary={true}
+                settingsDAO={settingsDAO}
+                historyDAO={historyDAO}
+                progressDAO={progressDAO}
               />
             ))}
             {renderFooter()}

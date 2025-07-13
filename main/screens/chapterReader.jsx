@@ -16,6 +16,7 @@ import Slider from '@react-native-community/slider';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const PULL_THRESHOLD = 150;
+const PROGRESS_SAVE_DEBOUNCE = 1000;
 
 const PullIndicator = ({ progress, theme }) => {
   const size = 60;
@@ -61,6 +62,7 @@ const ChapterReader = ({
                          workId,
                          workTitle,
                          chapterTitle,
+                         chapterID,
                          htmlContent,
                          currentChapterIndex,
                          totalChapters,
@@ -69,21 +71,114 @@ const ChapterReader = ({
                          onNextChapter,
                          onPreviousChapter,
                          onProgressUpdate,
+                         progressDAO,
+                         historyDAO,
+                         settingsDAO,
                        }) => {
   const [barsVisible, setBarsVisible] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [pullDistance, setPullDistance] = useState(0);
-  // State to track if WebView has finished loading and is ready for commands
   const [webViewReady, setWebViewReady] = useState(false);
+  const [isIncognitoMode, setIsIncognitoMode] = useState(false);
+  const [initialProgressLoaded, setInitialProgressLoaded] = useState(false);
+  const [initialScrollAttempted, setInitialScrollAttempted] = useState(false);
+
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const webViewRef = useRef(null);
+  const progressSaveTimeoutRef = useRef(null);
+  const lastSavedProgressRef = useRef(0);
+
+  // Load settings when component mounts
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await settingsDAO.getSettings();
+        setIsIncognitoMode(settings.isIncognitoMode);
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    };
+
+    loadSettings();
+  }, [settingsDAO]);
+
+  // Load initial progress when chapterID changes and not in incognito
+  useEffect(() => {
+    const loadInitialProgress = async () => {
+      if (isIncognitoMode) {
+        setInitialProgressLoaded(true);
+        setScrollProgress(0); // Ensure progress is 0 in incognito
+        lastSavedProgressRef.current = 0;
+        return;
+      }
+
+      if (progressDAO && chapterID) {
+        try {
+          const savedProgress = await progressDAO.get(workId, chapterID);
+          setScrollProgress(savedProgress);
+          lastSavedProgressRef.current = savedProgress;
+          sendWebViewCommand('scroll')
+          console.log(`Initial progress loaded: ${savedProgress}`);
+        } catch (error) {
+          console.error('Error loading saved progress:', error);
+          setScrollProgress(0);
+          lastSavedProgressRef.current = 0;
+        } finally {
+          setInitialProgressLoaded(true);
+        }
+      } else {
+        setInitialProgressLoaded(true); // If no progressDAO or chapterID, consider initial progress loaded
+      }
+    };
+
+    // Only load initial progress if incognito mode is determined
+    if (typeof isIncognitoMode === 'boolean') {
+      loadInitialProgress();
+    }
+
+  }, [workId, chapterID, progressDAO, isIncognitoMode]);
+
+  useEffect(() => {
+    const manageHistory = async () => {
+      if (!historyDAO || !workId || currentChapterIndex === undefined || isIncognitoMode) {
+        return;
+      }
+
+      try {
+        const latestEntry = await historyDAO.getLatestEntry();
+        const now = new Date().getTime();
+        const oneHour = 60 * 60 * 1000;
+
+        if (
+          latestEntry &&
+          latestEntry.workId === workId &&
+          now - latestEntry.date < oneHour
+        ) {
+          await historyDAO.updateChapterEnd(latestEntry.id, currentChapterIndex, now);
+          console.log(`History updated for work ${workId}. End chapter is now ${currentChapterIndex}`);
+        } else {
+          const newEntry = {
+            workId,
+            date: now,
+            chapter: currentChapterIndex,
+            chapterEnd: currentChapterIndex,
+          };
+          await historyDAO.add(newEntry);
+          console.log(`New history entry created for work ${workId}, chapter ${currentChapterIndex}`);
+        }
+      } catch (error) {
+        console.error('Error managing history:', error);
+      }
+    };
+
+    manageHistory();
+  }, [workId, currentChapterIndex, historyDAO, isIncognitoMode]);
 
   // Function to send commands to the WebView
   const sendWebViewCommand = useCallback((action, payload = {}) => {
-    if (webViewRef.current && webViewReady) {
+    if (webViewRef.current) {
       const message = JSON.stringify({ action, payload });
-      // Call a predefined function in the WebView to handle the command
       webViewRef.current.injectJavaScript(`
         if (window.onMessageFromReactNative) {
           window.onMessageFromReactNative(${message});
@@ -91,21 +186,21 @@ const ChapterReader = ({
         true;
       `);
     }
-  }, [webViewReady]);
+  }, []);
 
+  // Reset state when chapter changes
   useEffect(() => {
-    // Reset state when chapter changes
     setScrollProgress(0);
     setPullDistance(0);
-    setWebViewReady(false); // Reset ready state for new chapter
-  }, [currentChapterIndex, workId]);
+    setWebViewReady(false);
+    setInitialProgressLoaded(false); // Reset this so it reloads for the new chapter
+    setInitialScrollAttempted(false); // Reset scroll attempt status
+    lastSavedProgressRef.current = 0;
 
-  useEffect(() => {
-    // Once WebView is ready, scroll to top for the new chapter
-    if (webViewReady) {
-      sendWebViewCommand('scrollTo', { position: 0 });
+    if (progressSaveTimeoutRef.current) {
+      clearTimeout(progressSaveTimeoutRef.current);
     }
-  }, [webViewReady, sendWebViewCommand]); // Depend on webViewReady and sendWebViewCommand
+  }, [currentChapterIndex, workId, chapterID]);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -113,11 +208,7 @@ const ChapterReader = ({
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [barsVisible]);
-
-  const handleWebViewLoadEnd = useCallback(() => {
-    setWebViewReady(true);
-  }, []);
+  }, [barsVisible, fadeAnim]);
 
   const onSliderValueChange = useCallback(
     (value) => {
@@ -128,10 +219,16 @@ const ChapterReader = ({
   );
 
   const onSliderSlidingComplete = useCallback(
-    (value) => {
+    async (value) => {
       onProgressUpdate?.(value);
+      if (!isIncognitoMode) {
+        if (progressSaveTimeoutRef.current) clearTimeout(progressSaveTimeoutRef.current);
+        // Save immediately on slider complete
+        progressDAO.set(workId, chapterID, value);
+        lastSavedProgressRef.current = value; // Update last saved reference
+      }
     },
-    [onProgressUpdate]
+    [onProgressUpdate, isIncognitoMode, workId, chapterID, progressDAO]
   );
 
   const toggleBars = useCallback(() => {
@@ -145,10 +242,29 @@ const ChapterReader = ({
         const data = JSON.parse(event.nativeEvent.data);
 
         switch (data.type) {
+          case 'webview-ready':
+            console.log("WebView reported ready.");
+            setWebViewReady(true);
+            break;
           case 'scroll': {
             const { progress } = data;
             setScrollProgress(progress);
             onProgressUpdate?.(progress);
+
+            // Debounce saving progress
+            if (!isIncognitoMode) {
+              if (progressSaveTimeoutRef.current) {
+                clearTimeout(progressSaveTimeoutRef.current);
+              }
+              progressSaveTimeoutRef.current = setTimeout(() => {
+                // Only save if progress has actually changed significantly
+                if (Math.abs(progress - lastSavedProgressRef.current) > 0.01) { // 1% change threshold
+                  progressDAO.set(workId, chapterID, progress);
+                  lastSavedProgressRef.current = progress;
+                  console.log(`Progress saved: ${Math.round(progress * 100)}%`);
+                }
+              }, PROGRESS_SAVE_DEBOUNCE);
+            }
             break;
           }
           case 'tap': {
@@ -184,32 +300,50 @@ const ChapterReader = ({
       toggleBars,
       hasNextChapter,
       onNextChapter,
+      isIncognitoMode,
+      workId,
+      chapterID,
+      progressDAO,
     ],
   );
 
-  const handleForwardButton = useCallback(() => {
+  const handleForwardButton = useCallback(async () => {
     if (hasNextChapter) {
-      console.log('RN: Navigating to next chapter.');
+      if (progressSaveTimeoutRef.current) clearTimeout(progressSaveTimeoutRef.current);
+      if (!isIncognitoMode && scrollProgress > 0) {
+        progressDAO.set(workId, chapterID, scrollProgress);
+        lastSavedProgressRef.current = scrollProgress;
+      }
       onNextChapter?.();
     }
-  }, [hasNextChapter, onNextChapter]);
+  }, [hasNextChapter, onNextChapter, isIncognitoMode, scrollProgress, workId, chapterID, progressDAO]);
 
-  const handleBackButton = useCallback(() => {
+  const handleBackButton = useCallback(async () => {
     if (hasPreviousChapter) {
-      console.log('RN: Navigating to previous chapter.');
+      if (progressSaveTimeoutRef.current) clearTimeout(progressSaveTimeoutRef.current);
+      if (!isIncognitoMode && scrollProgress > 0) {
+        progressDAO.set(workId, chapterID, scrollProgress);
+        lastSavedProgressRef.current = scrollProgress;
+      }
       onPreviousChapter?.();
     }
-  }, [hasPreviousChapter, onPreviousChapter]);
+  }, [hasPreviousChapter, onPreviousChapter, isIncognitoMode, scrollProgress, workId, chapterID, progressDAO]);
 
-  // JavaScript to be injected into the WebView
   const injectedJavaScript = `
+    //Initial scroll. That's not perfect since some CSS element / image might have not loaded yet and you then lose like 5% every times
+    //Works fine on only text tho
+    const ch = document.body.scrollHeight;
+    const sh = window.innerHeight;
+    const ms = Math.max(0, ch - sh);
+    document.documentElement.scrollTop = ${scrollProgress} * ms;
+
     // Function to send logs from WebView to React Native
     function webViewLog(message) {
       if (window.ReactNativeWebView) {
         window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'log', message: message }));
       }
     }
-
+    
     // Define a global function that React Native can call
     window.onMessageFromReactNative = (message) => {
       webViewLog('WebView: Received message from RN: ' + JSON.stringify(message));
@@ -351,6 +485,16 @@ const ChapterReader = ({
         >
           {chapterTitle}
         </Text>
+        {isIncognitoMode && (
+          <Text
+            style={[
+              styles.incognitoIndicator,
+              { color: currentTheme.primaryColor },
+            ]}
+          >
+            Incognito Mode
+          </Text>
+        )}
       </View>
     </Animated.View>
   );
@@ -453,12 +597,8 @@ const ChapterReader = ({
           originWhitelist={['*']}
           source={{ html: htmlContent || '<p></p>' }}
           style={styles.webView}
-          // The injectedJavaScript runs once when the WebView loads
           injectedJavaScript={injectedJavaScript}
-          // onMessage handles communication from WebView to React Native
           onMessage={handleMessage}
-          // onLoadEnd is called when the WebView finishes loading content
-          onLoadEnd={handleWebViewLoadEnd}
           showsVerticalScrollIndicator={false}
           bounces={false}
           overScrollMode="never"
@@ -503,6 +643,11 @@ const styles = StyleSheet.create({
   chapterTitle: {
     fontSize: 14,
     marginTop: 2,
+  },
+  incognitoIndicator: {
+    fontSize: 12,
+    marginTop: 4,
+    fontWeight: '500',
   },
   bottomBar: {
     position: 'absolute',

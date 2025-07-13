@@ -109,7 +109,6 @@ export class LibraryDAO {
       workData.tags = await this.getTagsForWork(row.id);
       workData.warnings = await this.getWarningsForWork(row.id);
 
-      // Add library-specific data
       const libraryData = {
         dateAdded: row.dateAdded,
         collection: row.collection,

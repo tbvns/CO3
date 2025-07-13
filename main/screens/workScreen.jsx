@@ -19,28 +19,42 @@ import ChapterReader from './chapterReader';
 import { navigateToNextChapter, navigateToPreviousChapter } from '../utils/ChapterNavigationHelpers';
 
 
-const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress }) => (
-  <TouchableOpacity
-    style={[styles.chapterItem, { borderBottomColor: currentTheme.borderColor }]}
-    onPress={onPress}
-  >
-    <View style={styles.chapterContent}>
-      <Text style={[styles.chapterTitle, { color: currentTheme.textColor }]}>
-        {chapter.name || `Chapter ${index + 1}`}
-      </Text>
-      {chapter.date && (
-        <Text style={[styles.chapterDate, { color: currentTheme.secondaryTextColor }]}>
-          {chapter.date}
+const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress }) => {
+  const hasProgress = chapter.progress !== undefined && chapter.progress !== null;
+  const isRead = hasProgress && chapter.progress >= 0.98; // 98% or more
+
+  return (
+    <TouchableOpacity
+      style={[styles.chapterItem, { borderBottomColor: currentTheme.borderColor }]}
+      onPress={onPress}
+    >
+      <View style={styles.chapterContent}>
+        {/* Chapter title, color changes if read */}
+        <Text
+          style={[
+            styles.chapterTitle,
+            { color: isRead ? currentTheme.secondaryTextColor : currentTheme.textColor }
+          ]}
+        >
+          {chapter.name || `Chapter ${index + 1}`}
         </Text>
-      )}
-    </View>
-    <Icon
-      name="chevron-right"
-      size={20}
-      color={currentTheme.iconColor}
-    />
-  </TouchableOpacity>
-));
+        {/* Chapter date and progress */}
+        {(chapter.date || hasProgress) && (
+          <Text style={[styles.chapterDate, { color: currentTheme.secondaryTextColor }]}>
+            {chapter.date}
+            {/* Display progress if available, regardless of "read" status */}
+            {hasProgress && ` | ${(chapter.progress * 100).toFixed(0)}%`}
+          </Text>
+        )}
+      </View>
+      <Icon
+        name="chevron-right"
+        size={20}
+        color={currentTheme.iconColor}
+      />
+    </TouchableOpacity>
+  );
+});
 
 /**
  * A wrapper component that manages the state and logic for the ChapterReader.
@@ -51,7 +65,9 @@ const ReaderWrapper = ({
                          currentTheme,
                          setScreens,
                          chapterList,
-                         historyDAO, // Optional: for logging read history
+                         historyDAO,
+                         progressDAO,
+                         settingsDAO
                        }) => {
   const [chapterData, setChapterData] = useState(initialChapterData);
   const [loading, setLoading] = useState(false);
@@ -113,6 +129,7 @@ const ReaderWrapper = ({
           workId={chapterData.workId}
           workTitle={chapterData.workTitle}
           chapterTitle={chapterData.chapterTitle}
+          chapterID={chapterData.chapterId}
           htmlContent={chapterData.htmlContent}
           currentChapterIndex={chapterData.chapterIndex}
           totalChapters={chapterList.length}
@@ -120,9 +137,9 @@ const ReaderWrapper = ({
           hasPreviousChapter={chapterData.hasPreviousChapter}
           onNextChapter={handleNextChapter}
           onPreviousChapter={handlePreviousChapter}
-          onProgressUpdate={(progress) => {
-            //todo: This could be used for more granular progress tracking in the future.
-          }}
+          settingsDAO={settingsDAO}
+          progressDAO={progressDAO}
+          historyDAO={historyDAO}
         />
       )}
     </SafeAreaView>
@@ -135,10 +152,14 @@ const ChapterInfoScreen = ({
                              currentTheme,
                              libraryDAO,
                              workDAO,
-                             setScreens
+                             setScreens,
+                             settingsDAO,
+                             historyDAO,
+                             progressDAO,
                            }) => {
   const [work, setWork] = useState(null);
   const [chapters, setChapters] = useState([]);
+  const [chapterProgress, setChapterProgress] = useState({}); // New state for chapter progress
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -156,13 +177,21 @@ const ChapterInfoScreen = ({
       setLoading(true);
       setError(null);
 
-      const [workData, chaptersData] = await Promise.all([
+      const [workData, chaptersData, progressData] = await Promise.all([ // Fetch progress data
         fetchWorkFromWorkID(workId),
-        fetchChapters(workId)
+        fetchChapters(workId),
+        progressDAO.getProgressList(workId), // Fetch progress for all chapters in this work
       ]);
 
       setWork(workData);
       setChapters(chaptersData);
+
+      // Map progress data to a more accessible object
+      const progressMap = progressData.reduce((acc, item) => {
+        acc[item.chapterID] = item.progress;
+        return acc;
+      }, {});
+      setChapterProgress(progressMap);
 
     } catch (err) {
       console.error('Error loading work data:', err);
@@ -251,6 +280,9 @@ const ChapterInfoScreen = ({
           currentTheme={currentTheme}
           setScreens={setScreens}
           chapterList={chapterListForNav}
+          settingsDAO={settingsDAO}
+          historyDAO={historyDAO}
+          progressDAO={progressDAO}
         />
       ]);
 
@@ -395,13 +427,12 @@ const ChapterInfoScreen = ({
 
   const renderChapterItem = useCallback(({ item }) => (
     <ChapterItem
-      chapter={item}
-      // You might use item.originalIndex here for display if you want chapter numbers to reflect original order
-      index={item.originalIndex} // Or `item.originalIndex + 1` if you want 1-based numbering
+      chapter={{ ...item, progress: chapterProgress[item.id] }} // Pass progress to ChapterItem
+      index={item.originalIndex}
       currentTheme={currentTheme}
-      onPress={() => handleChapterPress(item, item.originalIndex)} // Pass the stored originalIndex
+      onPress={() => handleChapterPress(item, item.originalIndex)}
     />
-  ), [currentTheme, handleChapterPress]);
+  ), [currentTheme, handleChapterPress, chapterProgress]); // Add chapterProgress to dependencies
 
   const getItemLayout = useCallback((data, index) => (
     { length: 60, offset: 60 * index, index }
