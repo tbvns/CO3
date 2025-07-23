@@ -322,7 +322,10 @@ const App = () => {
       screens,
       setScreens,
       libraryDAO,
-      setActiveScreen
+      setActiveScreen,
+      setTheme,
+      theme,
+      setViewMode,
     };
 
     switch (activeScreen) {

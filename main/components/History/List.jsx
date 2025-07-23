@@ -2,7 +2,13 @@ import React from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import HistoryItem from './Item';
 
-const HistoryList = ({ history, currentTheme, loadingMore, hasMore }) => {
+const HistoryList = ({ history, currentTheme, loadingMore, hasMore,
+                       libraryDAO,
+                       workDAO,
+                       setScreens,
+                       settingsDAO,
+                       historyDAO,
+                       progressDAO}) => {
     const groupHistoryByDate = (historyItems) => {
         if (!historyItems || historyItems.length === 0) {
             return [];
@@ -40,6 +46,12 @@ const HistoryList = ({ history, currentTheme, loadingMore, hasMore }) => {
                             key={item.id}
                             item={item}
                             currentTheme={currentTheme}
+                            settingsDAO={settingsDAO}
+                            workDAO={workDAO}
+                            libraryDAO={libraryDAO}
+                            setScreens={setScreens}
+                            historyDAO={historyDAO}
+                            progressDAO={progressDAO}
                         />
                     ))}
                 </View>

@@ -103,7 +103,9 @@ class Database {
                                              id INTEGER PRIMARY KEY, -- Should always be 1
                                              theme TEXT DEFAULT 'light',
                                              isIncognitoMode INTEGER DEFAULT 0, -- SQLite stores booleans as 0 or 1
-                                             viewMode TEXT DEFAULT 'full'
+                                             viewMode TEXT DEFAULT 'full',
+                                             fontSize REAL DEFAULT 1.0,
+                                             useCustomSize INTEGER DEFAULT 0
        );`,
       `CREATE TABLE IF NOT EXISTS library (
                                             workId TEXT PRIMARY KEY,
@@ -130,8 +132,8 @@ class Database {
       const [settingsCheck] = await this.db.executeSql('SELECT COUNT(*) FROM settings WHERE id = 1');
       if (settingsCheck.rows.item(0)['COUNT(*)'] === 0) {
         await this.db.executeSql(
-          `INSERT INTO settings (id, theme, isIncognitoMode, viewMode) VALUES (?, ?, ?, ?)`,
-          [1, 'light', 0, 'full']
+          `INSERT INTO settings (id, theme, isIncognitoMode, viewMode, fontSize, useCustomSize) VALUES (?, ?, ?, ?, ?, ?)`,
+          [1, 'light', 0, 'full', 1.0, 0]
         );
       }
     } catch (error) {

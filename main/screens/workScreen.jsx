@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import {
   StyleSheet,
   View,
@@ -99,8 +99,9 @@ const ReaderWrapper = ({
       currentTheme: currentTheme,
       onChapterChange: handleChapterChange,
       historyDAO,
+      settingsDAO
     });
-  }, [loading, chapterData, chapterList, currentTheme, historyDAO]);
+  }, [loading, chapterData, chapterList, currentTheme, historyDAO, settingsDAO]);
 
   // Fetches and displays the previous chapter.
   const handlePreviousChapter = useCallback(async () => {
@@ -113,8 +114,9 @@ const ReaderWrapper = ({
       currentTheme: currentTheme,
       onChapterChange: handleChapterChange,
       historyDAO,
+      settingsDAO,
     });
-  }, [loading, chapterData, chapterList, currentTheme, historyDAO]);
+  }, [loading, chapterData, chapterList, currentTheme, historyDAO, settingsDAO]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
@@ -156,6 +158,7 @@ const ChapterInfoScreen = ({
                              settingsDAO,
                              historyDAO,
                              progressDAO,
+                             loadChapter,
                            }) => {
   const [work, setWork] = useState(null);
   const [chapters, setChapters] = useState([]);
@@ -168,6 +171,7 @@ const ChapterInfoScreen = ({
   const [inLibrary, setInLibrary] = useState(false);
   const [liked, setLiked] = useState(false);
 
+
   useEffect(() => {
     loadWorkData();
   }, [workId]);
@@ -177,10 +181,10 @@ const ChapterInfoScreen = ({
       setLoading(true);
       setError(null);
 
-      const [workData, chaptersData, progressData] = await Promise.all([ // Fetch progress data
+      const [workData, chaptersData, progressData] = await Promise.all([
         fetchWorkFromWorkID(workId),
         fetchChapters(workId),
-        progressDAO.getProgressList(workId), // Fetch progress for all chapters in this work
+        progressDAO.getProgressList(workId),
       ]);
 
       setWork(workData);
@@ -193,6 +197,63 @@ const ChapterInfoScreen = ({
       }, {});
       setChapterProgress(progressMap);
 
+      // Check if `loadChapter` is not null and load the chapter
+      if (loadChapter !== null && chaptersData[loadChapter]) {
+
+        //Needed to prevent loops. Yes it's ugly. Yes it works.
+        setScreens(prev => {
+          const newScreens = [...prev];
+          newScreens.pop();
+          setScreens([...newScreens,
+            <ChapterInfoScreen
+                workId={workId}
+                currentTheme={currentTheme}
+                libraryDAO={libraryDAO}
+                workDAO={workDAO}
+                setScreens={setScreens}
+                settingsDAO={settingsDAO}
+                historyDAO={historyDAO}
+                progressDAO={progressDAO}
+            />
+          ]);
+          return newScreens;
+        })
+
+        const chapterToLoad = chaptersData[loadChapter];
+        const chapterContent = await fetchChapter(workId, chapterToLoad.id, currentTheme, settingsDAO);
+
+        if (chapterContent) {
+          const initialChapterData = {
+            workId: workId,
+            workTitle: workData.title,
+            chapterId: chapterToLoad.id,
+            chapterTitle: chapterToLoad.name,
+            htmlContent: chapterContent,
+            chapterIndex: loadChapter,
+            hasNextChapter: loadChapter < chaptersData.length - 1,
+            hasPreviousChapter: loadChapter > 0,
+          };
+
+          const chapterListForNav = chaptersData.map((c) => ({
+            id: c.id,
+            title: c.name,
+          }));
+
+          setScreens((prevScreens) => [
+            ...prevScreens,
+            <ReaderWrapper
+                key={chapterToLoad.id}
+                initialChapterData={initialChapterData}
+                currentTheme={currentTheme}
+                setScreens={setScreens}
+                chapterList={chapterListForNav}
+                settingsDAO={settingsDAO}
+                historyDAO={historyDAO}
+                progressDAO={progressDAO}
+            />,
+          ]);
+        }
+      }
     } catch (err) {
       console.error('Error loading work data:', err);
       setError(err.message || 'Failed to load work data');
@@ -253,7 +314,13 @@ const ChapterInfoScreen = ({
 
   const handleChapterPress = useCallback(async (chapter, originalIndex) => { // Accept originalIndex
     try {
-      const chapterContent = await fetchChapter(workId, chapter.id, currentTheme);
+
+      workDAO.get(workId).then(a => {
+        if (a) return;
+        workDAO.add(work);
+      });
+
+      const chapterContent = await fetchChapter(workId, chapter.id, currentTheme, settingsDAO);
       if (!chapterContent) {
         console.error("Could not fetch chapter content. Please try again.");
         return;

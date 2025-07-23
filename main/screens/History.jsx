@@ -17,7 +17,11 @@ import CalendarModal from '../components/History/CalendarModal';
 import EmptyState from '../components/History/Empty';
 import LoadingSpinner from '../components/History/Spinner';
 
-const HistoryScreen = ({ currentTheme, historyDAO, workDAO }) => {
+const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
+                         libraryDAO,
+                         setScreens,
+                         settingsDAO,
+                         progressDAO}) => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -304,6 +308,12 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO }) => {
               currentTheme={currentTheme}
               loadingMore={loadingMore}
               hasMore={hasMore}
+              settingsDAO={settingsDAO}
+              workDAO={workDAO}
+              libraryDAO={libraryDAO}
+              setScreens={setScreens}
+              historyDAO={historyDAO}
+              progressDAO={progressDAO}
             />
           )}
         </View>

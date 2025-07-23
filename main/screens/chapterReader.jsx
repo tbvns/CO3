@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   Animated,
-  Dimensions,
   Platform,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -14,7 +13,6 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import Svg, { Circle } from 'react-native-svg';
 import Slider from '@react-native-community/slider';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const PULL_THRESHOLD = 150;
 const PROGRESS_SAVE_DEBOUNCE = 1000;
 
@@ -82,6 +80,7 @@ const ChapterReader = ({
   const [isIncognitoMode, setIsIncognitoMode] = useState(false);
   const [initialProgressLoaded, setInitialProgressLoaded] = useState(false);
   const [initialScrollAttempted, setInitialScrollAttempted] = useState(false);
+  const [size, setSize] = useState(1);
 
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -95,6 +94,7 @@ const ChapterReader = ({
       try {
         const settings = await settingsDAO.getSettings();
         setIsIncognitoMode(settings.isIncognitoMode);
+        setSize(settings.fontSize);
       } catch (error) {
         console.error('Error loading settings:', error);
       }

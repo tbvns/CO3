@@ -1,7 +1,7 @@
 import ky from "ky";
 let DomParser = require("react-native-html-parser").DOMParser;
 
-export async function fetchChapter(workId, chapterId, currentTheme = null) {
+export async function fetchChapter(workId, chapterId, currentTheme = null, settingsDAO) {
   try {
     const url = `https://archiveofourown.org/works/${workId}/chapters/${chapterId}?view_adult=true`;
 
@@ -33,7 +33,7 @@ export async function fetchChapter(workId, chapterId, currentTheme = null) {
     const chapterHtml = getElementHtml(chapterDiv);
 
     // Create a complete HTML document with embedded CSS
-    const completeHtml = createCompleteHtml(chapterHtml, cssStyles, currentTheme);
+    const completeHtml = await createCompleteHtml(chapterHtml, cssStyles, currentTheme, settingsDAO);
 
     console.log(`Successfully fetched chapter ${chapterId} from work ${workId}`);
 
@@ -56,9 +56,11 @@ function getElementText(element) {
   return text.trim() || null;
 }
 
-function createCompleteHtml(chapterHtml, cssStyles, currentTheme) {
+async function createCompleteHtml(chapterHtml, cssStyles, currentTheme, settingsDAO) {
   // Generate theme-based CSS variables
   const themeCSS = currentTheme ? generateThemeCSS(currentTheme) : '';
+
+  const settings = await settingsDAO.getSettings();
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -88,6 +90,8 @@ function createCompleteHtml(chapterHtml, cssStyles, currentTheme) {
       background-color: var(--bg-color, #fff);
       color: var(--text-color, #333);
       transition: background-color 0.3s ease, color 0.3s ease;
+      font-size: ${settings.useCustomSize ? settings.fontSize + 'em' : '1em'};
+
     }
     
     #workskin h1, #workskin h2, #workskin h3, #workskin h4, #workskin h5, #workskin h6 {

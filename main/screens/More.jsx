@@ -1,20 +1,144 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   ScrollView,
+  TouchableOpacity,
+  Animated,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import PreferencesScreen from './more/Preferences';
+import { settings } from '@react-native/eslint-config';
 
-const MoreScreen = ({ currentTheme }) => {
+const MoreScreen = ({ currentTheme, setScreens, theme, setTheme, viewMode, setViewMode, isIncognitoMode, toggleIncognitoMode, settingsDAO }) => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
+
+  const handlePress = (screenName) => {
+    switch (screenName) {
+      case "Preferences":
+        setScreens(prev => [...prev,
+          <PreferencesScreen
+            currentTheme={currentTheme}
+            theme={theme}
+            setTheme={setTheme}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            isIncognitoMode={isIncognitoMode}
+            toggleIncognitoMode={toggleIncognitoMode}
+            settingsDAO={settingsDAO}
+            setScreens={setScreens}
+          />
+        ]);
+    }
+    console.log(`${screenName} pressed`);
+  };
+
+  const menuItems = [
+    {
+      name: 'Preferences',
+      icon: 'settings',
+      handler: () => handlePress('Preferences')
+    },
+    {
+      name: 'Account',
+      icon: 'account-circle',
+      handler: () => handlePress('Account')
+    },
+    {
+      name: 'Categories',
+      icon: 'category',
+      handler: () => handlePress('Categories')
+    },
+    {
+      name: 'Statistics',
+      icon: 'bar-chart',
+      handler: () => handlePress('Statistics')
+    },
+    {
+      name: 'Data and Storage',
+      icon: 'storage',
+      handler: () => handlePress('Data and Storage')
+    },
+    {
+      name: 'About',
+      icon: 'info',
+      handler: () => handlePress('About')
+    },
+    {
+      name: 'Help',
+      icon: 'help',
+      handler: () => handlePress('Help')
+    },
+  ];
+
   return (
-    <ScrollView style={styles.mainContent}>
+    <ScrollView
+      style={[styles.mainContent, { backgroundColor: currentTheme.backgroundColor }]}
+    >
       <View style={styles.contentContainer}>
-        <Text style={[styles.title, { color: currentTheme.textColor }]}>More Options</Text>
+        <Text style={[styles.title, { color: currentTheme.textColor }]}>
+          More Options
+        </Text>
         <Text style={[styles.subtitle, { color: currentTheme.placeholderColor }]}>
           Additional settings and features
         </Text>
-        {/* Add your more screen content here */}
+
+        <View style={styles.menuContainer}>
+          {menuItems.map((item, index) => (
+            <Animated.View
+              key={item.name}
+              style={[
+                {
+                  opacity: fadeAnim,
+                  transform: [{
+                    translateX: fadeAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-20, 0]
+                    })
+                  }],
+                }
+              ]}
+            >
+              <TouchableOpacity
+                style={[
+                  styles.menuItem,
+                  {
+                    backgroundColor: currentTheme.cardBackground,
+                    borderBottomColor: currentTheme.borderColor,
+                  },
+                  index === menuItems.length - 1 && styles.lastItem
+                ]}
+                onPress={item.handler}
+                activeOpacity={0.7}
+              >
+                <View style={styles.iconContainer}>
+                  <Icon
+                    name={item.icon}
+                    size={24}
+                    color={currentTheme.primaryColor}
+                  />
+                </View>
+                <Text style={[styles.menuText, { color: currentTheme.textColor }]}>
+                  {item.name}
+                </Text>
+                <Icon
+                  name="chevron-right"
+                  size={24}
+                  color={currentTheme.placeholderColor}
+                />
+              </TouchableOpacity>
+            </Animated.View>
+          ))}
+        </View>
       </View>
     </ScrollView>
   );
@@ -23,6 +147,7 @@ const MoreScreen = ({ currentTheme }) => {
 const styles = StyleSheet.create({
   mainContent: {
     flex: 1,
+    margin: 16,
   },
   contentContainer: {
     padding: 16,
@@ -31,11 +156,36 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    marginTop: 8,
-    marginBottom: 20,
+    marginBottom: 24,
+  },
+  menuContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginHorizontal: -16,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+  },
+  lastItem: {
+    borderBottomWidth: 0,
+  },
+  iconContainer: {
+    width: 40,
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  menuText: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '500',
   },
 });
 

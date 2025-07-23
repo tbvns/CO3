@@ -19,7 +19,8 @@ export const navigateToNextChapter = async ({
                                               currentChapterIndex,
                                               currentTheme,
                                               onChapterChange,
-                                              historyDAO
+                                              historyDAO,
+                                              settingsDAO
                                             }) => {
   try {
     // Check if there's a next chapter
@@ -40,7 +41,8 @@ export const navigateToNextChapter = async ({
     const nextChapterContent = await fetchChapter(
       workId,
       nextChapter.id,
-      currentTheme
+      currentTheme,
+      settingsDAO
     );
 
     if (!nextChapterContent) {
@@ -116,7 +118,8 @@ export const navigateToPreviousChapter = async ({
     const previousChapterContent = await fetchChapter(
       workId,
       previousChapter.id,
-      currentTheme
+      currentTheme,
+      settingsDAO
     );
 
     if (!previousChapterContent) {
@@ -257,7 +260,8 @@ export const initializeChapterReader = async ({
                                                 workTitle,
                                                 chapterList,
                                                 currentTheme,
-                                                historyDAO
+                                                historyDAO,
+                                                settingsDAO
                                               }) => {
   try {
     // Find current chapter index
@@ -270,7 +274,7 @@ export const initializeChapterReader = async ({
     const currentChapter = chapterList[currentChapterIndex];
 
     // Fetch chapter content
-    const htmlContent = await fetchChapter(workId, chapterId, currentTheme);
+    const htmlContent = await fetchChapter(workId, chapterId, currentTheme, settingsDAO);
 
     if (!htmlContent) {
       throw new Error('Failed to fetch chapter content');

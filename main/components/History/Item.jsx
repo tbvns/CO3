@@ -1,7 +1,16 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { fetchWorkFromWorkID } from '../../web/worksScreen/fetchWork';
+import WorkScreen from '../../screens/workScreen';
+import ChapterReader from '../../screens/chapterReader';
 
-const HistoryItem = ({ item, currentTheme }) => {
+const HistoryItem = ({ item, currentTheme,
+                       libraryDAO,
+                       workDAO,
+                       setScreens,
+                       settingsDAO,
+                       historyDAO,
+                       progressDAO}) => {
   console.log(item.date);
 
   const formatDate = (timestamp) => {
@@ -35,31 +44,50 @@ const HistoryItem = ({ item, currentTheme }) => {
     return `Chapters ${start} - ${end}`;
   };
 
+  function handleClick() {
+    setScreens(prevScreens => [
+      ...prevScreens,
+      <WorkScreen
+        workId={item.workId}
+        currentTheme={currentTheme}
+        settingsDAO={settingsDAO}
+        workDAO={workDAO}
+        libraryDAO={libraryDAO}
+        setScreens={setScreens}
+        historyDAO={historyDAO}
+        progressDAO={progressDAO}
+        loadChapter={item.chapter || item.chapterEnd || 0}
+      />,
+    ])
+  }
+
   return (
-    <View style={[styles.historyItem, { backgroundColor: currentTheme.cardBackground }]}>
-      <View style={styles.itemHeader}>
-        <Text style={[styles.bookTitle, { color: currentTheme.textColor }]} numberOfLines={1}>
-          {/* Use item.book_title if available (from joined data), otherwise fallback */}
-          {item.book_title || 'Unknown Book'}
-        </Text>
-        <Text style={[styles.readTime, { color: currentTheme.placeholderColor }]}>
-          {/* Use item.date from the History model */}
-          {formatDate(item.date)}
-        </Text>
-      </View>
+    <TouchableOpacity onPress={handleClick} activeOpacity={0.7}>
+      <View style={[styles.historyItem, { backgroundColor: currentTheme.cardBackground }]}>
+        <View style={styles.itemHeader}>
+          <Text style={[styles.bookTitle, { color: currentTheme.textColor }]} numberOfLines={1}>
+            {/* Use item.book_title if available (from joined data), otherwise fallback */}
+            {item.book_title || 'Unknown Book'}
+          </Text>
+          <Text style={[styles.readTime, { color: currentTheme.placeholderColor }]}>
+            {/* Use item.date from the History model */}
+            {formatDate(item.date)}
+          </Text>
+        </View>
 
-      <Text style={[styles.bookAuthor, { color: currentTheme.placeholderColor }]} numberOfLines={1}>
-        {/* Use item.book_author if available, otherwise fallback */}
-        by {item.book_author || 'Unknown Author'}
-      </Text>
-
-      <View style={styles.chapterInfo}>
-        <Text style={[styles.chapterText, { color: currentTheme.primaryColor }]}>
-          {/* Use item.chapter and item.chapterEnd from the History model */}
-          {formatChapterRange(item.chapter, item.chapterEnd)}
+        <Text style={[styles.bookAuthor, { color: currentTheme.placeholderColor }]} numberOfLines={1}>
+          {/* Use item.book_author if available, otherwise fallback */}
+          by {item.book_author || 'Unknown Author'}
         </Text>
+
+        <View style={styles.chapterInfo}>
+          <Text style={[styles.chapterText, { color: currentTheme.primaryColor }]}>
+            {/* Use item.chapter and item.chapterEnd from the History model */}
+            {formatChapterRange(item.chapter, item.chapterEnd)}
+          </Text>
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

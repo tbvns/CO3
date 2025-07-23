@@ -14,6 +14,9 @@ const UpdateScreen = ({ currentTheme }) => {
         <Text style={[styles.subtitle, { color: currentTheme.placeholderColor }]}>
           Check for updates to your books and sync your library
         </Text>
+        <Text style={[styles.subtitle, { color: currentTheme.placeholderColor }]}>
+          This hasn't been implemented yet. It'll come in a future update. Stay tuned !
+        </Text>
         {/* Add your update screen content here */}
       </View>
     </ScrollView>

@@ -16,6 +16,8 @@ export class SettingsDAO {
       if (results.rows.length > 0) {
         const data = results.rows.item(0);
         data.isIncognitoMode = Boolean(data.isIncognitoMode);
+        data.useCustomSize = Boolean(data.useCustomSize);
+        console.log(data)
         return new Settings(data);
       }
       return new Settings({});
@@ -30,12 +32,13 @@ export class SettingsDAO {
    * @param {Settings} settings - The settings object to save.
    */
   async saveSettings(settings) {
-    const { id, theme, isIncognitoMode, viewMode } = settings;
+    const { id, theme, isIncognitoMode, viewMode, fontSize, useCustomSize } = settings;
     try {
       const incognitoModeInt = isIncognitoMode ? 1 : 0;
+      const useCustomSizeInt = useCustomSize ? 1 : 0;
       await this.db.executeSql(
-        `INSERT OR REPLACE INTO settings (id, theme, isIncognitoMode, viewMode) VALUES (?, ?, ?, ?)`,
-        [id, theme, incognitoModeInt, viewMode]
+        `INSERT OR REPLACE INTO settings (id, theme, isIncognitoMode, viewMode, fontSize, useCustomSize) VALUES (?, ?, ?, ?, ?, ?)`,
+        [id, theme, incognitoModeInt, viewMode, fontSize, useCustomSizeInt]
       );
     } catch (error) {
       console.error('Error saving settings:', error);
