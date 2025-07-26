@@ -9,18 +9,19 @@ import {
   Linking,
   SafeAreaView,
   ActivityIndicator,
+  Modal,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import login, { validateCookie } from "../../web/account/login"; // Adjust path
+import login, { validateCookie } from "../../web/account/login";
 import {
   setCredsPasswd,
-  getCredsPasswd, // Now also importing getCredsPasswd
+  getCredsPasswd,
   setCredsToken,
   getCredsToken,
-  deleteCredsPasswd, // New function for deleting password
-  deleteCredsToken, // New function for deleting token
-} from "../../storage/Credentials"; // Adjust path
-import CustomAlert from "../../components/CustomAlert"; // Adjust path
+  deleteCredsPasswd,
+  deleteCredsToken,
+} from "../../storage/Credentials";
+import CustomAlert from "../../components/CustomAlert";
 
 const LoginScreen = ({ currentTheme, setScreens }) => {
   const [username, setUsername] = useState("");
@@ -33,6 +34,10 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
     visible: false,
     title: "",
     message: "",
+  });
+  const [sessionInfo, setSessionInfo] = useState({
+    visible: false,
+    username: "",
   });
 
   useEffect(() => {
@@ -52,7 +57,6 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
       }
     } catch (error) {
       console.error("Token validation error:", error);
-      // Even if getCredsToken throws, we should not block the UI
       setIsLoggedIn(false);
     } finally {
       setValidating(false);
@@ -67,6 +71,33 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
     setAlert({ ...alert, visible: false });
   };
 
+  const showSessionInfo = async () => {
+    try {
+      // Try to get username from stored credentials first
+      const storedCreds = await getCredsPasswd();
+      if (storedCreds) {
+        setSessionInfo({
+          visible: true,
+          username: storedCreds.username,
+        });
+        return;
+      }
+
+      // If no stored credentials, show anonymous session
+      setSessionInfo({
+        visible: true,
+        username: "Anonymous (no stored credentials)",
+      });
+    } catch (error) {
+      console.error("Error retrieving session info:", error);
+      showAlert("Error", "Failed to retrieve session information");
+    }
+  };
+
+  const hideSessionInfo = () => {
+    setSessionInfo({ ...sessionInfo, visible: false });
+  };
+
   const handleLogin = async () => {
     if (!username || !password) {
       showAlert("Error", "Please enter both username and password");
@@ -78,15 +109,11 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
       const sessionToken = await login(username, password);
 
       if (sessionToken) {
-        // Always save the token
         await setCredsToken(sessionToken);
 
-        // Only save password if "Remember password" is checked
         if (rememberPassword) {
           await setCredsPasswd(username, password);
         } else {
-          // If rememberPassword was unchecked, ensure old password is removed
-          // In case user logged in without remembering, then logs out.
           await deleteCredsPasswd();
         }
 
@@ -105,10 +132,9 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
 
   const handleLogout = async () => {
     try {
-      await deleteCredsToken(); // Always delete the token
-      await deleteCredsPasswd(); // Always delete the password on logout
+      await deleteCredsToken();
+      await deleteCredsPasswd();
 
-      // Reset state
       setIsLoggedIn(false);
       setUsername("");
       setPassword("");
@@ -166,6 +192,15 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
             </View>
 
             <TouchableOpacity
+              style={[styles.secondaryButton, { backgroundColor: currentTheme.cardBackground }]}
+              onPress={showSessionInfo}
+            >
+              <Text style={[styles.secondaryButtonText, { color: currentTheme.textColor }]}>
+                Check current session
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={[styles.logoutButton, { backgroundColor: currentTheme.primaryColor }]}
               onPress={handleLogout}
             >
@@ -174,7 +209,43 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
           </View>
         </ScrollView>
 
-        <CustomAlert visible={alert.visible} title={alert.title} message={alert.message} onClose={hideAlert} theme={currentTheme} />
+        {/* Session Info Modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={sessionInfo.visible}
+          onRequestClose={hideSessionInfo}
+        >
+          <View style={styles.modalContainer}>
+            <View style={[styles.modalContent, { backgroundColor: currentTheme.cardBackground }]}>
+              <Text style={[styles.modalTitle, { color: currentTheme.textColor }]}>
+                Current Session
+              </Text>
+              <View style={styles.sessionInfoContainer}>
+                <Text style={[styles.sessionLabel, { color: currentTheme.placeholderColor }]}>
+                  Username:
+                </Text>
+                <Text style={[styles.sessionValue, { color: currentTheme.textColor }]}>
+                  {sessionInfo.username}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: currentTheme.primaryColor }]}
+                onPress={hideSessionInfo}
+              >
+                <Text style={styles.modalButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        <CustomAlert
+          visible={alert.visible}
+          title={alert.title}
+          message={alert.message}
+          onClose={hideAlert}
+          theme={currentTheme}
+        />
       </SafeAreaView>
     );
   }
@@ -270,7 +341,13 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
         </View>
       </ScrollView>
 
-      <CustomAlert visible={alert.visible} title={alert.title} message={alert.message} onClose={hideAlert} theme={currentTheme} />
+      <CustomAlert
+        visible={alert.visible}
+        title={alert.title}
+        message={alert.message}
+        onClose={hideAlert}
+        theme={currentTheme}
+      />
     </SafeAreaView>
   );
 };
@@ -357,7 +434,7 @@ const styles = StyleSheet.create({
     padding: 30,
     borderRadius: 12,
     alignItems: "center",
-    marginBottom: 30,
+    marginBottom: 20,
   },
   statusText: {
     fontSize: 20,
@@ -372,10 +449,65 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 15,
     alignItems: "center",
+    marginTop: 10,
   },
   logoutButtonText: {
     color: "white",
     fontSize: 18,
+    fontWeight: "bold",
+  },
+  secondaryButton: {
+    borderRadius: 8,
+    padding: 15,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  secondaryButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: "80%",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  sessionInfoContainer: {
+    width: "100%",
+    marginBottom: 20,
+  },
+  sessionLabel: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  sessionValue: {
+    fontSize: 16,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+  },
+  modalButton: {
+    borderRadius: 8,
+    padding: 10,
+    alignItems: "center",
+    width: "100%",
+  },
+  modalButtonText: {
+    color: "white",
+    fontSize: 16,
     fontWeight: "bold",
   },
 });

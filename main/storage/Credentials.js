@@ -5,10 +5,10 @@ export async function getCredsPasswd() {
     const creds = await Keychain.getGenericPassword({
       service: 'creds_passwd',
       authenticationPrompt: {
-        title: 'Authenticate to access your password',
-        subtitle: 'Use biometrics or your device passcode to unlock',
-        description: 'Authentication is required to access the password.',
-      },
+        title: 'Authenticate to access saved credentials',
+        subtitle: 'Access is protected by your biometrics or device passcode',
+        description: 'To ensure your security, you need to authenticate before the app can access your saved login information.',
+      }
     });
 
     if (creds) {
@@ -29,6 +29,11 @@ export async function setCredsPasswd(usrname, passwd) {
     await Keychain.setGenericPassword(usrname, passwd, {
       service: 'creds_passwd',
       accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE, // Allow biometrics or device passcode
+      authenticationPrompt: {
+        title: 'Authenticate to save your credentials',
+        subtitle: 'Your credentials will be securely stored in the device Keychain',
+        description: 'Authentication is required to securely save your login information. This allows the app to automatically log you in when needed.',
+      }
     });
     console.log('Password successfully stored');
   } catch (error) {
