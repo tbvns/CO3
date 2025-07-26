@@ -1,7 +1,10 @@
+import fetchLoginAuthenticityToken from './fetchAuthenticityToken';
+
 export default async function login(username, password) {
   try {
     // Prepare the form data
     const formData = new FormData();
+    formData.append('authenticity_token', await fetchLoginAuthenticityToken());
     formData.append('user[login]', username);
     formData.append('user[password]', password);
     formData.append('user[remember_me]', '1');
