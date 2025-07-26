@@ -6,7 +6,7 @@ export class SettingsDAO {
   }
 
   /**
-   * Retrieves the application settings from the database.
+   * Retrieves the application settings from the storage.
    * If no settings exist, it returns a default Settings object.
    * @returns {Promise<Settings>} The application settings.
    */
@@ -28,7 +28,7 @@ export class SettingsDAO {
   }
 
   /**
-   * Saves or updates the application settings in the database.
+   * Saves or updates the application settings in the storage.
    * @param {Settings} settings - The settings object to save.
    */
   async saveSettings(settings) {

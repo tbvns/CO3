@@ -1,5 +1,5 @@
 import ky from "ky";
-import {Work} from "../../database/models/work";
+import {Work} from "../../storage/models/work";
 let DomParser = require("react-native-html-parser").DOMParser;
 
 function getElementText(element) {

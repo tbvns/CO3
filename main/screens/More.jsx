@@ -10,6 +10,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import PreferencesScreen from './more/Preferences';
 import { settings } from '@react-native/eslint-config';
+import LoginScreen from './more/LoginScreen';
 
 const MoreScreen = ({ currentTheme, setScreens, theme, setTheme, viewMode, setViewMode, isIncognitoMode, toggleIncognitoMode, settingsDAO }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -38,6 +39,14 @@ const MoreScreen = ({ currentTheme, setScreens, theme, setTheme, viewMode, setVi
             setScreens={setScreens}
           />
         ]);
+        break;
+      case "Account":
+        setScreens(prev => [...prev,
+          <LoginScreen
+            currentTheme={currentTheme}
+          />
+        ]);
+        break;
     }
     console.log(`${screenName} pressed`);
   };
@@ -52,6 +61,16 @@ const MoreScreen = ({ currentTheme, setScreens, theme, setTheme, viewMode, setVi
       name: 'Account',
       icon: 'account-circle',
       handler: () => handlePress('Account')
+    },
+    {
+      name: 'Kudos history',
+      icon: 'favorite',
+      handler: () => handlePress('KudosHistory')
+    },
+    {
+      name: 'Bookmarks',
+      icon: 'bookmarks',
+      handler: () => handlePress('KudosHistory')
     },
     {
       name: 'Categories',

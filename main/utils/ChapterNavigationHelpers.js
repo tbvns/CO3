@@ -9,7 +9,7 @@ import { fetchChapter } from '../web/worksScreen/fetchChapter';
  * @param {number} params.currentChapterIndex - Current chapter index
  * @param {Object} params.currentTheme - Theme object
  * @param {Function} params.onChapterChange - Callback when chapter changes
- * @param {Object} params.historyDAO - History database access object
+ * @param {Object} params.historyDAO - History storage access object
  * @returns {Promise<Object|null>} - New chapter data or null if no next chapter
  */
 export const navigateToNextChapter = async ({
@@ -87,7 +87,7 @@ export const navigateToNextChapter = async ({
  * @param {number} params.currentChapterIndex - Current chapter index
  * @param {Object} params.currentTheme - Theme object
  * @param {Function} params.onChapterChange - Callback when chapter changes
- * @param {Object} params.historyDAO - History database access object
+ * @param {Object} params.historyDAO - History storage access object
  * @returns {Promise<Object|null>} - Previous chapter data or null if no previous chapter
  */
 export const navigateToPreviousChapter = async ({
@@ -161,7 +161,7 @@ export const navigateToPreviousChapter = async ({
  * @param {string} params.workId - Current work ID
  * @param {string} params.chapterId - Current chapter ID
  * @param {number} params.progress - Progress percentage (0-1)
- * @param {Object} params.historyDAO - History database access object
+ * @param {Object} params.historyDAO - History storage access object
  * @param {Function} params.onProgressUpdate - Optional callback for progress updates
  */
 export const updateReadingProgress = async ({
@@ -172,7 +172,7 @@ export const updateReadingProgress = async ({
                                               onProgressUpdate
                                             }) => {
   try {
-    // Update progress in database
+    // Update progress in storage
     if (historyDAO && historyDAO.updateChapterProgress) {
       await historyDAO.updateChapterProgress(workId, chapterId, progress);
     }
@@ -199,7 +199,7 @@ export const updateReadingProgress = async ({
 
 /**
  * Record a chapter as read in the history
- * @param {Object} historyDAO - History database access object
+ * @param {Object} historyDAO - History storage access object
  * @param {string} workId - Work ID
  * @param {string} chapterId - Chapter ID
  * @param {string} chapterTitle - Chapter title
@@ -251,7 +251,7 @@ export const getChapterNavigationInfo = (chapterList, currentIndex) => {
  * @param {string} params.workTitle - Work title
  * @param {Array} params.chapterList - List of all chapters
  * @param {Object} params.currentTheme - Theme object
- * @param {Object} params.historyDAO - History database access object
+ * @param {Object} params.historyDAO - History storage access object
  * @returns {Promise<Object>} - Initial chapter data
  */
 export const initializeChapterReader = async ({
@@ -311,7 +311,7 @@ export const initializeChapterReader = async ({
  * @param {string} params.chapterId - Chapter ID
  * @param {number} params.progress - Reading progress
  * @param {number} params.readingTime - Time spent reading (in seconds)
- * @param {Object} params.historyDAO - History database access object
+ * @param {Object} params.historyDAO - History storage access object
  */
 export const saveReadingSession = async ({
                                            workId,

@@ -15,10 +15,10 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import SideMenu from './components/app/SideMenu';
 import AddWorkModal from './components/Library/AddWorkModal';
-import { database } from './database/Database';
-import { HistoryDAO } from './database/dao/HistoryDAO';
-import { WorkDAO } from './database/dao/WorkDAO';
-import { SettingsDAO } from './database/dao/SettingsDAO';
+import { database } from './storage/Database';
+import { HistoryDAO } from './storage/dao/HistoryDAO';
+import { WorkDAO } from './storage/dao/WorkDAO';
+import { SettingsDAO } from './storage/dao/SettingsDAO';
 
 
 import { themes } from './utils/themes';
@@ -31,8 +31,10 @@ import HistoryScreen from './screens/History';
 import MoreScreen from './screens/More';
 import { fetchChapters } from './web/worksScreen/fetchChapters';
 import { fetchWorkFromWorkID } from './web/worksScreen/fetchWork';
-import { LibraryDAO } from './database/dao/LibraryDAO';
-import { ProgressDAO } from './database/dao/ProgressDAO';
+import { LibraryDAO } from './storage/dao/LibraryDAO';
+import { ProgressDAO } from './storage/dao/ProgressDAO';
+import fetchLoginAuthenticityToken from './web/account/fetchAuthenticityToken';
+import login from './web/account/login';
 
 const TopBar = ({ currentTheme, activeScreen, setIsSideMenuOpen, searchTerm, setSearchTerm }) => {
   const showSearch = activeScreen === 'library';

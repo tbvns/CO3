@@ -6,7 +6,7 @@ export class HistoryDAO {
   }
 
   /**
-   * Adds a new history entry to the database.
+   * Adds a new history entry to the storage.
    * @param {object} historyEntry - The history entry to add.
    */
   async add(historyEntry) {
@@ -18,7 +18,7 @@ export class HistoryDAO {
   }
 
   /**
-   * Retrieves the most recent history entry from the database.
+   * Retrieves the most recent history entry from the storage.
    * @returns {Promise<History|null>} The latest history entry or null if none exists.
    */
   async getLatestEntry() {
