@@ -1,4 +1,5 @@
 import * as Keychain from 'react-native-keychain';
+import CookieManager from '@react-native-cookies/cookies';
 
 export async function getCredsPasswd() {
   try {
@@ -13,7 +14,7 @@ export async function getCredsPasswd() {
 
     if (creds) {
       console.log('Credentials successfully loaded for user ' + creds.username);
-      return creds;
+      return creds; // Return credentials
     } else {
       console.log('No credentials stored for password service');
       return null;
@@ -47,7 +48,8 @@ export async function getCredsToken() {
     const creds = await Keychain.getGenericPassword({ service: 'creds_token' });
 
     if (creds) {
-      console.log('Token successfully loaded for user ' + creds.username);return creds.password; // Return the token value (which is stored as password)
+      console.log('Token successfully loaded for user ' + creds.username);
+      return creds.password; // Return the token value (which is stored as password)
     } else {
       console.log('No token stored');
       return null; // Return null if no token is stored
@@ -60,6 +62,17 @@ export async function getCredsToken() {
 
 export async function setCredsToken(token) {
   try {
+
+    await CookieManager.set('https://archiveofourown.org', {
+      name: '_otwarchive_session',
+      value: token,
+      domain: 'archiveofourown.org',
+      path: '/',
+      version: '1',
+      secure: true,
+      httpOnly: true,
+    });
+
     // Storing the token with a generic username 'ao3_token'
     await Keychain.setGenericPassword('ao3_token', token, { service: 'creds_token' });
     console.log('Token successfully stored');
@@ -82,6 +95,8 @@ export async function deleteCredsPasswd() {
 export async function deleteCredsToken() {
   try {
     await Keychain.resetGenericPassword({ service: 'creds_token' });
+    await CookieManager.clearAll(); //Why the hell do I need that and why the hell does it remember cookie on its own ???
+    //Is it sentient ? I'm scarred. I never told him to remember cookies so why does it do ?
     console.log('Token credentials deleted.');
   } catch (error) {
     console.error('Failed to delete token credentials:', error);
