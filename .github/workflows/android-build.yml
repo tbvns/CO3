@@ -42,11 +42,20 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y openjdk-17-jdk
+          
+          # Download Android SDK command-line tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          mkdir -p $HOME/android-sdk
-          unzip commandlinetools-linux-9477386_latest.zip -d $HOME/android-sdk
-          yes | $HOME/android-sdk/cmdline-tools/bin/sdkmanager --licenses
-          $HOME/android-sdk/cmdline-tools/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0"
+          
+          # Create the Android SDK directory structure
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          unzip commandlinetools-linux-9477386_latest.zip -d $HOME/android-sdk/cmdline-tools
+          
+          # Move the extracted tools to the "latest" directory
+          mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+          
+          # Accept licenses and install required components
+          yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+          $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0"
 
       # Step 6: Bundle JavaScript and Assets
       - name: Bundle JavaScript and Assets
