@@ -13,7 +13,7 @@ export async function getCredsPasswd() {
 
     if (creds) {
       console.log('Credentials successfully loaded for user ' + creds.username);
-      return creds; // Return credentials
+      return creds;
     } else {
       console.log('No credentials stored for password service');
       return null;
@@ -47,8 +47,7 @@ export async function getCredsToken() {
     const creds = await Keychain.getGenericPassword({ service: 'creds_token' });
 
     if (creds) {
-      console.log('Token successfully loaded for user ' + creds.username);
-      return creds.password; // Return the token value (which is stored as password)
+      console.log('Token successfully loaded for user ' + creds.username);return creds.password; // Return the token value (which is stored as password)
     } else {
       console.log('No token stored');
       return null; // Return null if no token is stored

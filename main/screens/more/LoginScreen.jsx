@@ -86,7 +86,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
       // If no stored credentials, show anonymous session
       setSessionInfo({
         visible: true,
-        username: "Anonymous (no stored credentials)",
+        username: "Anonymous (not stored)",
       });
     } catch (error) {
       console.error("Error retrieving session info:", error);

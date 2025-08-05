@@ -1,5 +1,6 @@
 import ky from "ky";
 import {Work} from "../../storage/models/work";
+import { getCredsToken } from '../../storage/Credentials';
 let DomParser = require("react-native-html-parser").DOMParser;
 
 function getElementText(element) {
@@ -189,65 +190,74 @@ function parseWorkElements(workElements) {
 }
 
 export async function fetchFilteredWorks(filters = {}, page = 1) {
-    try {
-        let url = "https://archiveofourown.org/works";
+  try {
+    let url = "https://archiveofourown.org/works";
 
-        // If filters are provided, use search endpoint
-        if (Object.keys(filters).length > 0) {
-            url = "https://archiveofourown.org/works/search";
-            const params = new URLSearchParams();
+    const token = getCredsToken();
 
-            // Add all filter parameters
-            Object.entries(filters).forEach(([key, value]) => {
-                if (value !== null && value !== undefined && value !== '') {
-                    if (Array.isArray(value)) {
-                        value.forEach(v => params.append(key, v));
-                    } else {
-                        params.append(key, value);
-                    }
-                }
-            });
+    // If filters are provided, use search endpoint
+    if (Object.keys(filters).length > 0) {
+      url = "https://archiveofourown.org/works/search";
+      const params = new URLSearchParams();
 
-            // Add page parameter
-            if (page > 1) {
-                params.append('page', page.toString());
-            }
-
-            params.append('commit', 'Search');
-            url += '?' + params.toString();
-        } else {
-            if (page > 1) {
-                url += `?page=${page}`;
-            }
+      // Add all filter parameters
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+          if (Array.isArray(value)) {
+            value.forEach(v => params.append(key, v));
+          } else {
+            params.append(key, value);
+          }
         }
+      });
 
-        console.log(`Fetching works from: ${url}`);
-        const response = await ky.get(url).text();
-        const doc = new DomParser().parseFromString(response, "text/html");
+      // Add page parameter
+      if (page > 1) {
+        params.append('page', page.toString());
+      }
 
-        const workElements = Array.from(doc.getElementsByTagName("li"))
-            .filter(li => li.getAttribute("class")?.includes("work blurb"));
-
-        const works = parseWorkElements(workElements);
-        const paginationInfo = extractPaginationInfo(doc);
-
-        console.log(`Found ${works.length} works on page ${paginationInfo.currentPage} of ${paginationInfo.maxPages}`);
-
-        return {
-            works,
-            currentPage: paginationInfo.currentPage,
-            maxPages: paginationInfo.maxPages,
-            hasMore: paginationInfo.currentPage < paginationInfo.maxPages
-        };
-    } catch (error) {
-        console.error("Error fetching worksScreen:", error);
-        return {
-            works: [],
-            currentPage: 1,
-            maxPages: 1,
-            hasMore: false
-        };
+      params.append('commit', 'Search');
+      url += '?' + params.toString();
+    } else {
+      if (page > 1) {
+        url += `?page=${page}`;
+      }
     }
+
+    console.log(`Fetching works from: ${url}`);
+
+    // Prepare headers with the cookie if the token is not null
+    const headers = {};
+    if (token) {
+      headers['Cookie'] = `_otwarchive_session=${token}`;
+    }
+
+    const response = await ky.get(url, { headers }).text();
+    const doc = new DomParser().parseFromString(response, "text/html");
+
+    const workElements = Array.from(doc.getElementsByTagName("li"))
+      .filter(li => li.getAttribute("class")?.includes("work blurb"));
+
+    const works = parseWorkElements(workElements);
+    const paginationInfo = extractPaginationInfo(doc);
+
+    console.log(`Found ${works.length} works on page ${paginationInfo.currentPage} of ${paginationInfo.maxPages}`);
+
+    return {
+      works,
+      currentPage: paginationInfo.currentPage,
+      maxPages: paginationInfo.maxPages,
+      hasMore: paginationInfo.currentPage < paginationInfo.maxPages
+    };
+  } catch (error) {
+    console.error("Error fetching worksScreen:", error);
+    return {
+      works: [],
+      currentPage: 1,
+      maxPages: 1,
+      hasMore: false
+    };
+  }
 }
 
 //Old function for backward compatibility
