@@ -195,14 +195,6 @@ const App = () => {
       const booksData = await newWorkDAO.getAll();
       setBooks(booksData);
 
-      // Add test history entry
-      await newHistoryDAO.add({
-        workId: 654123,
-        date: Date.now(),
-        chapter: 1,
-        chapterEnd: 654123
-      });
-
     } catch (error) {
       console.error('Error initializing app:', error);
       Alert.alert('Error', 'Failed to initialize app');

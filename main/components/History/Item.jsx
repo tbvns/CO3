@@ -39,9 +39,9 @@ const HistoryItem = ({ item, currentTheme,
 
   const formatChapterRange = (start, end) => {
     if (!end || start === end) {
-      return `Chapter ${start}`;
+      return `Chapter ${start+1}`;
     }
-    return `Chapters ${start} - ${end}`;
+    return `Chapters ${start+1} - ${end+1}`;
   };
 
   function handleClick() {

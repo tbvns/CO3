@@ -1,45 +1,72 @@
-name: "Build Android app"
+name: Build Standalone Debug APK
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build:
-    runs-on: macos-latest
+  build-apk:
+    name: Build Standalone Debug APK
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Install Java
-        uses: actions/setup-java@v4
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
+          node-version: 18
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          npm install
+          npm install -g react-native-cli
+
+      # Step 4: Set up Java 17
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
           java-version: '17'
-          distribution: 'adopt'
-          cache: gradle
 
-      - name: Validate Gradle wrapper
-        uses: gradle/actions/wrapper-validation@v3
+      # Step 5: Install Android SDK
+      - name: Install Android SDK
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openjdk-17-jdk
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          mkdir -p $HOME/android-sdk
+          unzip commandlinetools-linux-9477386_latest.zip -d $HOME/android-sdk
+          yes | $HOME/android-sdk/cmdline-tools/bin/sdkmanager --licenses
+          $HOME/android-sdk/cmdline-tools/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0"
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
+      # Step 6: Bundle JavaScript and Assets
+      - name: Bundle JavaScript and Assets
+        run: |
+          npx react-native bundle \
+            --platform android \
+            --dev false \
+            --entry-file index.js \
+            --bundle-output android/app/src/main/assets/index.android.bundle \
+            --assets-dest android/app/src/main/res/
 
-      - name: Run NPM Install
-        run: npm install
-
-      - name: Build application
+      # Step 7: Build the APK (Standalone Debug)
+      - name: Build Standalone Debug APK
         run: |
           cd android
-          chmod +x ./gradlew
           ./gradlew assembleDebug
 
-      - name: Upload application
-        uses: actions/upload-artifact@v4
+      # Step 8: Upload APK as an artifact
+      - name: Upload Standalone Debug APK
+        uses: actions/upload-artifact@v3
         with:
-          name: app-android-debug
+          name: standalone-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 3
