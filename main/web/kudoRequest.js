@@ -1,6 +1,5 @@
 import { fetchKudoAuthenticityToken } from './account/fetchAuthenticityToken';
-import * as Credentials from '/home/tbvns/WebstormProjects/CO3/main/storage/Credentials.js';
-import { getCredsToken } from '/home/tbvns/WebstormProjects/CO3/main/storage/Credentials.js';
+import { getCredsToken } from '../storage/Credentials';
 
 export default async function sendKudo(workId) {
   try {
