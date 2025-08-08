@@ -1,4 +1,4 @@
-import fetchLoginAuthenticityToken from './fetchAuthenticityToken';
+import { fetchLoginAuthenticityToken } from './fetchAuthenticityToken';
 
 export default async function login(username, password) {
   try {
@@ -25,6 +25,10 @@ export default async function login(username, password) {
         //Like fr i'm a win 10 machine on chrome wdym
         //We just need to pray cloudflare will leave me alone
     });
+
+    if (response.url === "https://archiveofourown.org/users/login") {
+      throw new Error("Wrong username or password");
+    }
 
     // Extract the session cookie from the response headers
     const setCookieHeader = response.headers.get('set-cookie');

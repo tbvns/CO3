@@ -31,7 +31,7 @@ const ClearIcon = ({ color, size }) => (
     </View>
 );
 
-const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, Cre }) => {
+const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoDAO }) => {
   const [works, setWorks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -275,6 +275,7 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
                         settingsDAO={settingsDAO}
                         historyDAO={historyDAO}
                         progressDAO={progressDAO}
+                        kudoHistory={kudoDAO}
                     />
                 ))}
                 {renderFooter()}

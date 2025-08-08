@@ -36,6 +36,7 @@ const LibraryScreen = ({
                          settingsDAO,
                          historyDAO,
                          progressDAO,
+                         kudoDao,
                        }) => {
   const [works, setWorks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -456,6 +457,7 @@ const LibraryScreen = ({
                 settingsDAO={settingsDAO}
                 historyDAO={historyDAO}
                 progressDAO={progressDAO}
+                kudoHistory={kudoDao}
               />
             ))}
             {renderFooter()}

@@ -35,6 +35,7 @@ import { LibraryDAO } from './storage/dao/LibraryDAO';
 import { ProgressDAO } from './storage/dao/ProgressDAO';
 import fetchLoginAuthenticityToken from './web/account/fetchAuthenticityToken';
 import login from './web/account/login';
+import { KudoHistoryDAO } from './storage/dao/KudosHistoryDAO';
 
 const TopBar = ({ currentTheme, activeScreen, setIsSideMenuOpen, searchTerm, setSearchTerm }) => {
   const showSearch = activeScreen === 'library';
@@ -137,6 +138,7 @@ const App = () => {
   const [settingsDAO, setSettingsDAO] = useState(null);
   const [libraryDAO, setLibraryDAO] = useState(null);
   const [progressDAO, setProgressDAO] = useState(null);
+  const [kudoDAO, setKudoDAO] = useState(null);
 
   const [screens, setScreens] = useState([]);
 
@@ -179,12 +181,14 @@ const App = () => {
       const newSettingsDAO = new SettingsDAO(db);
       const newLibraryDAO = new LibraryDAO(db);
       const newProgressDAO = new ProgressDAO(db);
+      const newKudoDAO = new KudoHistoryDAO(db);
 
       setWorkDAO(newWorkDAO);
       setHistoryDAO(newHistoryDAO);
       setSettingsDAO(newSettingsDAO);
       setLibraryDAO(newLibraryDAO);
       setProgressDAO(newProgressDAO);
+      setKudoDAO(newKudoDAO)
 
       const loadedSettings = await newSettingsDAO.getSettings();
       setTheme(loadedSettings.theme);
@@ -320,6 +324,7 @@ const App = () => {
       setTheme,
       theme,
       setViewMode,
+      kudoDAO,
     };
 
     switch (activeScreen) {

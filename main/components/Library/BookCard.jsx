@@ -46,7 +46,7 @@ const imageMappings = {
   }
 };
 
-const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO }) => {
+const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoHistory }) => {
   const [isMainModalOpen, setIsMainModalOpen] = useState(false);
   const [isAllTagsModalOpen, setIsAllTagsModalOpen] = useState(false);
 
@@ -84,6 +84,7 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, librar
               settingsDAO={settingsDAO}
               historyDAO={historyDAO}
               progressDAO={progressDAO}
+              kudoHistory={kudoHistory}
             />
 
           ])}}

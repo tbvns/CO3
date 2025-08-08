@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   FlatList,
   StatusBar,
+  Animated,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LinearGradient } from 'react-native-linear-gradient';
@@ -17,7 +18,54 @@ import { fetchWorkFromWorkID } from '../web/worksScreen/fetchWork';
 import { fetchChapter } from '../web/worksScreen/fetchChapter';
 import ChapterReader from './chapterReader';
 import { navigateToNextChapter, navigateToPreviousChapter } from '../utils/ChapterNavigationHelpers';
+import sendKudo from '../web/kudoRequest';
 
+// Simple Toast Component
+const Toast = ({ message, visible, onHide, type = 'error' }) => {
+  const slideAnim = useRef(new Animated.Value(-100)).current;
+
+  useEffect(() => {
+    if (visible) {
+      Animated.sequence([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.delay(3000),
+        Animated.timing(slideAnim, {
+          toValue: -100,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        onHide();
+      });
+    }
+  }, [visible]);
+
+  if (!visible) return null;
+
+  return (
+    <Animated.View
+      style={[
+        styles.toast,
+        {
+          transform: [{ translateY: slideAnim }],
+          backgroundColor: type === 'error' ? '#ef4444' : '#22c55e',
+        },
+      ]}
+    >
+      <Icon
+        name={type === 'error' ? 'error-outline' : 'check-circle-outline'}
+        size={20}
+        color="white"
+        style={{ marginRight: 8 }}
+      />
+      <Text style={styles.toastText}>{message}</Text>
+    </Animated.View>
+  );
+};
 
 const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress }) => {
   const hasProgress = chapter.progress !== undefined && chapter.progress !== null;
@@ -67,7 +115,8 @@ const ReaderWrapper = ({
                          chapterList,
                          historyDAO,
                          progressDAO,
-                         settingsDAO
+                         settingsDAO,
+                         kudoHistory,
                        }) => {
   const [chapterData, setChapterData] = useState(initialChapterData);
   const [loading, setLoading] = useState(false);
@@ -159,6 +208,7 @@ const ChapterInfoScreen = ({
                              historyDAO,
                              progressDAO,
                              loadChapter,
+                             kudoHistory,
                            }) => {
   const [work, setWork] = useState(null);
   const [chapters, setChapters] = useState([]);
@@ -170,7 +220,20 @@ const ChapterInfoScreen = ({
   const [modalMode, setModalMode] = useState('summary');
   const [inLibrary, setInLibrary] = useState(false);
   const [liked, setLiked] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('error');
 
+  const showToast = (message, type = 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
+
+  const hideToast = () => {
+    setToastVisible(false);
+  };
 
   useEffect(() => {
     loadWorkData();
@@ -206,14 +269,15 @@ const ChapterInfoScreen = ({
           newScreens.pop();
           setScreens([...newScreens,
             <ChapterInfoScreen
-                workId={workId}
-                currentTheme={currentTheme}
-                libraryDAO={libraryDAO}
-                workDAO={workDAO}
-                setScreens={setScreens}
-                settingsDAO={settingsDAO}
-                historyDAO={historyDAO}
-                progressDAO={progressDAO}
+              workId={workId}
+              currentTheme={currentTheme}
+              libraryDAO={libraryDAO}
+              workDAO={workDAO}
+              setScreens={setScreens}
+              settingsDAO={settingsDAO}
+              historyDAO={historyDAO}
+              progressDAO={progressDAO}
+              kudoHistory={kudoHistory}
             />
           ]);
           return newScreens;
@@ -242,14 +306,15 @@ const ChapterInfoScreen = ({
           setScreens((prevScreens) => [
             ...prevScreens,
             <ReaderWrapper
-                key={chapterToLoad.id}
-                initialChapterData={initialChapterData}
-                currentTheme={currentTheme}
-                setScreens={setScreens}
-                chapterList={chapterListForNav}
-                settingsDAO={settingsDAO}
-                historyDAO={historyDAO}
-                progressDAO={progressDAO}
+              key={chapterToLoad.id}
+              initialChapterData={initialChapterData}
+              currentTheme={currentTheme}
+              setScreens={setScreens}
+              chapterList={chapterListForNav}
+              settingsDAO={settingsDAO}
+              historyDAO={historyDAO}
+              progressDAO={progressDAO}
+              kudoHistory={kudoHistory}
             />,
           ]);
         }
@@ -293,10 +358,25 @@ const ChapterInfoScreen = ({
     }
   }, [inLibrary, workId, libraryDAO, work]);
 
-  const handleLike = useCallback(() => {
-    setLiked(prevLiked => !prevLiked);
-    //todo Kudo request and all of that...
-  }, []);
+  const handleLike = useCallback(async () => {
+    if (likeLoading) return;
+
+    setLikeLoading(true);
+    try {
+      const success = await sendKudo(workId);
+      if (success) {
+        setLiked(true);
+        showToast('Kudo sent successfully!', 'success');
+      } else {
+        showToast('Failed to send kudo. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error sending kudo:', error);
+      showToast('Failed to send kudo. Please try again.');
+    } finally {
+      setLikeLoading(false);
+    }
+  }, [workId, likeLoading]);
 
   const handleMoreInfo = useCallback(() => {
     setModalMode('full');
@@ -446,19 +526,25 @@ const ChapterInfoScreen = ({
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.actionButton}
+        style={[styles.actionButton, likeLoading && styles.actionButtonDisabled]}
         onPress={handleLike}
+        disabled={likeLoading}
       >
-        <Icon
-          name={liked ? 'favorite' : 'favorite-border'}
-          size={48}
-          color={liked ? '#ef4444' : currentTheme.iconColor}
-        />
+        {likeLoading ? (
+          <ActivityIndicator size={24} color={currentTheme.primaryColor} style={{ height: 48 }} />
+        ) : (
+          <Icon
+            name={liked ? 'favorite' : 'favorite-border'}
+            size={48}
+            color={liked ? '#ef4444' : currentTheme.iconColor}
+          />
+        )}
         <Text style={[
           styles.actionButtonText,
-          { color: liked ? '#ef4444' : currentTheme.textColor }
+          { color: liked ? '#ef4444' : currentTheme.textColor },
+          likeLoading && { color: currentTheme.secondaryTextColor }
         ]}>
-          {liked ? 'Liked' : 'Like'}
+          {likeLoading ? 'Sending...' : (liked ? 'Liked' : 'Like')}
         </Text>
       </TouchableOpacity>
 
@@ -609,6 +695,13 @@ const ChapterInfoScreen = ({
         theme={currentTheme}
         onShowAllTags={handleShowAllTags}
       />
+
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        onHide={hideToast}
+        type={toastType}
+      />
     </SafeAreaView>
   );
 };
@@ -661,6 +754,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     minWidth: 80,
     flex: 1,
+  },
+  actionButtonDisabled: {
+    opacity: 0.6,
   },
   actionButtonText: {
     fontSize: 12,
@@ -756,6 +852,28 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  toast: {
+    position: 'absolute',
+    top: 40,
+    left: 16,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 8,
+    zIndex: 1000,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  toastText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
   },
 });
 
