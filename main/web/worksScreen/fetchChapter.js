@@ -8,17 +8,26 @@ export async function fetchChapter(workId, chapterId, currentTheme = null, setti
     console.log(`Fetching chapter from: ${url}`);
     const response = await ky.get(url).text();
     const doc = new DomParser().parseFromString(response, "text/html");
+    console.log(doc);
 
-    // Find the chapter div
-    const chapterDiv = doc.getElementsByClassName("chapter")[1];
+    let chapterDiv = doc.getElementsByClassName("chapter")[1];
+
+    if (!chapterDiv) {
+      const chaptersContainer = doc.getElementById("chapters");
+      if (chaptersContainer) {
+        const userstuffDivs = chaptersContainer.getElementsByClassName("userstuff");
+        chapterDiv = userstuffDivs[0]; // Get the first userstuff div
+      }
+    }
+
     if (!chapterDiv) {
       console.log("No chapter content found");
       return null;
     }
 
-    // Extract CSS styles from the work div
-    const workDiv = doc.getElementsByClassName("work")[0];
     let cssStyles = "";
+
+    const workDiv = doc.getElementsByClassName("work")[0];
     if (workDiv) {
       const styleElements = workDiv.getElementsByTagName("style");
       for (let i = 0; i < styleElements.length; i++) {
@@ -29,10 +38,27 @@ export async function fetchChapter(workId, chapterId, currentTheme = null, setti
       }
     }
 
-    // Get the HTML content of the chapter div as a string
+    const workskinDiv = doc.getElementById("workskin");
+    if (workskinDiv) {
+      const styleElements = workskinDiv.getElementsByTagName("style");
+      for (let i = 0; i < styleElements.length; i++) {
+        const styleContent = getElementText(styleElements[i]);
+        if (styleContent) {
+          cssStyles += styleContent + "\n";
+        }
+      }
+    }
+
+    const allStyleElements = doc.getElementsByTagName("style");
+    for (let i = 0; i < allStyleElements.length; i++) {
+      const styleContent = getElementText(allStyleElements[i]);
+      if (styleContent && styleContent.includes('#workskin')) {
+        cssStyles += styleContent + "\n";
+      }
+    }
+
     const chapterHtml = getElementHtml(chapterDiv);
 
-    // Create a complete HTML document with embedded CSS
     const completeHtml = await createCompleteHtml(chapterHtml, cssStyles, currentTheme, settingsDAO);
 
     console.log(`Successfully fetched chapter ${chapterId} from work ${workId}`);

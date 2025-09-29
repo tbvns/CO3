@@ -284,6 +284,7 @@ const ChapterInfoScreen = ({
         })
 
         const chapterToLoad = chaptersData[loadChapter];
+        console.log(loadChapter)
         const chapterContent = await fetchChapter(workId, chapterToLoad.id, currentTheme, settingsDAO);
 
         if (chapterContent) {
@@ -400,7 +401,12 @@ const ChapterInfoScreen = ({
         workDAO.add(work);
       });
 
-      const chapterContent = await fetchChapter(workId, chapter.id, currentTheme, settingsDAO);
+      let chapterContent;
+      if (originalIndex === 0) {
+        chapterContent = await fetchChapter(workId, null, currentTheme, settingsDAO);
+      } else {
+        chapterContent = await fetchChapter(workId, chapter.id, currentTheme, settingsDAO);
+      }
       if (!chapterContent) {
         console.error("Could not fetch chapter content. Please try again.");
         return;
