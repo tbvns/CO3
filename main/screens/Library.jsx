@@ -36,7 +36,8 @@ const LibraryScreen = ({
                          settingsDAO,
                          historyDAO,
                          progressDAO,
-                         kudoDao,
+                         kudoHistoryDAO,
+                         openTagSearch
                        }) => {
   const [works, setWorks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -457,7 +458,8 @@ const LibraryScreen = ({
                 settingsDAO={settingsDAO}
                 historyDAO={historyDAO}
                 progressDAO={progressDAO}
-                kudoHistory={kudoDao}
+                kudoHistoryDAO={kudoHistoryDAO}
+                openTagSearch={openTagSearch}
               />
             ))}
             {renderFooter()}

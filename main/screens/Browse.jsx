@@ -3,35 +3,33 @@ import {
   StyleSheet,
   View,
   Text,
-  ScrollView,
   ActivityIndicator,
   TouchableOpacity,
   Modal,
   Alert,
   RefreshControl,
+  FlatList,
 } from 'react-native';
 import { fetchFilteredWorks } from '../web/browse/fetchWorks';
 import BookCard from '../components/Library/BookCard';
 import AdvancedSearchScreen from './advancedSearch';
-import screen from "react-native-screens/src/components/Screen";
 
-// Simple SVG Filter Icon
 const FilterIcon = ({ color, size }) => (
-    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-      <View style={{ width: size, height: size * 0.15, backgroundColor: color, borderRadius: size * 0.05, marginBottom: size * 0.1 }} />
-      <View style={{ width: size * 0.66, height: size * 0.15, backgroundColor: color, borderRadius: size * 0.05, marginBottom: size * 0.1 }} />
-      <View style={{ width: size * 0.33, height: size * 0.15, backgroundColor: color, borderRadius: size * 0.05 }} />
-    </View>
+  <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
+    <View style={{ width: size, height: size * 0.15, backgroundColor: color, borderRadius: size * 0.05, marginBottom: size * 0.1 }} />
+    <View style={{ width: size * 0.66, height: size * 0.15, backgroundColor: color, borderRadius: size * 0.05, marginBottom: size * 0.1 }} />
+    <View style={{ width: size * 0.33, height: size * 0.15, backgroundColor: color, borderRadius: size * 0.05 }} />
+  </View>
 );
 
 const ClearIcon = ({ color, size }) => (
-    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-      <View style={{ width: size * 0.8, height: size * 0.1, backgroundColor: color, borderRadius: size * 0.05, transform: [{ rotate: '45deg' }] }} />
-      <View style={{ width: size * 0.8, height: size * 0.1, backgroundColor: color, borderRadius: size * 0.05, transform: [{ rotate: '-45deg' }], position: 'absolute' }} />
-    </View>
+  <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
+    <View style={{ width: size * 0.8, height: size * 0.1, backgroundColor: color, borderRadius: size * 0.05, transform: [{ rotate: '45deg' }] }} />
+    <View style={{ width: size * 0.8, height: size * 0.1, backgroundColor: color, borderRadius: size * 0.05, transform: [{ rotate: '-45deg' }], position: 'absolute' }} />
+  </View>
 );
 
-const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoDAO }) => {
+const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoDAO, openTagSearch, selectedTag, setSelectedTag }) => {
   const [works, setWorks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -39,25 +37,24 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
   const [error, setError] = useState(null);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [maxPages, setMaxPages] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  // Filter state
   const [appliedFilters, setAppliedFilters] = useState({});
   const [hasFilters, setHasFilters] = useState(false);
 
-  useEffect(() => {
-    loadWorks(true);
-  }, [appliedFilters]);
+  const loadWorks = useCallback(async (reset = false) => {
+    if (!reset && Object.keys(appliedFilters).length === 0) return;
 
-  const loadWorks = async (reset = false) => {
+    if (loadingMore && !reset) return;
+    if (!reset && !hasMore) return;
+
     try {
       if (reset) {
         setLoading(true);
         setCurrentPage(1);
         setWorks([]);
+        setHasMore(true);
       } else {
         setLoadingMore(true);
       }
@@ -65,45 +62,76 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
       setError(null);
 
       const pageToLoad = reset ? 1 : currentPage + 1;
+
       const result = await fetchFilteredWorks(appliedFilters, pageToLoad);
+      const newWorks = result.works || [];
+
+      const isLastPage = newWorks.length < 20;
 
       if (reset) {
-        setWorks(result.works);
+        setWorks(newWorks);
       } else {
-        setWorks(prevWorks => [...prevWorks, ...result.works]);
+        setWorks(prevWorks => {
+          const existingIds = new Set(prevWorks.map(w => w.id));
+          const uniqueNewWorks = newWorks.filter(w => !existingIds.has(w.id));
+          return [...prevWorks, ...uniqueNewWorks];
+        });
       }
 
-      setCurrentPage(result.currentPage);
-      setMaxPages(result.maxPages);
-      setHasMore(result.hasMore);
+      setCurrentPage(pageToLoad);
+
+      if (Object.keys(appliedFilters).length === 0) {
+        setHasMore(false);
+      } else if (isLastPage) {
+        setHasMore(false);
+      }
 
     } catch (err) {
       console.error('Error loading worksScreen:', err);
-      setError({
-        message: err.message || 'Failed to load worksScreen',
-        status: err.response?.status || 'Unknown',
-        statusText: err.response?.statusText || 'Network Error'
-      });
+      if (reset) {
+        setError({
+          message: err.message || 'Failed to load worksScreen',
+          status: err.response?.status || 'Unknown',
+          statusText: err.response?.statusText || 'Network Error'
+        });
+      } else {
+        setHasMore(false);
+      }
     } finally {
       setLoading(false);
       setLoadingMore(false);
       setRefreshing(false);
     }
-  };
+  }, [appliedFilters, currentPage, hasMore, loadingMore]);
+
+  useEffect(() => {
+    loadWorks(true);
+  }, [appliedFilters]);
+
+  useEffect(() => {
+    if (selectedTag != null) {
+      const filters = {};
+      filters["work_search[freeform_names]"] = selectedTag;
+      setAppliedFilters(filters);
+      setHasFilters(true);
+      setSelectedTag(null)
+    }
+  }, [openTagSearch, selectedTag, setSelectedTag]);
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
     loadWorks(true);
-  }, [appliedFilters]);
+  }, [loadWorks]);
 
   const handleLoadMore = useCallback(() => {
-    if (!loadingMore && hasMore && works.length > 0) {
+    if (Object.keys(appliedFilters).length === 0) return;
+
+    if (!loading && !loadingMore && hasMore && works.length > 0) {
       loadWorks(false);
     }
-  }, [loadingMore, hasMore, works.length]);
+  }, [loading, loadingMore, hasMore, works.length, loadWorks, appliedFilters]);
 
   const handleSearchFilters = (filters) => {
-    console.log("Applying filters:", filters);
     setAppliedFilters(filters);
     setHasFilters(Object.keys(filters).length > 0);
     setIsSearchVisible(false);
@@ -111,18 +139,18 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
 
   const handleClearFilters = () => {
     Alert.alert(
-        "Clear Filters",
-        "Are you sure you want to clear all filters?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Clear",
-            onPress: () => {
-              setAppliedFilters({});
-              setHasFilters(false);
-            }
+      "Clear Filters",
+      "Are you sure you want to clear all filters?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear",
+          onPress: () => {
+            setAppliedFilters({});
+            setHasFilters(false);
           }
-        ]
+        }
+      ]
     );
   };
 
@@ -153,55 +181,76 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
   };
 
   const renderHeader = () => (
-      <View style={styles.headerContainer}>
-        <View>
-          <Text style={[styles.title, { color: currentTheme.textColor }]}>
-            Browse Works
+    <View style={styles.headerContainer}>
+      <View>
+        <Text style={[styles.title, { color: currentTheme.textColor }]}>
+          Browse Works
+        </Text>
+        <View style={styles.subtitleContainer}>
+          <Text style={[styles.subtitle, { color: currentTheme.placeholderColor }]}>
+            {works.length} works loaded
           </Text>
-          <View style={styles.subtitleContainer}>
-            <Text style={[styles.subtitle, { color: currentTheme.placeholderColor }]}>
-              {works.length} works found
+          {hasFilters && (
+            <Text style={[styles.filterStatus, { color: currentTheme.primaryColor }]}>
+              • {getFilterSummary()}
             </Text>
-            {hasFilters && (
-                <Text style={[styles.filterStatus, { color: currentTheme.primaryColor }]}>
-                  • {getFilterSummary()}
-                </Text>
-            )}
-          </View>
-          {maxPages > 1 && (
-              <Text style={[styles.pageInfo, { color: currentTheme.placeholderColor }]}>
-                Page {currentPage} of {maxPages}
-              </Text>
           )}
         </View>
       </View>
+    </View>
   );
 
   const renderFooter = () => {
-    if (!loadingMore) return null;
-    return (
+    if (loadingMore) {
+      return (
         <View style={styles.footerLoader}>
           <ActivityIndicator size="small" color={currentTheme.primaryColor} />
           <Text style={[styles.footerText, { color: currentTheme.secondaryTextColor }]}>
-            Loading more works...
+            Loading next page...
           </Text>
         </View>
-    );
+      );
+    }
+
+    if (!hasMore && works.length > 0 && hasFilters) {
+      return (
+        <View style={styles.footerLoader}>
+          <Text style={[styles.footerText, { color: currentTheme.placeholderColor }]}>
+            No more works to load
+          </Text>
+        </View>
+      );
+    }
+
+    return null;
   };
 
-  const isCloseToBottom = ({ layoutMeasurement, contentOffset, contentSize }) => {
-    const paddingToBottom = 100;
-    return layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
-  };
+  const renderItem = ({ item }) => (
+    <BookCard
+      book={formatWork(item)}
+      viewMode={viewMode}
+      theme={currentTheme}
+      onUpdate={() => {}}
+      setScreens={setScreens}
+      screens={screens}
+      libraryDAO={libraryDAO}
+      workDAO={workDAO}
+      settingsDAO={settingsDAO}
+      historyDAO={historyDAO}
+      progressDAO={progressDAO}
+      kudoHistory={kudoDAO}
+      openTagSearch={openTagSearch}
+    />
+  );
 
   if (loading) {
     return (
-        <View style={[styles.centerContainer, { backgroundColor: currentTheme.backgroundColor }]}>
-          <ActivityIndicator size="large" color={currentTheme.primaryColor} />
-          <Text style={[styles.loadingText, { color: currentTheme.textColor }]}>
-            Loading works...
-          </Text>
-        </View>
+      <View style={[styles.centerContainer, { backgroundColor: currentTheme.backgroundColor }]}>
+        <ActivityIndicator size="large" color={currentTheme.primaryColor} />
+        <Text style={[styles.loadingText, { color: currentTheme.textColor }]}>
+          Loading works...
+        </Text>
+      </View>
     );
   }
 
@@ -215,14 +264,9 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
           <Text style={[styles.errorMessage, { color: currentTheme.secondaryTextColor }]}>
             {error.message}
           </Text>
-          {error.status !== 'Unknown' && (
-              <Text style={[styles.errorDetails, { color: currentTheme.placeholderColor }]}>
-                HTTP {error.status}: {error.statusText}
-              </Text>
-          )}
           <TouchableOpacity
-              style={[styles.retryButton, { backgroundColor: currentTheme.primaryColor }]}
-              onPress={() => loadWorks(true)}
+            style={[styles.retryButton, { backgroundColor: currentTheme.primaryColor }]}
+            onPress={() => loadWorks(true)}
           >
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
@@ -232,98 +276,68 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
   }
 
   return (
-      <View style={{flex: 1, backgroundColor: currentTheme.backgroundColor}}>
-        <ScrollView
-            style={styles.mainContent}
-            contentContainerStyle={styles.contentContainer}
-            refreshControl={
-              <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
-                  colors={[currentTheme.primaryColor]}
-                  tintColor={currentTheme.primaryColor}
-              />
-            }
-            onScroll={({ nativeEvent }) => {
-              if (isCloseToBottom(nativeEvent)) {
-                handleLoadMore();
-              }
-            }}
-            scrollEventThrottle={400}
-        >
-          {renderHeader()}
-
-          {works.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Text style={[styles.emptyText, { color: currentTheme.secondaryTextColor }]}>
-                  No works found for the selected filters.
-                </Text>
-              </View>
-          ) : (
-              <>
-                {works.map((work) => (
-                    <BookCard
-                        key={work.id || Math.random()}
-                        book={formatWork(work)}
-                        viewMode={viewMode}
-                        theme={currentTheme}
-                        onUpdate={() => {}}
-                        setScreens={setScreens}
-                        screens={screens}
-                        libraryDAO={libraryDAO}
-                        workDAO={workDAO}
-                        settingsDAO={settingsDAO}
-                        historyDAO={historyDAO}
-                        progressDAO={progressDAO}
-                        kudoHistory={kudoDAO}
-                    />
-                ))}
-                {renderFooter()}
-              </>
-          )}
-        </ScrollView>
-
-        {/* Filter FAB */}
-        <TouchableOpacity
-            style={[styles.fab, { backgroundColor: currentTheme.primaryColor }]}
-            onPress={() => setIsSearchVisible(true)}
-        >
-          <FilterIcon color="white" size={24} />
-        </TouchableOpacity>
-
-        {/* Clear Filters FAB */}
-        {hasFilters && (
-            <TouchableOpacity
-                style={[styles.clearFab, { backgroundColor: currentTheme.secondaryColor || '#ff6b6b' }]}
-                onPress={handleClearFilters}
-            >
-              <ClearIcon color="white" size={20} />
-            </TouchableOpacity>
-        )}
-
-        <Modal
-            transparent={false}
-            visible={isSearchVisible}
-            onRequestClose={() => setIsSearchVisible(false)}
-        >
-          <AdvancedSearchScreen
-              currentTheme={currentTheme}
-              onClose={() => setIsSearchVisible(false)}
-              onSearch={handleSearchFilters}
-              savedFilters={appliedFilters}
+    <View style={{flex: 1, backgroundColor: currentTheme.backgroundColor}}>
+      <FlatList
+        data={works}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.contentContainer}
+        ListHeaderComponent={renderHeader}
+        ListFooterComponent={renderFooter}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        showsVerticalScrollIndicator={false} // Hidden as requested
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[currentTheme.primaryColor]}
+            tintColor={currentTheme.primaryColor}
           />
-        </Modal>
-      </View>
+        }
+      />
+
+      {/* Filter FAB */}
+      <TouchableOpacity
+        style={[styles.fab, { backgroundColor: currentTheme.primaryColor }]}
+        onPress={() => setIsSearchVisible(true)}
+      >
+        <FilterIcon color="white" size={24} />
+      </TouchableOpacity>
+
+      {/* Clear Filters FAB */}
+      {hasFilters && (
+        <TouchableOpacity
+          style={[styles.clearFab, { backgroundColor: currentTheme.secondaryColor || '#ff6b6b' }]}
+          onPress={handleClearFilters}
+        >
+          <ClearIcon color="white" size={20} />
+        </TouchableOpacity>
+      )}
+
+      <Modal
+        transparent={false}
+        visible={isSearchVisible}
+        onRequestClose={() => setIsSearchVisible(false)}
+      >
+        <AdvancedSearchScreen
+          currentTheme={currentTheme}
+          onClose={() => setIsSearchVisible(false)}
+          onSearch={handleSearchFilters}
+          savedFilters={appliedFilters}
+        />
+      </Modal>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  mainContent: {
-    flex: 1,
-  },
   contentContainer: {
     padding: 16,
-    paddingBottom: 100,
+    paddingBottom: 150,
   },
   headerContainer: {
     marginBottom: 20,
@@ -344,10 +358,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 8,
     fontWeight: '500',
-  },
-  pageInfo: {
-    fontSize: 14,
-    marginTop: 4,
   },
   centerContainer: {
     flex: 1,
@@ -376,11 +386,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 8,
   },
-  errorDetails: {
-    fontSize: 12,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
   retryButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
@@ -402,7 +407,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    paddingVertical: 20,
+    marginBottom: 20,
   },
   footerText: {
     marginLeft: 10,

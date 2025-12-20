@@ -9,10 +9,16 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import PreferencesScreen from './more/Preferences';
-import { settings } from '@react-native/eslint-config';
 import LoginScreen from './more/LoginScreen';
+import KudoHistory from './more/KudoHistory';
+import KudoHistoryScreen from './more/KudoHistory';
 
-const MoreScreen = ({ currentTheme, setScreens, theme, setTheme, viewMode, setViewMode, isIncognitoMode, toggleIncognitoMode, settingsDAO }) => {
+const MoreScreen = ({ currentTheme, setScreens, theme, setTheme, viewMode, setViewMode, isIncognitoMode, toggleIncognitoMode, settingsDAO,
+                      workDAO,
+                      libraryDAO,
+                      historyDAO,
+                      progressDAO,
+                      kudoHistoryDAO }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -44,6 +50,21 @@ const MoreScreen = ({ currentTheme, setScreens, theme, setTheme, viewMode, setVi
         setScreens(prev => [...prev,
           <LoginScreen
             currentTheme={currentTheme}
+            setScreens={setScreens}
+          />
+        ]);
+        break;
+      case "KudosHistory":
+        setScreens(prev => [...prev,
+          <KudoHistoryScreen
+            currentTheme={currentTheme}
+            workDAO={workDAO}
+            libraryDAO={libraryDAO}
+            setScreens={setScreens}
+            historyDAO={historyDAO}
+            settingsDAO={settingsDAO}
+            progressDAO={progressDAO}
+            kudoHistoryDAO={kudoHistoryDAO}
           />
         ]);
         break;
@@ -70,7 +91,7 @@ const MoreScreen = ({ currentTheme, setScreens, theme, setTheme, viewMode, setVi
     {
       name: 'Bookmarks',
       icon: 'bookmarks',
-      handler: () => handlePress('KudosHistory')
+      handler: () => handlePress('Bookmarks')
     },
     {
       name: 'Categories',

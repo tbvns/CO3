@@ -2,24 +2,24 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   View,
-  Text,
   ScrollView,
   TouchableOpacity,
   Alert,
-  ActivityIndicator,
   RefreshControl,
+  Text,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-import HistoryHeader from '../components/History/Headers';
-import HistoryList from '../components/History/List';
-import CalendarModal from '../components/History/CalendarModal';
-import EmptyState from '../components/History/Empty';
-import LoadingSpinner from '../components/History/Spinner';
+import HistoryHeader from '../../components/History/Headers';
+import CalendarModal from '../../components/History/CalendarModal';
+import EmptyState from '../../components/History/Empty';
+import LoadingSpinner from '../../components/History/Spinner';
+import KudoHistoryList from '../../components/History/KudoList';
 
-const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
+const KudoHistoryScreen = ({ currentTheme, workDAO,
                          libraryDAO,
                          setScreens,
+                         historyDAO,
                          settingsDAO,
                          progressDAO,
                          kudoHistoryDAO}) => {
@@ -39,15 +39,15 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
   const PAGE_SIZE = 20;
 
   useEffect(() => {
-    if (historyDAO && workDAO) { // Ensure both DAOs are available
+    if (kudoHistoryDAO && workDAO) { // Ensure both DAOs are available
       loadInitialHistory();
       loadReadingDates();
     }
-  }, [historyDAO, loadInitialHistory, loadReadingDates, workDAO]); // Add workDAO to dependency array
+  }, [kudoHistoryDAO, loadInitialHistory, loadReadingDates, workDAO]); // Add workDAO to dependency array
 
   const loadReadingDates = async () => {
     try {
-      const datesAsTimestamps = await historyDAO.getReadingDates();
+      const datesAsTimestamps = await kudoHistoryDAO.getReadingDates();
       const datesAsStrings = datesAsTimestamps.map(timestamp => {
         return new Date(timestamp).toISOString().split('T')[0];
       });
@@ -97,16 +97,16 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
         const endTimestamp = new Date(endDate).setHours(23, 59, 59, 999);
 
         // Assuming historyDAO returns items with workId
-        historyData = await historyDAO.getHistoryByDateRange(
+        historyData = await kudoHistoryDAO.getHistoryByDateRange(
           startTimestamp,
           endTimestamp,
           PAGE_SIZE,
           0
         );
-        count = await historyDAO.getHistoryCountByDateRange(startTimestamp, endTimestamp);
+        count = await kudoHistoryDAO.getHistoryCountByDateRange(startTimestamp, endTimestamp);
       } else {
-        historyData = await historyDAO.getPaginatedHistory(PAGE_SIZE, 0); // Assuming historyDAO returns items with workId
-        count = await historyDAO.getTotalHistoryCount();
+        historyData = await kudoHistoryDAO.getPaginatedHistory(PAGE_SIZE, 0); // Assuming historyDAO returns items with workId
+        count = await kudoHistoryDAO.getTotalHistoryCount();
       }
 
       const combinedHistory = await fetchAndCombineHistory(historyData);
@@ -114,7 +114,7 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
       setTotalCount(count);
       setHasMore(historyData.length === PAGE_SIZE);
     } catch (error) {
-      console.error('Error loading history:', error);
+      console.error('Error loading kudos history:', error);
       setHistory([]);
     } finally {
       setLoading(false);
@@ -136,14 +136,14 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
         const endDateString = dateRange.end || dateRange.start;
         const endTimestamp = new Date(endDateString).setHours(23, 59, 59, 999);
 
-        moreData = await historyDAO.getHistoryByDateRange(
+        moreData = await kudoHistoryDAO.getHistoryByDateRange(
           startTimestamp,
           endTimestamp,
           PAGE_SIZE,
           offset
         );
       } else {
-        moreData = await historyDAO.getPaginatedHistory(PAGE_SIZE, offset);
+        moreData = await kudoHistoryDAO.getPaginatedHistory(PAGE_SIZE, offset);
       }
 
       if (moreData.length > 0) {
@@ -163,17 +163,17 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    if (historyDAO && workDAO) {
+    if (kudoHistoryDAO && workDAO) {
       await loadInitialHistory();
       await loadReadingDates();
     }
     setRefreshing(false);
-  }, [historyDAO, workDAO, loadInitialHistory, loadReadingDates]);
+  }, [kudoHistoryDAO, workDAO, loadInitialHistory, loadReadingDates]);
 
   const clearHistory = () => {
     Alert.alert(
-      'Clear History',
-      'Are you sure you want to clear all reading history?',
+      'Clear Kudos History',
+      'Are you sure you want to clear all kudos history?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -181,15 +181,15 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
           style: 'destructive',
           onPress: async () => {
             try {
-              if (historyDAO) {
-                await historyDAO.deleteAll();
+              if (kudoHistoryDAO) {
+                await kudoHistoryDAO.deleteAll();
                 setHistory([]);
                 setTotalCount(0);
                 setHasMore(false);
                 await loadReadingDates();
               }
             } catch (error) {
-              console.error('Error clearing history:', error);
+              console.error('Error clearing kudos history:', error);
             }
           },
         },
@@ -206,8 +206,8 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
 
       if (!dateRange.start) {
         setIsFilterActive(false);
-        const historyData = await historyDAO.getPaginatedHistory(PAGE_SIZE, 0);
-        const count = await historyDAO.getTotalHistoryCount();
+        const historyData = await kudoHistoryDAO.getPaginatedHistory(PAGE_SIZE, 0);
+        const count = await kudoHistoryDAO.getTotalHistoryCount();
         const combinedHistory = await fetchAndCombineHistory(historyData);
         setHistory(combinedHistory || []);
         setTotalCount(count);
@@ -219,13 +219,13 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
         const endDateString = dateRange.end || dateRange.start;
         const endTimestamp = new Date(endDateString).setHours(23, 59, 59, 999);
 
-        const filteredHistory = await historyDAO.getHistoryByDateRange(
+        const filteredHistory = await kudoHistoryDAO.getHistoryByDateRange(
           startTimestamp,
           endTimestamp,
           PAGE_SIZE,
           0
         );
-        const count = await historyDAO.getHistoryCountByDateRange(startTimestamp, endTimestamp);
+        const count = await kudoHistoryDAO.getHistoryCountByDateRange(startTimestamp, endTimestamp);
         const combinedFilteredHistory = await fetchAndCombineHistory(filteredHistory);
         setHistory(combinedFilteredHistory || []);
         setTotalCount(count);
@@ -246,14 +246,14 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
     try {
       setLoading(true);
       setCurrentPage(0);
-      const historyData = await historyDAO.getPaginatedHistory(PAGE_SIZE, 0);
-      const count = await historyDAO.getTotalHistoryCount();
+      const historyData = await kudoHistoryDAO.getPaginatedHistory(PAGE_SIZE, 0);
+      const count = await kudoHistoryDAO.getTotalHistoryCount();
       const combinedHistory = await fetchAndCombineHistory(historyData);
       setHistory(combinedHistory || []);
       setTotalCount(count);
       setHasMore(historyData.length === PAGE_SIZE);
     } catch (error) {
-      console.error('Error loading history:', error);
+      console.error('Error loading kudos history:', error);
       setHistory([]);
     } finally {
       setLoading(false);
@@ -270,11 +270,26 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
   };
 
   if (loading) {
-    return <LoadingSpinner currentTheme={currentTheme} message="Loading history..." />;
+    return <LoadingSpinner currentTheme={currentTheme} message="Loading kudos history..." />;
+  }
+
+  function onBack() {
+    setScreens(prev => {
+      const newScreens = [...prev];
+      newScreens.pop();
+      return newScreens;
+    });
   }
 
   return (
     <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={onBack}>
+          <Icon name="arrow-back" size={24} color={currentTheme.textColor} />
+        </TouchableOpacity>
+        <Text style={[styles.title, { color: currentTheme.textColor }]}>Kudos History</Text>
+      </View>
+
       <ScrollView
         style={styles.mainContent}
         onScroll={handleScroll}
@@ -296,6 +311,7 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
             hasHistory={history.length > 0}
             onClearHistory={clearHistory}
             onClearFilter={clearDateFilter}
+            isKudosHistory={true}
           />
 
           {history.length === 0 ? (
@@ -304,7 +320,7 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
               isFilterActive={isFilterActive}
             />
           ) : (
-            <HistoryList
+            <KudoHistoryList
               history={history}
               currentTheme={currentTheme}
               loadingMore={loadingMore}
@@ -372,6 +388,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    paddingBottom: 10,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginLeft: 16,
+  },
 });
 
-export default HistoryScreen;
+export default KudoHistoryScreen;

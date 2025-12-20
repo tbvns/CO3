@@ -175,6 +175,14 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
   if (isLoggedIn) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack}>
+            <Icon name="arrow-back" size={24} color={currentTheme.textColor} />
+          </TouchableOpacity>
+          <Text style={[styles.title_top, { color: currentTheme.textColor }]}>Account Settings</Text>
+        </View>
+
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.content}>
             <Text style={[styles.title, { color: currentTheme.textColor }]}>
@@ -250,8 +258,17 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
     );
   }
 
+  function onBack() {
+    setScreens(prev => {
+      const newScreens = [...prev];
+      newScreens.pop();
+      return newScreens;
+    });
+  }
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
           <Text style={[styles.title, { color: currentTheme.textColor }]}>
@@ -509,6 +526,17 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    paddingBottom: 10,
+  },
+  title_top: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginLeft: 16,
   },
 });
 

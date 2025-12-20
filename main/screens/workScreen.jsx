@@ -9,6 +9,7 @@ import {
   FlatList,
   StatusBar,
   Animated,
+  Linking,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LinearGradient } from 'react-native-linear-gradient';
@@ -19,6 +20,8 @@ import { fetchChapter } from '../web/worksScreen/fetchChapter';
 import ChapterReader from './chapterReader';
 import { navigateToNextChapter, navigateToPreviousChapter } from '../utils/ChapterNavigationHelpers';
 import sendKudo from '../web/kudoRequest';
+import { ChapterDAO } from '../storage/dao/ChapterDAO';
+import { ProgressDAO } from '../storage/dao/ProgressDAO';
 
 // Simple Toast Component
 const Toast = ({ message, visible, onHide, type = 'error' }) => {
@@ -116,7 +119,6 @@ const ReaderWrapper = ({
                          historyDAO,
                          progressDAO,
                          settingsDAO,
-                         kudoHistory,
                        }) => {
   const [chapterData, setChapterData] = useState(initialChapterData);
   const [loading, setLoading] = useState(false);
@@ -208,7 +210,7 @@ const ChapterInfoScreen = ({
                              historyDAO,
                              progressDAO,
                              loadChapter,
-                             kudoHistory,
+                             kudoHistoryDAO,
                            }) => {
   const [work, setWork] = useState(null);
   const [chapters, setChapters] = useState([]);
@@ -224,6 +226,8 @@ const ChapterInfoScreen = ({
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('error');
+
+  const [isLoadingContinue, setIsLoadingContinue] = useState();
 
   const showToast = (message, type = 'error') => {
     setToastMessage(message);
@@ -277,7 +281,7 @@ const ChapterInfoScreen = ({
               settingsDAO={settingsDAO}
               historyDAO={historyDAO}
               progressDAO={progressDAO}
-              kudoHistory={kudoHistory}
+              kudoHistoryDAO={kudoHistoryDAO}
             />
           ]);
           return newScreens;
@@ -315,7 +319,7 @@ const ChapterInfoScreen = ({
               settingsDAO={settingsDAO}
               historyDAO={historyDAO}
               progressDAO={progressDAO}
-              kudoHistory={kudoHistory}
+              kudoHistoryDAO={kudoHistoryDAO}
             />,
           ]);
         }
@@ -367,6 +371,13 @@ const ChapterInfoScreen = ({
       const success = await sendKudo(workId);
       if (success) {
         setLiked(true);
+
+        const kudoEntry = {
+          workId: workId,
+          date: Date.now()
+        };
+        kudoHistoryDAO.add(kudoEntry);
+
         showToast('Kudo sent successfully!', 'success');
       } else {
         showToast('Failed to send kudo. Please try again.');
@@ -390,8 +401,8 @@ const ChapterInfoScreen = ({
   }, []);
 
   const handleOpenWebView = useCallback(() => {
-    //todo Open a webview
-  }, []);
+    Linking.openURL("https://archiveofourown.org/works/" + workId);
+  }, [workId]);
 
   const handleChapterPress = useCallback(async (chapter, originalIndex) => { // Accept originalIndex
     try {
@@ -664,7 +675,23 @@ const ChapterInfoScreen = ({
     );
   }
 
-  // Inside the return statement of ChapterInfoScreen:
+  const continueReading = async function() {
+    setIsLoadingContinue(true)
+    for (let i = 0; i < chapters.length; i++) {
+      let chapter = chapters[i]
+      let progress = await progressDAO.get(workId, chapter.id)
+      if (progress < 0.97) {
+        await handleChapterPress(chapter, i)
+        setIsLoadingContinue(false)
+        return
+      }
+    }
+
+    let lastChapter = chapters[chapters.length - 1]
+    await handleChapterPress(lastChapter, chapters.length - 1)
+    setIsLoadingContinue(false)
+  }
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
       <StatusBar
@@ -680,11 +707,10 @@ const ChapterInfoScreen = ({
       </View>
 
       <FlatList
-        // THIS IS THE CRUCIAL LINE FOR REVERSAL AND ORIGINAL INDEXING:
         data={[...chapters].map((chapter, originalIndex) => ({ ...chapter, originalIndex })).reverse()}
         renderItem={renderChapterItem}
-        keyExtractor={(item) => item.id ? String(item.id) : String(item.originalIndex)} // Updated keyExtractor
-        ListHeaderComponent={ListHeaderComponent} // Ensure this is present and correct
+        keyExtractor={(item) => item.id ? String(item.id) : String(item.originalIndex)}
+        ListHeaderComponent={ListHeaderComponent}
         initialNumToRender={10}
         maxToRenderPerBatch={5}
         windowSize={21}
@@ -701,6 +727,16 @@ const ChapterInfoScreen = ({
         theme={currentTheme}
         onShowAllTags={handleShowAllTags}
       />
+
+      <TouchableOpacity
+        style={[styles.readButtonFab, { backgroundColor: currentTheme.primaryColor }]}
+        onPress={() => continueReading()}
+      >
+        {isLoadingContinue ?
+          <ActivityIndicator size="large" color="white" /> :
+          <Icon name="play-arrow" size={24} color="white" />
+        }
+      </TouchableOpacity>
 
       <Toast
         message={toastMessage}
@@ -881,6 +917,28 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     flex: 1,
   },
+  readButtonFab: {
+    position: 'absolute',
+    right: 16,
+    bottom: 25,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+  },
+  floatingButton: {
+    flexDirection: 'row',
+    display: "flex"
+  }
 });
 
 export default ChapterInfoScreen;

@@ -46,7 +46,7 @@ const imageMappings = {
   }
 };
 
-const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoHistory }) => {
+const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoHistoryDAO, openTagSearch }) => {
   const [isMainModalOpen, setIsMainModalOpen] = useState(false);
   const [isAllTagsModalOpen, setIsAllTagsModalOpen] = useState(false);
 
@@ -84,7 +84,7 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, librar
               settingsDAO={settingsDAO}
               historyDAO={historyDAO}
               progressDAO={progressDAO}
-              kudoHistory={kudoHistory}
+              kudoHistoryDAO={kudoHistoryDAO}
             />
 
           ])}}
@@ -247,6 +247,7 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, librar
               setIsMainModalOpen(false);
               setIsAllTagsModalOpen(true);
             }}
+            openTagSearch={openTagSearch}
         />
 
         <BookDetailsModal
@@ -255,6 +256,7 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, librar
             onClose={() => setIsAllTagsModalOpen(false)}
             mode="allTags"
             theme={theme}
+            openTagSearch={openTagSearch}
         />
       </TouchableOpacity>
   );

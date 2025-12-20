@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import HistoryItem from './Item';
 
-const HistoryList = ({ history, currentTheme, loadingMore, hasMore,
+const KudoHistoryList = ({ history, currentTheme, loadingMore, hasMore,
                        libraryDAO,
                        workDAO,
                        setScreens,
@@ -54,6 +54,7 @@ const HistoryList = ({ history, currentTheme, loadingMore, hasMore,
                             historyDAO={historyDAO}
                             progressDAO={progressDAO}
                             kudoHistoryDAO={kudoHistoryDAO}
+                            hasChapter={false}
                         />
                     ))}
                 </View>
@@ -73,7 +74,7 @@ const HistoryList = ({ history, currentTheme, loadingMore, hasMore,
             {!hasMore && history.length > 0 && (
                 <View style={styles.endOfList}>
                     <Text style={[styles.endOfListText, { color: currentTheme.placeholderColor }]}>
-                        You've reached the end of your reading history
+                        You've reached the end of your kudos history
                     </Text>
                 </View>
             )}
@@ -114,4 +115,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default HistoryList;
+export default KudoHistoryList;

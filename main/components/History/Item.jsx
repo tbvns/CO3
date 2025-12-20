@@ -10,7 +10,8 @@ const HistoryItem = ({ item, currentTheme,
                        setScreens,
                        settingsDAO,
                        historyDAO,
-                       progressDAO}) => {
+                       progressDAO,
+                       kudoHistoryDAO, hasChapter = true}) => {
   console.log(item.date);
 
   const formatDate = (timestamp) => {
@@ -45,20 +46,38 @@ const HistoryItem = ({ item, currentTheme,
   };
 
   function handleClick() {
-    setScreens(prevScreens => [
-      ...prevScreens,
-      <WorkScreen
-        workId={item.workId}
-        currentTheme={currentTheme}
-        settingsDAO={settingsDAO}
-        workDAO={workDAO}
-        libraryDAO={libraryDAO}
-        setScreens={setScreens}
-        historyDAO={historyDAO}
-        progressDAO={progressDAO}
-        loadChapter={item.chapter || item.chapterEnd || 0}
-      />,
-    ])
+    if (hasChapter) {
+      setScreens(prevScreens => [
+        ...prevScreens,
+        <WorkScreen
+          workId={item.workId}
+          currentTheme={currentTheme}
+          settingsDAO={settingsDAO}
+          workDAO={workDAO}
+          libraryDAO={libraryDAO}
+          setScreens={setScreens}
+          historyDAO={historyDAO}
+          progressDAO={progressDAO}
+          loadChapter={item.chapter || item.chapterEnd || 0}
+          kudoHistoryDAO={kudoHistoryDAO}
+        />
+      ])
+    } else {
+      setScreens(prevScreens => [
+        ...prevScreens,
+        <WorkScreen
+          workId={item.workId}
+          currentTheme={currentTheme}
+          settingsDAO={settingsDAO}
+          workDAO={workDAO}
+          libraryDAO={libraryDAO}
+          setScreens={setScreens}
+          historyDAO={historyDAO}
+          progressDAO={progressDAO}
+          kudoHistoryDAO={kudoHistoryDAO}
+        />
+      ])
+    }
   }
 
   return (
@@ -80,12 +99,13 @@ const HistoryItem = ({ item, currentTheme,
           by {item.book_author || 'Unknown Author'}
         </Text>
 
-        <View style={styles.chapterInfo}>
-          <Text style={[styles.chapterText, { color: currentTheme.primaryColor }]}>
-            {/* Use item.chapter and item.chapterEnd from the History model */}
-            {formatChapterRange(item.chapter, item.chapterEnd)}
-          </Text>
-        </View>
+        {hasChapter ?
+          <View style={styles.chapterInfo}>
+            <Text style={[styles.chapterText, { color: currentTheme.primaryColor }]}>
+              {/* Use item.chapter and item.chapterEnd from the History model */}
+              {formatChapterRange(item.chapter, item.chapterEnd)}
+            </Text>
+          </View> : null}
       </View>
     </TouchableOpacity>
   );

@@ -8,13 +8,16 @@ const HistoryHeader = ({
                            hasHistory,
                            onClearHistory,
                            onClearFilter,
+                           isKudosHistory = false,
                        }) => {
     return (
         <View style={styles.header}>
             <View>
+              {isKudosHistory ? null :
                 <Text style={[styles.title, { color: currentTheme.textColor }]}>
-                    Reading History
+                  Reading History
                 </Text>
+              }
                 <Text style={[styles.subtitle, { color: currentTheme.placeholderColor }]}>
                     {isFilterActive
                         ? `${totalCount} entries in selected date range`

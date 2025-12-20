@@ -139,8 +139,11 @@ const App = () => {
   const [libraryDAO, setLibraryDAO] = useState(null);
   const [progressDAO, setProgressDAO] = useState(null);
   const [kudoDAO, setKudoDAO] = useState(null);
+  const [kudoHistoryDAO, setKudoHistoryDAO] = useState(null);
 
   const [screens, setScreens] = useState([]);
+
+  const [selectedTag, setSelectedTag] = useState();
 
   useEffect(() => {
     initializeApp();
@@ -181,14 +184,14 @@ const App = () => {
       const newSettingsDAO = new SettingsDAO(db);
       const newLibraryDAO = new LibraryDAO(db);
       const newProgressDAO = new ProgressDAO(db);
-      const newKudoDAO = new KudoHistoryDAO(db);
+      const newKudoHistoryDAO = new KudoHistoryDAO(db);
 
       setWorkDAO(newWorkDAO);
       setHistoryDAO(newHistoryDAO);
       setSettingsDAO(newSettingsDAO);
       setLibraryDAO(newLibraryDAO);
       setProgressDAO(newProgressDAO);
-      setKudoDAO(newKudoDAO)
+      setKudoHistoryDAO(newKudoHistoryDAO)
 
       const loadedSettings = await newSettingsDAO.getSettings();
       setTheme(loadedSettings.theme);
@@ -303,6 +306,11 @@ const App = () => {
     secondaryTextColor: '#666',
   });
 
+  const openTagSearch = (tag) => {
+    setSelectedTag(tag);
+    setActiveScreen("browse")
+    setScreens([])
+  }
 
   const renderScreen = () => {
     const screenProps = {
@@ -325,6 +333,10 @@ const App = () => {
       theme,
       setViewMode,
       kudoDAO,
+      kudoHistoryDAO,
+      openTagSearch,
+      selectedTag,
+      setSelectedTag
     };
 
     switch (activeScreen) {
