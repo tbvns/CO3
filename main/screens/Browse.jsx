@@ -29,7 +29,7 @@ const ClearIcon = ({ color, size }) => (
   </View>
 );
 
-const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoDAO, openTagSearch, selectedTag, setSelectedTag }) => {
+const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoHistoryDAO, openTagSearch, selectedTag, setSelectedTag }) => {
   const [works, setWorks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -238,7 +238,7 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
       settingsDAO={settingsDAO}
       historyDAO={historyDAO}
       progressDAO={progressDAO}
-      kudoHistory={kudoDAO}
+      kudoHistoryDAO={kudoHistoryDAO}
       openTagSearch={openTagSearch}
     />
   );

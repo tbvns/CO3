@@ -376,7 +376,7 @@ const ChapterInfoScreen = ({
           workId: workId,
           date: Date.now()
         };
-        kudoHistoryDAO.add(kudoEntry);
+        await kudoHistoryDAO.add(kudoEntry);
 
         showToast('Kudo sent successfully!', 'success');
       } else {
@@ -385,6 +385,7 @@ const ChapterInfoScreen = ({
     } catch (error) {
       console.error('Error sending kudo:', error);
       showToast('Failed to send kudo. Please try again.');
+      setLiked(false);
     } finally {
       setLikeLoading(false);
     }
