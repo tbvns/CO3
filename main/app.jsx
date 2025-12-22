@@ -198,7 +198,6 @@ const App = () => {
       setIsIncognitoMode(loadedSettings.isIncognitoMode);
       setViewMode(loadedSettings.viewMode);
 
-      // Load books here after setting workDAO
       const booksData = await newWorkDAO.getAll();
       setBooks(booksData);
 

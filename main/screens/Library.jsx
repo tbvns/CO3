@@ -9,11 +9,12 @@ import {
   RefreshControl,
   Alert,
   Modal,
+  FlatList,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import BookCard from '../components/Library/BookCard';
+import CategorySelectionModal from '../components/WorkScreen/CategorySelectionModal.jsx';
 
-// Simple SVG Sort Icon
 const SortIcon = ({ color, size }) => (
   <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
     <View style={{ width: size * 0.8, height: size * 0.1, backgroundColor: color, borderRadius: size * 0.05, marginBottom: size * 0.15 }} />
@@ -41,21 +42,22 @@ const LibraryScreen = ({
                        }) => {
   const [works, setWorks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filterLoading, setFilterLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [hasMore, setHasMore] = useState(false);
 
-  // Filter and sort state
   const [sortType, setSortType] = useState('lastRead');
   const [selectedCollection, setSelectedCollection] = useState(null);
-  const [collections, setCollections] = useState([]);
+  const [collectionsWithCounts, setCollectionsWithCounts] = useState([]);
+  const [allCollections, setAllCollections] = useState([]);
   const [showSortModal, setShowSortModal] = useState(false);
+  const [showAllCollectionsModal, setShowAllCollectionsModal] = useState(false);
 
   const pageSize = 20;
 
@@ -67,25 +69,35 @@ const LibraryScreen = ({
 
   useEffect(() => {
     if (libraryDAO && workDAO) {
-      loadWorks(true);
+      loadWorks(true, true);
     }
   }, [searchTerm, sortType, selectedCollection, libraryDAO, workDAO]);
 
   const loadCollections = async () => {
     try {
-      const collectionList = await libraryDAO.getCollections();
-      setCollections(collectionList);
+      const collections = await libraryDAO.getCollectionsWithCounts();
+      setAllCollections(collections.map(c => c.name));
+      setCollectionsWithCounts(collections);
     } catch (err) {
       console.error('Error loading collections:', err);
     }
   };
 
-  const loadWorks = async (reset = false) => {
+  const loadWorks = async (reset = false, isFilter = false) => {
+    if (!reset && loadingMore) return;
+    if (!reset && !hasMore) return;
+
     try {
-      if (reset) {
+      if (reset && !isFilter) {
         setLoading(true);
+      }
+      if (reset && isFilter) {
+        setFilterLoading(true);
+      }
+      if (reset) {
         setCurrentPage(1);
         setWorks([]);
+        setHasMore(true);
         setError(null);
       } else {
         setLoadingMore(true);
@@ -93,7 +105,6 @@ const LibraryScreen = ({
 
       const pageToLoad = reset ? 1 : currentPage + 1;
 
-      // Get library entries with pagination and filtering
       let libraryEntries;
       let count;
 
@@ -118,11 +129,9 @@ const LibraryScreen = ({
           sortType,
           selectedCollection
         );
-        console.log(libraryEntries);
         count = await libraryDAO.getTotalCount(selectedCollection);
       }
 
-      // Fetch actual work data for each library entry
       const worksWithLibraryData = [];
       for (const entry of libraryEntries) {
         try {
@@ -135,7 +144,6 @@ const LibraryScreen = ({
           }
         } catch (err) {
           console.error(`Error fetching work ${entry.work.id}:`, err);
-          // Skip this work if it can't be fetched
         }
       }
 
@@ -147,16 +155,19 @@ const LibraryScreen = ({
       }
 
       setCurrentPage(pageToLoad);
-      setHasMore(libraryEntries.length === pageSize && works.length + worksWithLibraryData.length < count);
+
+      const isLastPage = libraryEntries.length < pageSize;
+      setHasMore(!isLastPage);
 
     } catch (err) {
-      console.error('Error loading worksScreen:', err);
+      console.error('Error loading works:', err);
       setError({
         message: err.message || 'Failed to load library',
         details: err.toString()
       });
     } finally {
       setLoading(false);
+      setFilterLoading(false);
       setLoadingMore(false);
       setRefreshing(false);
     }
@@ -168,14 +179,13 @@ const LibraryScreen = ({
   }, [searchTerm, sortType, selectedCollection]);
 
   const handleLoadMore = useCallback(() => {
-    if (!loadingMore && hasMore && works.length > 0) {
+    if (!loading && !loadingMore && hasMore && works.length > 0) {
       loadWorks(false);
     }
-  }, [loadingMore, hasMore, works.length]);
+  }, [loading, loadingMore, hasMore, works.length, loadWorks]);
 
   const handleWorkUpdate = useCallback(() => {
-    // Reload the current page to reflect changes
-    loadWorks(true);
+    loadWorks(true, true);
   }, []);
 
   const handleGoToBrowse = () => {
@@ -202,7 +212,6 @@ const LibraryScreen = ({
       language: work.language,
       currentChapter: work.currentChapter,
       chapterCount: work.chapterCount,
-      // Library-specific data
       dateAdded: library.dateAdded,
       collection: library.collection,
       readIndex: library.readIndex,
@@ -219,6 +228,11 @@ const LibraryScreen = ({
     setSelectedCollection(collection === selectedCollection ? null : collection);
   };
 
+  const handleCollectionSelect = (collection) => {
+    setSelectedCollection(collection);
+    setShowAllCollectionsModal(false);
+  };
+
   const getSortDisplayName = (sort) => {
     switch (sort) {
       case 'lastRead': return 'Last Read';
@@ -227,6 +241,12 @@ const LibraryScreen = ({
       default: return 'Last Read';
     }
   };
+
+  const getTopCollections = () => {
+    return collectionsWithCounts.slice(0, 3);
+  };
+
+  const hasMoreThanThreeCollections = collectionsWithCounts.length > 3;
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
@@ -243,27 +263,18 @@ const LibraryScreen = ({
             </Text>
           </View>
         </View>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={[styles.sortButton, { backgroundColor: currentTheme.cardBackground, borderColor: currentTheme.borderColor }]}
-            onPress={() => setShowSortModal(true)}
-          >
-            <SortIcon color={currentTheme.textColor} size={16} />
-            <Text style={[styles.sortButtonText, { color: currentTheme.textColor }]}>
-              {getSortDisplayName(sortType)}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: currentTheme.primaryColor }]}
-            onPress={() => setIsAddWorkModalOpen(true)}
-          >
-            <Icon name="add" size={24} color="white" />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={[styles.sortButton, { backgroundColor: currentTheme.cardBackground, borderColor: currentTheme.borderColor }]}
+          onPress={() => setShowSortModal(true)}
+        >
+          <SortIcon color={currentTheme.textColor} size={16} />
+          <Text style={[styles.sortButtonText, { color: currentTheme.textColor }]}>
+            {getSortDisplayName(sortType)}
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Collections Filter */}
-      {collections.length > 1 && (
+      {allCollections.length > 1 && (
         <View style={styles.collectionsContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.collectionsScroll}>
             <TouchableOpacity
@@ -281,24 +292,38 @@ const LibraryScreen = ({
                 All
               </Text>
             </TouchableOpacity>
-            {collections.map((collection) => (
+
+            {getTopCollections().map((collectionData) => (
               <TouchableOpacity
-                key={collection}
+                key={collectionData.name}
                 style={[
                   styles.collectionChip,
-                  { backgroundColor: selectedCollection === collection ? currentTheme.primaryColor : currentTheme.cardBackground },
+                  { backgroundColor: selectedCollection === collectionData.name ? currentTheme.primaryColor : currentTheme.cardBackground },
                   { borderColor: currentTheme.borderColor }
                 ]}
-                onPress={() => handleCollectionFilter(collection)}
+                onPress={() => handleCollectionFilter(collectionData.name)}
               >
                 <Text style={[
                   styles.collectionChipText,
-                  { color: selectedCollection === collection ? 'white' : currentTheme.textColor }
+                  { color: selectedCollection === collectionData.name ? 'white' : currentTheme.textColor }
                 ]}>
-                  {collection}
+                  {collectionData.name}
                 </Text>
               </TouchableOpacity>
             ))}
+
+            {hasMoreThanThreeCollections && (
+              <TouchableOpacity
+                style={[
+                  styles.collectionChip,
+                  { backgroundColor: currentTheme.cardBackground },
+                  { borderColor: currentTheme.borderColor }
+                ]}
+                onPress={() => setShowAllCollectionsModal(true)}
+              >
+                <Icon name="more-horiz" size={18} color={currentTheme.textColor} />
+              </TouchableOpacity>
+            )}
           </ScrollView>
         </View>
       )}
@@ -306,16 +331,81 @@ const LibraryScreen = ({
   );
 
   const renderFooter = () => {
-    if (!loadingMore) return null;
+    if (loadingMore) {
+      return (
+        <View style={styles.footerLoader}>
+          <ActivityIndicator size="small" color={currentTheme.primaryColor} />
+          <Text style={[styles.footerText, { color: currentTheme.secondaryTextColor }]}>
+            Loading more works...
+          </Text>
+        </View>
+      );
+    }
+
+    if (!hasMore && works.length > 0) {
+      return (
+        <View style={styles.footerLoader}>
+          <Text style={[styles.footerText, { color: currentTheme.placeholderColor }]}>
+            No more works to load
+          </Text>
+        </View>
+      );
+    }
+
+    return null;
+  };
+
+  const renderEmpty = () => {
+    if (filterLoading) {
+      return (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={currentTheme.primaryColor} />
+        </View>
+      );
+    }
+
     return (
-      <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={currentTheme.primaryColor} />
-        <Text style={[styles.footerText, { color: currentTheme.secondaryTextColor }]}>
-          Loading more works...
+      <View style={styles.emptyContainer}>
+        <Icon name="library-books" size={64} color={currentTheme.placeholderColor} />
+        <Text style={[styles.emptyTitle, { color: currentTheme.textColor }]}>
+          {isSearching ? 'No matches found' : 'Your library is empty'}
         </Text>
+        <Text style={[styles.emptyText, { color: currentTheme.secondaryTextColor }]}>
+          {isSearching
+            ? `No works found matching "${searchTerm}"`
+            : 'Browse and add some works to get started!'
+          }
+        </Text>
+        {!isSearching && (
+          <TouchableOpacity
+            style={[styles.addFirstButton, { backgroundColor: currentTheme.primaryColor }]}
+            onPress={handleGoToBrowse}
+          >
+            <Text style={styles.addFirstButtonText}>Browse Works</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
+
+  const renderItem = ({ item }) => (
+    <BookCard
+      book={formatWork(item)}
+      viewMode={viewMode}
+      theme={currentTheme}
+      onUpdate={handleWorkUpdate}
+      setScreens={setScreens}
+      screens={screens}
+      libraryDAO={libraryDAO}
+      workDAO={workDAO}
+      isInLibrary={true}
+      settingsDAO={settingsDAO}
+      historyDAO={historyDAO}
+      progressDAO={progressDAO}
+      kudoHistoryDAO={kudoHistoryDAO}
+      openTagSearch={openTagSearch}
+    />
+  );
 
   const renderSortModal = () => (
     <Modal
@@ -361,11 +451,6 @@ const LibraryScreen = ({
     </Modal>
   );
 
-  const isCloseToBottom = ({ layoutMeasurement, contentOffset, contentSize }) => {
-    const paddingToBottom = 100;
-    return layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
-  };
-
   if (loading) {
     return (
       <View style={[styles.centerContainer, { backgroundColor: currentTheme.backgroundColor }]}>
@@ -400,9 +485,23 @@ const LibraryScreen = ({
 
   return (
     <View style={{ flex: 1, backgroundColor: currentTheme.backgroundColor }}>
-      <ScrollView
-        style={styles.mainContent}
+      <FlatList
+        data={works}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.work.id}
         contentContainerStyle={styles.contentContainer}
+        ListHeaderComponent={renderHeader}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={renderEmpty}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.1}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        maintainVisibleContentPosition={{
+          minIndexForVisible: 0,
+        }}
+        scrollEventThrottle={0}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -411,74 +510,26 @@ const LibraryScreen = ({
             tintColor={currentTheme.primaryColor}
           />
         }
-        onScroll={({ nativeEvent }) => {
-          if (isCloseToBottom(nativeEvent)) {
-            handleLoadMore();
-          }
-        }}
-        scrollEventThrottle={400}
-      >
-        {renderHeader()}
-
-        {works.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Icon name="library-books" size={64} color={currentTheme.placeholderColor} />
-            <Text style={[styles.emptyTitle, { color: currentTheme.textColor }]}>
-              {isSearching ? 'No matches found' : 'Your library is empty'}
-            </Text>
-            <Text style={[styles.emptyText, { color: currentTheme.secondaryTextColor }]}>
-              {isSearching
-                ? `No works found matching "${searchTerm}"`
-                : 'Browse and add some worksScreen to get started!'
-              }
-            </Text>
-            {!isSearching && (
-              <TouchableOpacity
-                style={[styles.addFirstButton, { backgroundColor: currentTheme.primaryColor }]}
-                onPress={handleGoToBrowse}
-              >
-                <Text style={styles.addFirstButtonText}>Browse Works</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        ) : (
-          <>
-            {works.map((workData) => (
-              <BookCard
-                key={workData.work.id}
-                book={formatWork(workData)}
-                viewMode={viewMode}
-                theme={currentTheme}
-                onUpdate={handleWorkUpdate}
-                setScreens={setScreens}
-                screens={screens}
-                libraryDAO={libraryDAO}
-                workDAO={workDAO}
-                isInLibrary={true}
-                settingsDAO={settingsDAO}
-                historyDAO={historyDAO}
-                progressDAO={progressDAO}
-                kudoHistoryDAO={kudoHistoryDAO}
-                openTagSearch={openTagSearch}
-              />
-            ))}
-            {renderFooter()}
-          </>
-        )}
-      </ScrollView>
+      />
 
       {renderSortModal()}
+
+      <CategorySelectionModal
+        visible={showAllCollectionsModal}
+        categories={allCollections}
+        onSelect={handleCollectionSelect}
+        onCancel={() => setShowAllCollectionsModal(false)}
+        theme={currentTheme}
+        title="Select Collection"
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  mainContent: {
-    flex: 1,
-  },
   contentContainer: {
     padding: 16,
-    paddingBottom: 100,
+    paddingBottom: 150,
   },
   headerContainer: {
     marginBottom: 20,
@@ -499,11 +550,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
   },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -516,13 +562,6 @@ const styles = StyleSheet.create({
   sortButtonText: {
     fontSize: 14,
     fontWeight: '500',
-  },
-  addButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   collectionsContainer: {
     marginBottom: 8,
@@ -606,7 +645,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    paddingVertical: 20,
+    marginBottom: 20,
   },
   footerText: {
     marginLeft: 10,

@@ -42,7 +42,6 @@ const fetchAutocompleteSuggestions = async (type, term) => {
   }
   try {
     const url = `${AO3_BASE_URL}/${type}?term=${encodeURIComponent(term)}`;
-    // Since this is React Native, we don't have the same CORS issues as a web browser.
     const response = await fetch(url, {
       method: 'GET',
       headers: { 'Accept': 'application/json' },
@@ -58,14 +57,10 @@ const fetchAutocompleteSuggestions = async (type, term) => {
   }
 };
 
-// Specific fetcher functions for different types
 export const fetchFandomSuggestions = (term) => fetchAutocompleteSuggestions('fandom', term);
 export const fetchCharacterSuggestions = (term) => fetchAutocompleteSuggestions('character', term);
 export const fetchRelationshipSuggestions = (term) => fetchAutocompleteSuggestions('relationship', term);
 export const fetchFreeformSuggestions = (term) => fetchAutocompleteSuggestions('freeform', term);
-
-
-// --- Reusable UI Components ---
 
 /**
  * A reusable component for text inputs with autocomplete and tag-style multi-selection.

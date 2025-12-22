@@ -39,11 +39,11 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
   const PAGE_SIZE = 20;
 
   useEffect(() => {
-    if (historyDAO && workDAO) { // Ensure both DAOs are available
+    if (historyDAO && workDAO) {
       loadInitialHistory();
       loadReadingDates();
     }
-  }, [historyDAO, loadInitialHistory, loadReadingDates, workDAO]); // Add workDAO to dependency array
+  }, [historyDAO, loadInitialHistory, loadReadingDates, workDAO]);
 
   const loadReadingDates = async () => {
     try {
@@ -65,11 +65,11 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
     const combinedHistory = await Promise.all(
       historyData.map(async (item) => {
         try {
-          const work = await workDAO.get(item.workId); // Fetch work details using workId
+          const work = await workDAO.get(item.workId);
           return {
             ...item,
-            book_title: work ? work.title : 'Unknown Book', // Get title from Work object
-            book_author: work ? work.author : 'Unknown Author', // Get author from Work object
+            book_title: work ? work.title : 'Unknown Book',
+            book_author: work ? work.author : 'Unknown Author',
           };
         } catch (error) {
           console.error(`Error fetching work for history item ${item.id}:`, error);
@@ -96,7 +96,6 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
         const startTimestamp = new Date(dateRange.start).setHours(0, 0, 0, 0);
         const endTimestamp = new Date(endDate).setHours(23, 59, 59, 999);
 
-        // Assuming historyDAO returns items with workId
         historyData = await historyDAO.getHistoryByDateRange(
           startTimestamp,
           endTimestamp,

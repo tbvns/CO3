@@ -10,6 +10,7 @@ import {
   StatusBar,
   Animated,
   Linking,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LinearGradient } from 'react-native-linear-gradient';
@@ -22,8 +23,9 @@ import { navigateToNextChapter, navigateToPreviousChapter } from '../utils/Chapt
 import sendKudo from '../web/kudoRequest';
 import { ChapterDAO } from '../storage/dao/ChapterDAO';
 import { ProgressDAO } from '../storage/dao/ProgressDAO';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import CategorySelectionModal from '../components/WorkScreen/CategorySelectionModal';
 
-// Simple Toast Component
 const Toast = ({ message, visible, onHide, type = 'error' }) => {
   const slideAnim = useRef(new Animated.Value(-100)).current;
 
@@ -211,10 +213,11 @@ const ChapterInfoScreen = ({
                              progressDAO,
                              loadChapter,
                              kudoHistoryDAO,
+                             openTagSearch
                            }) => {
   const [work, setWork] = useState(null);
   const [chapters, setChapters] = useState([]);
-  const [chapterProgress, setChapterProgress] = useState({}); // New state for chapter progress
+  const [chapterProgress, setChapterProgress] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -226,8 +229,11 @@ const ChapterInfoScreen = ({
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('error');
-
-  const [isLoadingContinue, setIsLoadingContinue] = useState();
+  const [isLoadingContinue, setIsLoadingContinue] = useState(false);
+  const [categories, setCategories] = useState(['Default']);
+  // ADD THESE TWO NEW STATE VARIABLES
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [categoryAction, setCategoryAction] = useState(null);
 
   const showToast = (message, type = 'error') => {
     setToastMessage(message);
@@ -237,6 +243,70 @@ const ChapterInfoScreen = ({
 
   const hideToast = () => {
     setToastVisible(false);
+  };
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const res = await AsyncStorage.getItem('Categories');
+      if (res) {
+        const loadedCategories = JSON.parse(res);
+        if (!loadedCategories.includes('Default')) {
+          setCategories(['Default', ...loadedCategories]);
+        } else {
+          setCategories(loadedCategories);
+        }
+      } else {
+        setCategories(['Default']);
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      setCategories(['Default']);
+    }
+  };
+
+  const showCategorySelection = async (action = 'add') => {
+    if (action === 'remove') {
+      await libraryDAO.remove(workId);
+      setInLibrary(false);
+      showToast('Removed from library', 'success');
+      return;
+    }
+
+    if (categories.length === 1) {
+      await addToLibrary(categories[0]);
+      return;
+    }
+
+    setCategoryAction('add');
+    setShowCategoryModal(true);
+  };
+
+  const handleCategorySelect = async (collection) => {
+    setShowCategoryModal(false);
+    await addToLibrary(collection);
+  };
+
+  const addToLibrary = async (collection) => {
+    try {
+      const existingWork = await workDAO.get(workId);
+      if (!existingWork) {
+        await workDAO.add(work);
+      }
+
+      await libraryDAO.add(workId, collection);
+      setInLibrary(true);
+      showToast(
+        `Added to library${collection !== 'Default' ? ` in "${collection}"` : ''}`,
+        'success'
+      );
+    } catch (error) {
+      console.error('Error adding to library:', error);
+      showToast('Failed to add to library');
+    }
   };
 
   useEffect(() => {
@@ -257,22 +327,19 @@ const ChapterInfoScreen = ({
       setWork(workData);
       setChapters(chaptersData);
 
-      // Map progress data to a more accessible object
       const progressMap = progressData.reduce((acc, item) => {
         acc[item.chapterID] = item.progress;
         return acc;
       }, {});
       setChapterProgress(progressMap);
 
-      // Check if `loadChapter` is not null and load the chapter
       if (loadChapter !== null && chaptersData[loadChapter]) {
-
-        //Needed to prevent loops. Yes it's ugly. Yes it works.
         setScreens(prev => {
           const newScreens = [...prev];
           newScreens.pop();
           setScreens([...newScreens,
             <ChapterInfoScreen
+              key={workId}
               workId={workId}
               currentTheme={currentTheme}
               libraryDAO={libraryDAO}
@@ -282,14 +349,19 @@ const ChapterInfoScreen = ({
               historyDAO={historyDAO}
               progressDAO={progressDAO}
               kudoHistoryDAO={kudoHistoryDAO}
+              openTagSearch={openTagSearch}
             />
           ]);
           return newScreens;
         })
 
         const chapterToLoad = chaptersData[loadChapter];
-        console.log(loadChapter)
-        const chapterContent = await fetchChapter(workId, chapterToLoad.id, currentTheme, settingsDAO);
+        const chapterContent = await fetchChapter(
+          workId,
+          chapterToLoad.id,
+          currentTheme,
+          settingsDAO
+        );
 
         if (chapterContent) {
           const initialChapterData = {
@@ -319,7 +391,6 @@ const ChapterInfoScreen = ({
               settingsDAO={settingsDAO}
               historyDAO={historyDAO}
               progressDAO={progressDAO}
-              kudoHistoryDAO={kudoHistoryDAO}
             />,
           ]);
         }
@@ -345,23 +416,12 @@ const ChapterInfoScreen = ({
   }, [workId, libraryDAO]);
 
   const handleAddToLibrary = useCallback(async () => {
-    try {
-      if (inLibrary) {
-        await libraryDAO.remove(workId);
-        setInLibrary(false);
-      } else {
-        workDAO.get(workId).then(a => {
-          if (a) return;
-          workDAO.add(work);
-        });
-
-        await libraryDAO.add(workId);
-        setInLibrary(true);
-      }
-    } catch (error) {
-      console.error('Error updating library:', error);
+    if (inLibrary) {
+      await showCategorySelection('remove');
+    } else {
+      await showCategorySelection('add');
     }
-  }, [inLibrary, workId, libraryDAO, work]);
+  }, [inLibrary, workId, libraryDAO, work, categories]);
 
   const handleLike = useCallback(async () => {
     if (likeLoading) return;
@@ -389,7 +449,7 @@ const ChapterInfoScreen = ({
     } finally {
       setLikeLoading(false);
     }
-  }, [workId, likeLoading]);
+  }, [workId, likeLoading, kudoHistoryDAO]);
 
   const handleMoreInfo = useCallback(() => {
     setModalMode('full');
@@ -405,13 +465,12 @@ const ChapterInfoScreen = ({
     Linking.openURL("https://archiveofourown.org/works/" + workId);
   }, [workId]);
 
-  const handleChapterPress = useCallback(async (chapter, originalIndex) => { // Accept originalIndex
+  const handleChapterPress = useCallback(async (chapter, originalIndex) => {
     try {
-
-      workDAO.get(workId).then(a => {
-        if (a) return;
-        workDAO.add(work);
-      });
+      const existingWork = await workDAO.get(workId);
+      if (!existingWork) {
+        await workDAO.add(work);
+      }
 
       let chapterContent;
       if (originalIndex === 0) {
@@ -430,12 +489,12 @@ const ChapterInfoScreen = ({
         chapterId: chapter.id,
         chapterTitle: chapter.name,
         htmlContent: chapterContent,
-        chapterIndex: originalIndex, // Use originalIndex here
+        chapterIndex: originalIndex,
         hasNextChapter: originalIndex < chapters.length - 1,
         hasPreviousChapter: originalIndex > 0,
       };
 
-      const chapterListForNav = chapters.map(c => ({ id: c.id, title: c.name })); // Still uses the original 'chapters' state
+      const chapterListForNav = chapters.map(c => ({ id: c.id, title: c.name }));
 
       setScreens(prevScreens => [
         ...prevScreens,
@@ -454,7 +513,7 @@ const ChapterInfoScreen = ({
     } catch (error) {
       console.error('Error opening chapter reader:', error);
     }
-  }, [workId, work, chapters, currentTheme, setScreens]); // 'chapters' dependency is correctly used for original list
+  }, [workId, work, chapters, currentTheme, setScreens, settingsDAO, historyDAO, progressDAO, workDAO]);
 
   const formatWork = useCallback((work) => ({
     id: work.id,
@@ -473,7 +532,6 @@ const ChapterInfoScreen = ({
     views: work.hits,
     language: work.language,
   }), []);
-
 
   const renderDescription = () => {
     if (!work?.description) return null;
@@ -598,12 +656,12 @@ const ChapterInfoScreen = ({
 
   const renderChapterItem = useCallback(({ item }) => (
     <ChapterItem
-      chapter={{ ...item, progress: chapterProgress[item.id] }} // Pass progress to ChapterItem
+      chapter={{ ...item, progress: chapterProgress[item.id] }}
       index={item.originalIndex}
       currentTheme={currentTheme}
       onPress={() => handleChapterPress(item, item.originalIndex)}
     />
-  ), [currentTheme, handleChapterPress, chapterProgress]); // Add chapterProgress to dependencies
+  ), [currentTheme, handleChapterPress, chapterProgress]);
 
   const getItemLayout = useCallback((data, index) => (
     { length: 60, offset: 60 * index, index }
@@ -727,6 +785,16 @@ const ChapterInfoScreen = ({
         mode={modalMode}
         theme={currentTheme}
         onShowAllTags={handleShowAllTags}
+        openTagSearch={openTagSearch}
+      />
+
+      <CategorySelectionModal
+        visible={showCategoryModal}
+        categories={categories}
+        onSelect={handleCategorySelect}
+        onCancel={() => setShowCategoryModal(false)}
+        theme={currentTheme}
+        title="Add to Collection"
       />
 
       <TouchableOpacity

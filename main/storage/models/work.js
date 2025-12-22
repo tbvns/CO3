@@ -15,7 +15,7 @@ export class Work {
                     currentChapter = 1,
                     chapterCount = null,
                     rating = 'Not Rated',
-                    category = 'None',
+                    category = 'Default',
                     warningStatus = 'NoWarningsApply',
                     isCompleted = null
                 }) {

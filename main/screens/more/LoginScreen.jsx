@@ -73,7 +73,6 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
 
   const showSessionInfo = async () => {
     try {
-      // Try to get username from stored credentials first
       const storedCreds = await getCredsPasswd();
       if (storedCreds) {
         setSessionInfo({
@@ -83,7 +82,6 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
         return;
       }
 
-      // If no stored credentials, show anonymous session
       setSessionInfo({
         visible: true,
         username: "Anonymous (not stored)",

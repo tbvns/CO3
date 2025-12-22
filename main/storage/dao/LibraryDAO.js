@@ -5,7 +5,7 @@ export class LibraryDAO {
     this.db = db;
   }
 
-  async add(workId, collection = 'default') {
+  async add(workId, collection = 'Default') {
     if (!workId) {
       throw new Error('Work ID is required');
     }
@@ -122,6 +122,39 @@ export class LibraryDAO {
     }
 
     return works;
+  }
+
+  async deleteCollection(collection) {
+    if (collection === 'Default') {
+      throw new Error('Cannot delete the Default collection');
+    }
+
+    await this.db.executeSql(
+      'UPDATE library SET collection = ? WHERE collection = ?',
+      ['Default', collection]
+    );
+
+    return true;
+  }
+
+  async renameCollection(oldName, newName) {
+    await this.db.executeSql(
+      'UPDATE library SET collection = ? WHERE collection = ?',
+      [newName, oldName]
+    );
+    return true;
+  }
+
+  async getCollectionsWithCounts() {
+    const [results] = await this.db.executeSql(`
+    SELECT collection, COUNT(*) as count FROM library 
+    GROUP BY collection 
+    ORDER BY count DESC
+  `);
+    return Array.from({ length: results.rows.length }, (_, i) => ({
+      name: results.rows.item(i).collection,
+      count: results.rows.item(i).count
+    }));
   }
 
   async getTotalCount(collection = null, startDate = null, endDate = null) {

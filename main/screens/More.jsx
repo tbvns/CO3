@@ -12,6 +12,8 @@ import PreferencesScreen from './more/Preferences';
 import LoginScreen from './more/LoginScreen';
 import KudoHistory from './more/KudoHistory';
 import KudoHistoryScreen from './more/KudoHistory';
+import CategoryScreen from './more/CategoryScreen';
+import AboutScreen from './more/AboutScreen';
 
 const MoreScreen = ({ currentTheme, setScreens, theme, setTheme, viewMode, setViewMode, isIncognitoMode, toggleIncognitoMode, settingsDAO,
                       workDAO,
@@ -68,6 +70,34 @@ const MoreScreen = ({ currentTheme, setScreens, theme, setTheme, viewMode, setVi
           />
         ]);
         break;
+      case "Categories":
+        setScreens(prev => [...prev,
+          <CategoryScreen
+            currentTheme={currentTheme}
+            workDAO={workDAO}
+            libraryDAO={libraryDAO}
+            setScreens={setScreens}
+            historyDAO={historyDAO}
+            settingsDAO={settingsDAO}
+            progressDAO={progressDAO}
+            kudoHistoryDAO={kudoHistoryDAO}
+          />
+        ]);
+        break
+      case "About":
+        setScreens(prev => [...prev,
+          <AboutScreen
+            currentTheme={currentTheme}
+            workDAO={workDAO}
+            libraryDAO={libraryDAO}
+            setScreens={setScreens}
+            historyDAO={historyDAO}
+            settingsDAO={settingsDAO}
+            progressDAO={progressDAO}
+            kudoHistoryDAO={kudoHistoryDAO}
+          />
+        ]);
+        break
     }
     console.log(`${screenName} pressed`);
   };

@@ -289,7 +289,7 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
         initialNumToRender={10}
         maxToRenderPerBatch={10}
         windowSize={5}
-        showsVerticalScrollIndicator={false} // Hidden as requested
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

@@ -85,6 +85,7 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, librar
               historyDAO={historyDAO}
               progressDAO={progressDAO}
               kudoHistoryDAO={kudoHistoryDAO}
+              openTagSearch={openTagSearch}
             />
 
           ])}}
