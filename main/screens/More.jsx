@@ -14,8 +14,10 @@ import KudoHistory from './more/KudoHistory';
 import KudoHistoryScreen from './more/KudoHistory';
 import CategoryScreen from './more/CategoryScreen';
 import AboutScreen from './more/AboutScreen';
+import HelpScreen from './more/HelpScreen';
+import BookmarksScreen from './more/BookmarksScreen';
 
-const MoreScreen = ({ currentTheme, setScreens, theme, setTheme, viewMode, setViewMode, isIncognitoMode, toggleIncognitoMode, settingsDAO,
+const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMode, setViewMode, isIncognitoMode, toggleIncognitoMode, settingsDAO,
                       workDAO,
                       libraryDAO,
                       historyDAO,
@@ -70,6 +72,21 @@ const MoreScreen = ({ currentTheme, setScreens, theme, setTheme, viewMode, setVi
           />
         ]);
         break;
+      case "Bookmarks":
+        setScreens(prev => [...prev,
+          <BookmarksScreen
+            currentTheme={currentTheme}
+            workDAO={workDAO}
+            libraryDAO={libraryDAO}
+            setScreens={setScreens}
+            screens={screens}
+            historyDAO={historyDAO}
+            settingsDAO={settingsDAO}
+            progressDAO={progressDAO}
+            kudoHistoryDAO={kudoHistoryDAO}
+          />
+        ]);
+        break
       case "Categories":
         setScreens(prev => [...prev,
           <CategoryScreen
@@ -87,6 +104,20 @@ const MoreScreen = ({ currentTheme, setScreens, theme, setTheme, viewMode, setVi
       case "About":
         setScreens(prev => [...prev,
           <AboutScreen
+            currentTheme={currentTheme}
+            workDAO={workDAO}
+            libraryDAO={libraryDAO}
+            setScreens={setScreens}
+            historyDAO={historyDAO}
+            settingsDAO={settingsDAO}
+            progressDAO={progressDAO}
+            kudoHistoryDAO={kudoHistoryDAO}
+          />
+        ]);
+        break
+      case "Help":
+        setScreens(prev => [...prev,
+          <HelpScreen
             currentTheme={currentTheme}
             workDAO={workDAO}
             libraryDAO={libraryDAO}

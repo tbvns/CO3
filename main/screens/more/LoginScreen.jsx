@@ -20,6 +20,8 @@ import {
   getCredsToken,
   deleteCredsPasswd,
   deleteCredsToken,
+  setUsernameOnly,
+  getUsername,
 } from "../../storage/Credentials";
 import CustomAlert from "../../components/CustomAlert";
 
@@ -38,6 +40,8 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
   const [sessionInfo, setSessionInfo] = useState({
     visible: false,
     username: "",
+    password: "",
+    hasStoredPassword: false,
   });
 
   useEffect(() => {
@@ -71,6 +75,18 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
     setAlert({ ...alert, visible: false });
   };
 
+  const formatStoredPassword = (password) => {
+    if (!password || password.length === 0) return "";
+    if (password.length === 1) return password + "*";
+    if (password.length === 2) return password;
+
+    const first = password.substring(0, 1);
+    const last = password.charAt(password.length - 1);
+    const middle = "*".repeat(password.length - 2);
+
+    return first + middle + last;
+  };
+
   const showSessionInfo = async () => {
     try {
       const storedCreds = await getCredsPasswd();
@@ -78,13 +94,17 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
         setSessionInfo({
           visible: true,
           username: storedCreds.username,
+          password: formatStoredPassword(storedCreds.password),
+          hasStoredPassword: true,
         });
         return;
       }
 
       setSessionInfo({
         visible: true,
-        username: "Anonymous (not stored)",
+        username: getUsername(),
+        password: "",
+        hasStoredPassword: false,
       });
     } catch (error) {
       console.error("Error retrieving session info:", error);
@@ -93,7 +113,12 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
   };
 
   const hideSessionInfo = () => {
-    setSessionInfo({ ...sessionInfo, visible: false });
+    setSessionInfo({
+      visible: false,
+      username: "",
+      password: "",
+      hasStoredPassword: false,
+    });
   };
 
   const handleLogin = async () => {
@@ -113,6 +138,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
           await setCredsPasswd(username, password);
         } else {
           await deleteCredsPasswd();
+          await setUsernameOnly(username);
         }
 
         setIsLoggedIn(true);
@@ -122,7 +148,10 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
       }
     } catch (error) {
       console.error("Login error:", error);
-      showAlert("Login Error", "An error occurred during login. Please try again.");
+      showAlert(
+        "Login Error",
+        "An error occurred during login. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -148,7 +177,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
       "Remember Password",
       "When enabled, we securely store your username and password using your device's biometric authentication or passcode. " +
       "This allows us to automatically re-login in the background if your session expires, without interrupting your reading experience. " +
-      "Your login information is encrypted and never sent to external servers, only stored securely on your device.",
+      "Your login information is encrypted and never sent to external servers, only stored securely on your device."
     );
   };
 
@@ -162,9 +191,17 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
 
   if (validating) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: currentTheme.backgroundColor },
+        ]}
+      >
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={currentTheme.primaryColor} />
+          <ActivityIndicator
+            size="large"
+            color={currentTheme.primaryColor}
+          />
         </View>
       </SafeAreaView>
     );
@@ -172,13 +209,23 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
 
   if (isLoggedIn) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
-
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: currentTheme.backgroundColor },
+        ]}
+      >
         <View style={styles.header}>
           <TouchableOpacity onPress={onBack}>
-            <Icon name="arrow-back" size={24} color={currentTheme.textColor} />
+            <Icon
+              name="arrow-back"
+              size={24}
+              color={currentTheme.textColor}
+            />
           </TouchableOpacity>
-          <Text style={[styles.title_top, { color: currentTheme.textColor }]}>Account Settings</Text>
+          <Text style={[styles.title_top, { color: currentTheme.textColor }]}>
+            Account Settings
+          </Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -187,27 +234,48 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
               Account Status
             </Text>
 
-            <View style={[styles.statusContainer, { backgroundColor: currentTheme.cardBackground }]}>
+            <View
+              style={[
+                styles.statusContainer,
+                { backgroundColor: currentTheme.cardBackground },
+              ]}
+            >
               <Icon name="check-circle" size={48} color="green" />
               <Text style={[styles.statusText, { color: currentTheme.textColor }]}>
                 You are logged in
               </Text>
-              <Text style={[styles.statusSubtext, { color: currentTheme.placeholderColor }]}>
+              <Text
+                style={[
+                  styles.statusSubtext,
+                  { color: currentTheme.placeholderColor },
+                ]}
+              >
                 Your session is active
               </Text>
             </View>
 
             <TouchableOpacity
-              style={[styles.secondaryButton, { backgroundColor: currentTheme.cardBackground }]}
+              style={[
+                styles.secondaryButton,
+                { backgroundColor: currentTheme.cardBackground },
+              ]}
               onPress={showSessionInfo}
             >
-              <Text style={[styles.secondaryButtonText, { color: currentTheme.textColor }]}>
+              <Text
+                style={[
+                  styles.secondaryButtonText,
+                  { color: currentTheme.textColor },
+                ]}
+              >
                 Check current session
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.logoutButton, { backgroundColor: currentTheme.primaryColor }]}
+              style={[
+                styles.logoutButton,
+                { backgroundColor: currentTheme.primaryColor },
+              ]}
               onPress={handleLogout}
             >
               <Text style={styles.logoutButtonText}>Logout</Text>
@@ -215,7 +283,6 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
           </View>
         </ScrollView>
 
-        {/* Session Info Modal */}
         <Modal
           animationType="slide"
           transparent={true}
@@ -223,20 +290,55 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
           onRequestClose={hideSessionInfo}
         >
           <View style={styles.modalContainer}>
-            <View style={[styles.modalContent, { backgroundColor: currentTheme.cardBackground }]}>
+            <View
+              style={[
+                styles.modalContent,
+                { backgroundColor: currentTheme.cardBackground },
+              ]}
+            >
               <Text style={[styles.modalTitle, { color: currentTheme.textColor }]}>
                 Current Session
               </Text>
               <View style={styles.sessionInfoContainer}>
-                <Text style={[styles.sessionLabel, { color: currentTheme.placeholderColor }]}>
+                <Text
+                  style={[
+                    styles.sessionLabel,
+                    { color: currentTheme.placeholderColor },
+                  ]}
+                >
                   Username:
                 </Text>
                 <Text style={[styles.sessionValue, { color: currentTheme.textColor }]}>
                   {sessionInfo.username}
                 </Text>
               </View>
+
+              {sessionInfo.hasStoredPassword && (
+                <View style={styles.sessionInfoContainer}>
+                  <Text
+                    style={[
+                      styles.sessionLabel,
+                      { color: currentTheme.placeholderColor },
+                    ]}
+                  >
+                    Password:
+                  </Text>
+                  <Text
+                    style={[
+                      styles.sessionValue,
+                      { color: currentTheme.textColor },
+                    ]}
+                  >
+                    {sessionInfo.password}
+                  </Text>
+                </View>
+              )}
+
               <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: currentTheme.primaryColor }]}
+                style={[
+                  styles.modalButton,
+                  { backgroundColor: currentTheme.primaryColor },
+                ]}
                 onPress={hideSessionInfo}
               >
                 <Text style={styles.modalButtonText}>Close</Text>
@@ -257,7 +359,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
   }
 
   function onBack() {
-    setScreens(prev => {
+    setScreens((prev) => {
       const newScreens = [...prev];
       newScreens.pop();
       return newScreens;
@@ -265,8 +367,12 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
-
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: currentTheme.backgroundColor },
+      ]}
+    >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
           <Text style={[styles.title, { color: currentTheme.textColor }]}>
@@ -316,38 +422,75 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
             </View>
 
             <View style={styles.rememberContainer}>
-              <TouchableOpacity style={styles.rememberButton} onPress={() => setRememberPassword(!rememberPassword)}>
+              <TouchableOpacity
+                style={styles.rememberButton}
+                onPress={() => setRememberPassword(!rememberPassword)}
+              >
                 <Icon
-                  name={rememberPassword ? "check-box" : "check-box-outline-blank"}
+                  name={
+                    rememberPassword
+                      ? "check-box"
+                      : "check-box-outline-blank"
+                  }
                   size={24}
                   color={currentTheme.primaryColor}
                 />
-                <Text style={[styles.rememberText, { color: currentTheme.textColor }]}>
+                <Text
+                  style={[styles.rememberText, { color: currentTheme.textColor }]}
+                >
                   Remember my password
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={showRememberPasswordInfo} style={styles.infoButton}>
-                <Icon name="info-outline" size={20} color={currentTheme.placeholderColor} />
+              <TouchableOpacity
+                onPress={showRememberPasswordInfo}
+                style={styles.infoButton}
+              >
+                <Icon
+                  name="info-outline"
+                  size={20}
+                  color={currentTheme.placeholderColor}
+                />
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity
-              style={[styles.loginButton, { backgroundColor: currentTheme.primaryColor }]}
+              style={[
+                styles.loginButton,
+                { backgroundColor: currentTheme.primaryColor },
+              ]}
               onPress={handleLogin}
               disabled={isLoading}
             >
-              <Text style={styles.loginButtonText}>{isLoading ? "Logging in..." : "Login"}</Text>
+              <Text style={styles.loginButtonText}>
+                {isLoading ? "Logging in..." : "Login"}
+              </Text>
             </TouchableOpacity>
 
             <View style={styles.footerButtons}>
-              <TouchableOpacity onPress={openForgotPassword} style={styles.footerButton}>
-                <Text style={[styles.footerButtonText, { color: currentTheme.primaryColor }]}>
+              <TouchableOpacity
+                onPress={openForgotPassword}
+                style={styles.footerButton}
+              >
+                <Text
+                  style={[
+                    styles.footerButtonText,
+                    { color: currentTheme.primaryColor },
+                  ]}
+                >
                   Forgot password?
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={openGetInvited} style={styles.footerButton}>
-                <Text style={[styles.footerButtonText, { color: currentTheme.primaryColor }]}>
+              <TouchableOpacity
+                onPress={openGetInvited}
+                style={styles.footerButton}
+              >
+                <Text
+                  style={[
+                    styles.footerButtonText,
+                    { color: currentTheme.primaryColor },
+                  ]}
+                >
                   Get invited
                 </Text>
               </TouchableOpacity>
@@ -526,14 +669,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 20,
     paddingBottom: 10,
   },
   title_top: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginLeft: 16,
   },
 });

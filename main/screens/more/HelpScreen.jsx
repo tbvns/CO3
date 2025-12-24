@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-export default function AboutScreen({setScreens, currentTheme}) {
+export default function HelpScreen({setScreens, currentTheme}) {
   function onBack() {
     setScreens((prev) => {
       const newScreens = [...prev];
@@ -25,7 +25,7 @@ export default function AboutScreen({setScreens, currentTheme}) {
         <TouchableOpacity onPress={onBack}>
           <Icon name="arrow-back" size={24} color={currentTheme.textColor} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: currentTheme.textColor }]}>About CO3</Text>
+        <Text style={[styles.title, { color: currentTheme.textColor }]}>Help</Text>
       </View>
       <ScrollView>
         <View style={styles.mainContent}>
@@ -34,33 +34,17 @@ export default function AboutScreen({setScreens, currentTheme}) {
           <Text style={[styles.title, { color: currentTheme.textColor }]}>
             Client Of Our Own
           </Text>
-          <Text style={[{ paddingTop: 20, color: currentTheme.textColor }]}>The Open Source AO3 Mobile Reader</Text>
+          <Text style={[{ paddingTop: 20, color: currentTheme.textColor }]}>Do you need help or do you have an issue ?</Text>
         </View>
         <View style={[{margin: 16}]}>
-          <Text style={[{ color: currentTheme.textColor }]}>
-            CO3 is an open source project which aims at making reading on AO3 with a mobile device a lot easier.
-          </Text>
-          <Text style={[{paddingTop: 5, color: currentTheme.textColor }]}>
-            It follows the GPL V2 licence, and will be free of ads, of subscription and of any paid features, forever.
-          </Text>
-          <LinkButton
-            url="https://github.com/tbvns/CO3/releases"
-            label="What's new ?"
-            theme={currentTheme}
-          />
-          <LinkButton
-            url="https://github.com/tbvns/CO3"
-            label="Source code"
-            theme={currentTheme}
-          />
           <LinkButton
             url="https://discord.gg/3wMGWu2xMF"
-            label="Discord"
+            label="Ask on the discord"
             theme={currentTheme}
           />
           <LinkButton
-            url="https://ko-fi.com/tbvns"
-            label="Support me"
+            url="https://github.com/tbvns/CO3/issues"
+            label="Open an issue on github"
             theme={currentTheme}
           />
         </View>

@@ -26,15 +26,15 @@ const imageMappings = {
     'F/M': require('../../res/status/relationship/icon-inter-relationships.png'),
     'M/M': require('../../res/status/relationship/icon-mm-relationships.png'),
     'Multi': require('../../res/status/relationship/icon-multiple-relationships.png'),
-    'Gen': require('../../res/status/relationship/icon-other-relationships.png'),
+    'Gen': require('../../res/status/relationship/icon-none-relationships.png'),
     'Other': require('../../res/status/relationship/icon-other-relationships.png'),
     'None': require('../../res/status/relationship/icon-none-relationships.png'),
     'default': require('../../res/status/relationship/icon-unknown-relationships.png'),
   },
   warningStatus: {
-    'ChoseNotToWarn': require('../../res/status/warnings/icon-unspecified-warning.png'),
+    'Creator Chose Not To Use Archive Warnings': require('../../res/status/warnings/icon-unspecified-warning.png'),
     'WarningGiven': require('../../res/status/warnings/icon-has-warning.png'),
-    'NoWarningsApply': require('../../res/status/warnings/icon-unknown-warning.png'),
+    'No Archive Warnings Apply': require('../../res/status/warnings/icon-unknown-warning.png'),
     'ExternalWork': require('../../res/status/warnings/icon-web-warning.png'),
     'default': require('../../res/status/warnings/icon-unknown-warning.png'),
   },
@@ -46,7 +46,7 @@ const imageMappings = {
   }
 };
 
-const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoHistoryDAO, openTagSearch }) => {
+const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoHistoryDAO, openTagSearch, showDate = true }) => {
   const [isMainModalOpen, setIsMainModalOpen] = useState(false);
   const [isAllTagsModalOpen, setIsAllTagsModalOpen] = useState(false);
 
@@ -64,9 +64,26 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, librar
   }
 
   const ratingImage = imageMappings.rating[book.rating] || imageMappings.rating.default;
-  const categoryImage = imageMappings.category[book.category] || imageMappings.category.default;
-  const warningImage = imageMappings.warningStatus[book.warningStatus] || imageMappings.warningStatus.default;
-  const statusImage = imageMappings.isCompleted[book.isCompleted] || imageMappings.isCompleted.null;
+  let categoryImage = imageMappings.category[book.category] || imageMappings.category.default;
+  let warningImage = imageMappings.warningStatus[book.warnings] || imageMappings.warningStatus.default;
+  let statusImage = imageMappings.isCompleted[book.isCompleted] || imageMappings.isCompleted.null;
+
+  //Additional checks
+  if (book.category.split(" ").length > 1 && book.category !== "No category") {
+    categoryImage = imageMappings.category.Multi;
+  }
+
+  if (book.warningStatus === 'Yes') {
+    warningImage = imageMappings.warningStatus.WarningGiven;
+  }
+
+  if (book.isCompleted === null) {
+    if (book.chapterCount === book.currentChapter) {
+      statusImage = imageMappings.isCompleted.true
+    } else {
+      statusImage = imageMappings.isCompleted.false
+    }
+  }
 
   const images = [ratingImage, categoryImage, warningImage, statusImage];
   const gridSize = isSmall ? 50 : 75;
@@ -112,8 +129,8 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, librar
                     {
                       width: imageSize,
                       height: imageSize,
-                      marginRight: -StyleSheet.hairlineWidth,
-                      marginBottom: -StyleSheet.hairlineWidth,
+                      marginRight: -1,
+                      marginBottom: -1,
                     }
                   ]}
               />
@@ -124,7 +141,7 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, librar
                     {
                       width: imageSize,
                       height: imageSize,
-                      marginBottom: -StyleSheet.hairlineWidth,
+                      marginBottom: -1,
                     }
                   ]}
               />
@@ -137,7 +154,7 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, librar
                     {
                       width: imageSize,
                       height: imageSize,
-                      marginRight: -StyleSheet.hairlineWidth,
+                      marginRight: -1,
                     }
                   ]}
               />
@@ -194,16 +211,25 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, librar
 
               {showMetadataInCard && (
                   <View style={styles.metadata}>
-                    <View style={styles.metadataRow}>
-                      <Icon name="schedule" size={14} color={theme.iconColor} />
-                      <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
-                        Updated: {book.lastUpdated}
-                      </Text>
-                    </View>
+
+                    {showDate ?
+                      <View style={styles.metadataRow}>
+                        <Icon name="schedule" size={14} color={theme.iconColor} />
+                        <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                          Updated: {book.lastUpdated}
+                        </Text>
+                      </View> : null}
+
                     <View style={styles.metadataRow}>
                       <Icon name="favorite" size={14} color="#ef4444" />
                       <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
-                        {book.likes?.toLocaleString() || 0} Likes
+                        {book.likes?.toLocaleString() || "?"} Likes
+                      </Text>
+                    </View>
+                    <View style={styles.metadataRow}>
+                      <Icon name="book" size={14} color="#f97316" />
+                      <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                        {book.currentChapter + "/" + (book.chapterCount || "?")} Chapters
                       </Text>
                     </View>
                     <View style={styles.metadataRow}>

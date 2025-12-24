@@ -137,7 +137,7 @@ function extractWorkMetadata(doc) {
   return result;
 }
 
-function extractWorkContent(doc) {
+export function extractWorkContent(doc) {
   const result = {
     title: null,
     author: null,

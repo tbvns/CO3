@@ -171,6 +171,8 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
       bookmarks: work.bookmarks,
       views: work.hits,
       language: work.language,
+      currentChapter: work.currentChapter,
+      chapterCount: work.chapterCount,
     };
   };
 

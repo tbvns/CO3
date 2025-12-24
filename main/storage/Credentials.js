@@ -25,11 +25,16 @@ export async function getCredsPasswd() {
   }
 }
 
+
 export async function setCredsPasswd(usrname, passwd) {
   try {
+    await Keychain.setGenericPassword(usrname, 'placeholder', {
+      service: 'username_only',
+    });
+
     await Keychain.setGenericPassword(usrname, passwd, {
       service: 'creds_passwd',
-      accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE, // Allow biometrics or device passcode
+      accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
       authenticationPrompt: {
         title: 'Authenticate to save your credentials',
         subtitle: 'Your credentials will be securely stored in the device Keychain',
@@ -39,7 +44,7 @@ export async function setCredsPasswd(usrname, passwd) {
     console.log('Password successfully stored');
   } catch (error) {
     console.error('Failed to store password:', error);
-    throw error; // Re-throw to allow calling function to handle
+    throw error;
   }
 }
 
@@ -85,6 +90,7 @@ export async function setCredsToken(token) {
 export async function deleteCredsPasswd() {
   try {
     await Keychain.resetGenericPassword({ service: 'creds_passwd' });
+    await Keychain.resetGenericPassword({ service: 'username_only' });
     console.log('Password credentials deleted.');
   } catch (error) {
     console.error('Failed to delete password credentials:', error);
@@ -100,6 +106,37 @@ export async function deleteCredsToken() {
     console.log('Token credentials deleted.');
   } catch (error) {
     console.error('Failed to delete token credentials:', error);
+    throw error;
+  }
+}
+
+export async function getUsername() {
+  try {
+    const creds = await Keychain.getGenericPassword({
+      service: 'username_only',
+    });
+
+    if (creds) {
+      console.log('Username retrieved: ' + creds.username);
+      return creds.username;
+    } else {
+      console.log('No username stored');
+      return null;
+    }
+  } catch (error) {
+    console.error('Failed to retrieve username:', error);
+    return null;
+  }
+}
+
+export async function setUsernameOnly(username) {
+  try {
+    await Keychain.setGenericPassword(username, 'placeholder', {
+      service: 'username_only',
+    });
+    console.log('Username stored');
+  } catch (error) {
+    console.error('Failed to store username:', error);
     throw error;
   }
 }
