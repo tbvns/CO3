@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { fetchBookmarks } from '../../web/other/bookmarks';
@@ -14,6 +15,7 @@ import BookCard from '../../components/Library/BookCard';
 import LoadingSpinner from '../../components/History/Spinner';
 import EmptyState from '../../components/History/Empty';
 import { getUsername } from '../../storage/Credentials';
+import Spinner from '../../components/History/Spinner';
 
 export default function BookmarksScreen({
                                           setScreens,
@@ -171,14 +173,12 @@ export default function BookmarksScreen({
   const renderFooter = () => {
     if (!loadingMore) return null;
     return (
-      <Text
-        style={[
-          styles.loadingText,
-          { color: currentTheme.textColor },
-        ]}
-      >
-        Loading more...
-      </Text>
+      <View style={styles.loadingMore}>
+        <ActivityIndicator size="small" color={currentTheme.primaryColor} />
+        <Text style={[styles.loadingMoreText, { color: currentTheme.placeholderColor }]}>
+          Loading more...
+        </Text>
+      </View>
     );
   };
 
@@ -250,5 +250,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
     fontStyle: 'italic',
+  },
+  loadingMore: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+    gap: 8,
+  },
+  loadingMoreText: {
+    fontSize: 14,
   },
 });
