@@ -5,7 +5,7 @@
 # Client of our own
 
 CO3 is a free reader app for **Archive of Our Own** (AO3). We built it because other AO3 apps charge money for features that should be free. </br>
-The goal is to give you a better reading experience on your phone with features like native AMOLED support, proper reading history, and custom categories to organize your stories.
+The goal is to give you a better reading experience on your phone with features like native AMOLED support, local reading history, and custom categories to organize your stories.
 
 ## Features:
 - **Custom library** - Save your favorite works in one place
