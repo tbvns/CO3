@@ -13,11 +13,10 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { fetchBookmarks } from '../../web/other/bookmarks';
 import BookCard from '../../components/Library/BookCard';
 import LoadingSpinner from '../../components/History/Spinner';
-import EmptyState from '../../components/History/Empty';
 import { getUsername } from '../../storage/Credentials';
-import Spinner from '../../components/History/Spinner';
+import { fetchMarkedLater } from '../../web/other/markedLater';
 
-export default function BookmarksScreen({
+export default function ReadLaterScreen({
                                           setScreens,
                                           currentTheme,
                                           workDAO,
@@ -28,7 +27,7 @@ export default function BookmarksScreen({
                                           kudoHistoryDAO,
                                           screens
                                         }) {
-  const [bookmarks, setBookmarks] = useState([]);
+  const [entries, setentries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -39,7 +38,7 @@ export default function BookmarksScreen({
   const PAGE_SIZE = 20;
 
   useEffect(() => {
-    loadInitialBookmarks();
+    loadInitialEntries();
   }, []);
 
   const formatWork = (work) => {
@@ -68,32 +67,32 @@ export default function BookmarksScreen({
     };
   };
 
-  const loadInitialBookmarks = async () => {
+  const loadInitialEntries = async () => {
     try {
       setLoading(true);
       setCurrentPage(1);
-      const res = await fetchBookmarks(1);
-      setBookmarks(res || []);
+      const res = await fetchMarkedLater(1);
+      setentries(res || []);
       setHasMore((res?.length || 0) === PAGE_SIZE);
     } catch (error) {
-      console.error('Error loading bookmarks:', error);
-      setBookmarks([]);
+      console.error('Error loading marked for later entries:', error);
+      setentries([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadMoreBookmarks = async () => {
+  const loadMoreEntries = async () => {
     if (loadingMore || !hasMore) return;
 
     try {
       setLoadingMore(true);
       const nextPage = currentPage + 1;
-      const res = await fetchBookmarks(nextPage);
+      const res = await fetchMarkedLater(nextPage);
       const moreData = res || [];
 
       if (moreData.length > 0) {
-        setBookmarks(prev => [...prev, ...moreData]);
+        setentries(prev => [...prev, ...moreData]);
         setCurrentPage(nextPage);
         setHasMore(moreData.length === PAGE_SIZE);
       } else {
@@ -108,7 +107,7 @@ export default function BookmarksScreen({
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadInitialBookmarks();
+    await loadInitialEntries();
     setRefreshing(false);
   }, []);
 
@@ -124,13 +123,13 @@ export default function BookmarksScreen({
     console.log('Search for tag:', tag);
   };
 
-  const renderBookmark = ({ item, index }) => (
+  const renderEntry = ({ item, index }) => (
     <BookCard
       key={index}
       book={formatWork(item)}
       viewMode={viewMode}
       theme={currentTheme}
-      onUpdate={loadInitialBookmarks}
+      onUpdate={loadInitialEntries}
       setScreens={setScreens}
       screens={screens}
       libraryDAO={libraryDAO}
@@ -154,12 +153,12 @@ export default function BookmarksScreen({
         />
       </TouchableOpacity>
       <Text style={[styles.title, { color: currentTheme.textColor }]}>
-        Bookmarks
+        Marked for Later
       </Text>
 
       <TouchableOpacity style={{ marginLeft: 'auto' }}
                         onPress={() => getUsername().then(usrname => {
-                          Linking.openURL(`https://archiveofourown.org/users/${usrname}/bookmarks`)
+                          Linking.openURL(`https://archiveofourown.org/users/${usrname}/readings?show=to-read`)
                         })}>
         <Icon
           name="link"
@@ -186,7 +185,7 @@ export default function BookmarksScreen({
     return (
       <LoadingSpinner
         currentTheme={currentTheme}
-        message="Loading bookmarks..."
+        message="Loading entries..."
       />
     );
   }
@@ -200,10 +199,10 @@ export default function BookmarksScreen({
     >
       {renderHeader()}
       <FlatList
-        data={bookmarks}
-        renderItem={renderBookmark}
+        data={entries}
+        renderItem={renderEntry}
         keyExtractor={(item, index) => `${item.id || index}`}
-        onEndReached={loadMoreBookmarks}
+        onEndReached={loadMoreEntries}
         onEndReachedThreshold={0.1}
         ListEmptyComponent={
           <Text style={[{textColor: currentTheme.textColor}]}>No works bookmarked yet</Text>

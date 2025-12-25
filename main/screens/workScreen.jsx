@@ -11,6 +11,8 @@ import {
   Animated,
   Linking,
   Alert,
+  Modal,
+  Pressable,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LinearGradient } from 'react-native-linear-gradient';
@@ -20,57 +22,14 @@ import { fetchWorkFromWorkID } from '../web/worksScreen/fetchWork';
 import { fetchChapter } from '../web/worksScreen/fetchChapter';
 import ChapterReader from './chapterReader';
 import { navigateToNextChapter, navigateToPreviousChapter } from '../utils/ChapterNavigationHelpers';
-import sendKudo from '../web/kudoRequest';
+import sendKudo from '../web/other/kudoRequest';
 import { ChapterDAO } from '../storage/dao/ChapterDAO';
 import { ProgressDAO } from '../storage/dao/ProgressDAO';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CategorySelectionModal from '../components/WorkScreen/CategorySelectionModal';
-
-const Toast = ({ message, visible, onHide, type = 'error' }) => {
-  const slideAnim = useRef(new Animated.Value(-100)).current;
-
-  useEffect(() => {
-    if (visible) {
-      Animated.sequence([
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.delay(3000),
-        Animated.timing(slideAnim, {
-          toValue: -100,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        onHide();
-      });
-    }
-  }, [visible]);
-
-  if (!visible) return null;
-
-  return (
-    <Animated.View
-      style={[
-        styles.toast,
-        {
-          transform: [{ translateY: slideAnim }],
-          backgroundColor: type === 'error' ? '#ef4444' : '#22c55e',
-        },
-      ]}
-    >
-      <Icon
-        name={type === 'error' ? 'error-outline' : 'check-circle-outline'}
-        size={20}
-        color="white"
-        style={{ marginRight: 8 }}
-      />
-      <Text style={styles.toastText}>{message}</Text>
-    </Animated.View>
-  );
-};
+import { markForLater } from '../web/other/markedLater';
+import Toast from 'react-native-toast-message';
+import { bookmark } from '../web/other/bookmarks';
 
 const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress }) => {
   const hasProgress = chapter.progress !== undefined && chapter.progress !== null;
@@ -231,16 +190,19 @@ const ChapterInfoScreen = ({
   const [toastType, setToastType] = useState('error');
   const [isLoadingContinue, setIsLoadingContinue] = useState(false);
   const [categories, setCategories] = useState(['Default']);
-  // ADD THESE TWO NEW STATE VARIABLES
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [categoryAction, setCategoryAction] = useState(null);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const showToast = (message, type = 'error') => {
-    setToastMessage(message);
-    setToastType(type);
-    setToastVisible(true);
+    Toast.show({
+      type: type,
+      text1: type === 'success' ? 'Success' : 'Error',
+      text2: message,
+      position: 'bottom',
+      bottomOffset: 80,
+    });
   };
-
   const hideToast = () => {
     setToastVisible(false);
   };
@@ -465,6 +427,24 @@ const ChapterInfoScreen = ({
     Linking.openURL("https://archiveofourown.org/works/" + workId);
   }, [workId]);
 
+  const handleBookmark = async () => {
+    setMenuVisible(false);
+    bookmark(work).then(() => {
+      showToast('Added to bookmarks', 'success');
+    }) .catch(error => {
+      showToast(error, 'error');
+    })
+  };
+
+  const handleMarkForLater = async () => {
+    setMenuVisible(false);
+    markForLater(work).then(() => {
+      showToast('Marked for Later', 'success');
+    }) .catch(error => {
+      showToast(error, 'error');
+    })
+  };
+
   const handleChapterPress = useCallback(async (chapter, originalIndex) => {
     try {
       const existingWork = await workDAO.get(workId);
@@ -532,6 +512,45 @@ const ChapterInfoScreen = ({
     views: work.hits,
     language: work.language,
   }), []);
+
+  const renderHeaderMenu = () => (
+    <Modal
+      transparent={true}
+      visible={menuVisible}
+      onRequestClose={() => setMenuVisible(false)}
+      animationType="fade"
+    >
+      <Pressable
+        style={styles.menuOverlay}
+        onPress={() => setMenuVisible(false)}
+      >
+        <View
+          style={[
+            styles.menuContainer,
+            { backgroundColor: currentTheme.headerBackground, borderColor: currentTheme.borderColor }
+          ]}
+        >
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={handleBookmark}
+          >
+            <Icon name="bookmark-add" size={20} color={currentTheme.textColor} />
+            <Text style={[styles.menuItemText, { color: currentTheme.textColor }]}>Bookmark</Text>
+          </TouchableOpacity>
+
+          <View style={[styles.menuDivider, { backgroundColor: currentTheme.borderColor }]} />
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={handleMarkForLater}
+          >
+            <Icon name="watch-later" size={20} color={currentTheme.textColor} />
+            <Text style={[styles.menuItemText, { color: currentTheme.textColor }]}>Mark for later</Text>
+          </TouchableOpacity>
+        </View>
+      </Pressable>
+    </Modal>
+  );
 
   const renderDescription = () => {
     if (!work?.description) return null;
@@ -763,7 +782,12 @@ const ChapterInfoScreen = ({
         <Text style={[styles.headerTitle, { color: currentTheme.textColor }]} numberOfLines={1}>
           {work.title}
         </Text>
+        <TouchableOpacity onPress={() => setMenuVisible(true)} style={styles.menuButton}>
+          <Icon name="more-vert" size={24} color={currentTheme.iconColor} />
+        </TouchableOpacity>
       </View>
+
+      {renderHeaderMenu()}
 
       <FlatList
         data={[...chapters].map((chapter, originalIndex) => ({ ...chapter, originalIndex })).reverse()}
@@ -806,13 +830,6 @@ const ChapterInfoScreen = ({
           <Icon name="play-arrow" size={24} color="white" />
         }
       </TouchableOpacity>
-
-      <Toast
-        message={toastMessage}
-        visible={toastVisible}
-        onHide={hideToast}
-        type={toastType}
-      />
     </SafeAreaView>
   );
 };
@@ -1007,6 +1024,40 @@ const styles = StyleSheet.create({
   floatingButton: {
     flexDirection: 'row',
     display: "flex"
+  },
+  menuButton: {
+    padding: 8,
+  },
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  menuContainer: {
+    position: 'absolute',
+    top: 50,
+    right: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    width: 180,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    overflow: 'hidden',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+  },
+  menuItemText: {
+    fontSize: 16,
+    marginLeft: 12,
+  },
+  menuDivider: {
+    height: 1,
+    width: '100%',
   }
 });
 

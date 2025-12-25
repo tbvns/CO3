@@ -16,6 +16,7 @@ import CategoryScreen from './more/CategoryScreen';
 import AboutScreen from './more/AboutScreen';
 import HelpScreen from './more/HelpScreen';
 import BookmarksScreen from './more/BookmarksScreen';
+import ReadLaterScreen from './more/ReadLaterScreen';
 
 const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMode, setViewMode, isIncognitoMode, toggleIncognitoMode, settingsDAO,
                       workDAO,
@@ -75,6 +76,21 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
       case "Bookmarks":
         setScreens(prev => [...prev,
           <BookmarksScreen
+            currentTheme={currentTheme}
+            workDAO={workDAO}
+            libraryDAO={libraryDAO}
+            setScreens={setScreens}
+            screens={screens}
+            historyDAO={historyDAO}
+            settingsDAO={settingsDAO}
+            progressDAO={progressDAO}
+            kudoHistoryDAO={kudoHistoryDAO}
+          />
+        ]);
+        break
+      case "ReadLater":
+        setScreens(prev => [...prev,
+          <ReadLaterScreen
             currentTheme={currentTheme}
             workDAO={workDAO}
             libraryDAO={libraryDAO}
@@ -153,6 +169,11 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
       name: 'Bookmarks',
       icon: 'bookmarks',
       handler: () => handlePress('Bookmarks')
+    },
+    {
+      name: 'Marked for later',
+      icon: 'watch-later',
+      handler: () => handlePress('ReadLater')
     },
     {
       name: 'Categories',

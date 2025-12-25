@@ -1,5 +1,5 @@
-import { fetchKudoAuthenticityToken } from './account/fetchAuthenticityToken';
-import { getCredsToken } from '../storage/Credentials';
+import { fetchKudoAuthenticityToken } from '../account/fetchAuthenticityToken';
+import { getCredsToken } from '../../storage/Credentials';
 
 export default async function sendKudo(workId) {
   try {

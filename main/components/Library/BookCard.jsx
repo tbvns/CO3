@@ -11,6 +11,7 @@ import BookDetailsModal from './BookDetailsModal';
 import More from "../../screens/More";
 import MoreScreen from "../../screens/More";
 import ChapterInfoScreen from '../../screens/workScreen';
+import QuickActionsModal from './QuickActionsModal';
 
 const imageMappings = {
   rating: {
@@ -49,6 +50,7 @@ const imageMappings = {
 const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoHistoryDAO, openTagSearch, showDate = true }) => {
   const [isMainModalOpen, setIsMainModalOpen] = useState(false);
   const [isAllTagsModalOpen, setIsAllTagsModalOpen] = useState(false);
+  const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
 
   const isSmall = viewMode === 'small';
   const isMed = viewMode === 'med';
@@ -104,8 +106,10 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, librar
               kudoHistoryDAO={kudoHistoryDAO}
               openTagSearch={openTagSearch}
             />
-
           ])}}
+          onLongPress={() => {
+            setIsQuickActionsOpen(!isQuickActionsOpen);
+          }}
           activeOpacity={0.7}
           style={[
         styles.card,
@@ -263,6 +267,15 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, librar
               <Icon name="info" size={20} color="white" />
             </TouchableOpacity>
         )}
+
+        <QuickActionsModal
+          isOpen={isQuickActionsOpen}
+          onClose={() => setIsQuickActionsOpen(false)}
+          work={book}
+          theme={theme}
+          libraryDAO={libraryDAO}
+          workDAO={workDAO}
+        />
 
         <BookDetailsModal
             book={book}

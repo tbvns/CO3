@@ -36,6 +36,8 @@ import { ProgressDAO } from './storage/dao/ProgressDAO';
 import fetchLoginAuthenticityToken from './web/account/fetchAuthenticityToken';
 import login from './web/account/login';
 import { KudoHistoryDAO } from './storage/dao/KudosHistoryDAO';
+import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
+import CustomToast from './components/common/CustomToast';
 
 const TopBar = ({ currentTheme, activeScreen, setIsSideMenuOpen, searchTerm, setSearchTerm }) => {
   const showSearch = activeScreen === 'library';
@@ -356,11 +358,14 @@ const App = () => {
 
   if (loading || !currentTheme) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme?.backgroundColor || 'white' }]}>
-        <View style={styles.loadingContainer}>
-          <Text style={[styles.loadingText, { color: currentTheme?.textColor || 'black' }]}>Loading...</Text>
-        </View>
-      </SafeAreaView>
+      <>
+        <SafeAreaView style={[styles.container, { backgroundColor: currentTheme?.backgroundColor || 'white' }]}>
+          <View style={styles.loadingContainer}>
+            <Text style={[styles.loadingText, { color: currentTheme?.textColor || 'black' }]}>Loading...</Text>
+          </View>
+        </SafeAreaView>
+        <CustomToast currentTheme={currentTheme} />
+      </>
     );
   }
 
@@ -368,57 +373,64 @@ const App = () => {
   if (screens.length !== 0) {
     console.log(screens);
     return (
+      <>
         <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
           {screens[screens.length - 1]}
         </SafeAreaView>
+        <CustomToast currentTheme={currentTheme} />
+      </>
     )
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
-      <StatusBar
-        barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
-        backgroundColor={currentTheme.headerBackground}
-      />
+    <>
+      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+        <StatusBar
+          barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
+          backgroundColor={currentTheme.headerBackground}
+        />
 
-      <TopBar
-        currentTheme={currentTheme}
-        activeScreen={activeScreen}
-        setIsSideMenuOpen={setIsSideMenuOpen}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-      />
+        <TopBar
+          currentTheme={currentTheme}
+          activeScreen={activeScreen}
+          setIsSideMenuOpen={setIsSideMenuOpen}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
 
-      {renderScreen()}
+        {renderScreen()}
 
-      <BottomNavigation
-        activeScreen={activeScreen}
-        setActiveScreen={setActiveScreen}
-        currentTheme={currentTheme}
-      />
+        <BottomNavigation
+          activeScreen={activeScreen}
+          setActiveScreen={setActiveScreen}
+          currentTheme={currentTheme}
+        />
 
-      <SideMenu
-        isOpen={isSideMenuOpen}
-        onClose={() => setIsSideMenuOpen(false)}
-        theme={theme}
-        setTheme={saveTheme}
-        isIncognitoMode={isIncognitoMode}
-        toggleIncognitoMode={() => saveIncognitoMode(!isIncognitoMode)}
-        viewMode={viewMode}
-        setViewMode={saveViewMode}
-        currentTheme={currentTheme}
-        historyDAO={historyDAO}
-        workDAO={workDAO}
-        settingsDAO={settingsDAO}
-      />
+        <SideMenu
+          isOpen={isSideMenuOpen}
+          onClose={() => setIsSideMenuOpen(false)}
+          theme={theme}
+          setTheme={saveTheme}
+          isIncognitoMode={isIncognitoMode}
+          toggleIncognitoMode={() => saveIncognitoMode(!isIncognitoMode)}
+          viewMode={viewMode}
+          setViewMode={saveViewMode}
+          currentTheme={currentTheme}
+          historyDAO={historyDAO}
+          workDAO={workDAO}
+          settingsDAO={settingsDAO}
+        />
 
-      <AddWorkModal
-        isOpen={isAddWorkModalOpen}
-        onClose={() => setIsAddWorkModalOpen(false)}
-        onAdd={handleAddWork}
-        theme={currentTheme}
-      />
-    </SafeAreaView>
+        <AddWorkModal
+          isOpen={isAddWorkModalOpen}
+          onClose={() => setIsAddWorkModalOpen(false)}
+          onAdd={handleAddWork}
+          theme={currentTheme}
+        />
+      </SafeAreaView>
+
+      <CustomToast currentTheme={currentTheme} />
+    </>
   );
 };
 
