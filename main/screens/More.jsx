@@ -17,6 +17,7 @@ import AboutScreen from './more/AboutScreen';
 import HelpScreen from './more/HelpScreen';
 import BookmarksScreen from './more/BookmarksScreen';
 import ReadLaterScreen from './more/ReadLaterScreen';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMode, setViewMode, isIncognitoMode, toggleIncognitoMode, settingsDAO,
                       workDAO,
@@ -24,6 +25,7 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
                       historyDAO,
                       progressDAO,
                       kudoHistoryDAO }) => {
+  const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -205,6 +207,9 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
   return (
     <ScrollView
       style={[styles.mainContent, { backgroundColor: currentTheme.backgroundColor }]}
+      contentContainerStyle={{
+        paddingBottom: insets.bottom,
+      }}
     >
       <View style={styles.contentContainer}>
         <Text style={[styles.title, { color: currentTheme.textColor }]}>
