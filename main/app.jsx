@@ -42,6 +42,7 @@ import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import SystemNavigationBar from 'react-native-system-navigation-bar';
 
 
 const AppWrapper = () => {
@@ -175,7 +176,6 @@ const App = () => {
   }, []);
 
   // Handle pressing the back button
-  // Handle pressing the back button
   useEffect(() => {
     const backAction = () => {
       if (screens.length > 0) {
@@ -235,6 +235,13 @@ const App = () => {
       loadBooks();
     }
   }, [workDAO]);
+
+  useEffect(() => {
+    const navBarColor = currentTheme.headerBackground;
+    const isDark = theme === 'dark' || theme === 'black';
+
+    SystemNavigationBar.setNavigationColor(navBarColor, isDark ? "dark" : "light");
+  }, [currentTheme, theme]);
 
   const loadBooks = async () => {
     try {
