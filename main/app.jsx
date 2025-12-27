@@ -38,12 +38,26 @@ import login from './web/account/login';
 import { KudoHistoryDAO } from './storage/dao/KudosHistoryDAO';
 import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
 import CustomToast from './components/common/CustomToast';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+
+
+const AppWrapper = () => {
+  return (
+    <SafeAreaProvider>
+      <App />
+    </SafeAreaProvider>
+  );
+};
 
 const TopBar = ({ currentTheme, activeScreen, setIsSideMenuOpen, searchTerm, setSearchTerm }) => {
+  const insets = useSafeAreaInsets();
   const showSearch = activeScreen === 'library';
 
   return (
-    <View style={[styles.header, { backgroundColor: currentTheme.headerBackground }]}>
+    <View style={[styles.header, { backgroundColor: currentTheme.headerBackground, paddingTop: insets.top, }]}>
       {showSearch ? (
         <View style={styles.searchContainer}>
           <Icon name="search" size={20} color={currentTheme.iconColor} />
@@ -89,8 +103,10 @@ const BottomNavigation = ({ activeScreen, setActiveScreen, currentTheme }) => {
     { key: 'more', icon: 'more-horiz', label: 'More' },
   ];
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={[styles.bottomNav, { backgroundColor: currentTheme.headerBackground }]}>
+    <View style={[styles.bottomNav, { backgroundColor: currentTheme.headerBackground, paddingBottom: insets.bottom, }]}>
       {navItems.map((item) => (
         <TouchableOpacity
           key={item.key}
@@ -125,6 +141,8 @@ const BottomNavigation = ({ activeScreen, setActiveScreen, currentTheme }) => {
 
 
 const App = () => {
+  const insets = useSafeAreaInsets();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
   const [isAddWorkModalOpen, setIsAddWorkModalOpen] = useState(false);
@@ -156,6 +174,7 @@ const App = () => {
     };
   }, []);
 
+  // Handle pressing the back button
   // Handle pressing the back button
   useEffect(() => {
     const backAction = () => {
@@ -374,9 +393,18 @@ const App = () => {
     console.log(screens);
     return (
       <>
-        <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
-          {screens[screens.length - 1]}
-        </SafeAreaView>
+        <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+          <View style={[
+            styles.screenWrapper,
+            {
+              flex: 1,
+              paddingTop: insets.top,
+              paddingBottom: insets.bottom,
+            }
+          ]}>
+            {screens[screens.length - 1]}
+          </View>
+        </View>
         <CustomToast currentTheme={currentTheme} />
       </>
     )
@@ -540,4 +568,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default AppWrapper;

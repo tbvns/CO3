@@ -13,6 +13,7 @@ import {
 import { fetchFilteredWorks } from '../web/browse/fetchWorks';
 import BookCard from '../components/Library/BookCard';
 import AdvancedSearchScreen from './advancedSearch';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const FilterIcon = ({ color, size }) => (
   <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
@@ -30,6 +31,8 @@ const ClearIcon = ({ color, size }) => (
 );
 
 const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoHistoryDAO, openTagSearch, selectedTag, setSelectedTag }) => {
+  const insets = useSafeAreaInsets();
+
   const [works, setWorks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -304,7 +307,7 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
 
       {/* Filter FAB */}
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: currentTheme.primaryColor }]}
+        style={[styles.fab, { backgroundColor: currentTheme.primaryColor, bottom: 100 + insets.bottom }]}
         onPress={() => setIsSearchVisible(true)}
       >
         <FilterIcon color="white" size={24} />
@@ -313,7 +316,7 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
       {/* Clear Filters FAB */}
       {hasFilters && (
         <TouchableOpacity
-          style={[styles.clearFab, { backgroundColor: currentTheme.secondaryColor || '#ff6b6b' }]}
+          style={[styles.clearFab, { backgroundColor: currentTheme.secondaryColor || '#ff6b6b', bottom: 170 + insets.bottom }]}
           onPress={handleClearFilters}
         >
           <ClearIcon color="white" size={20} />

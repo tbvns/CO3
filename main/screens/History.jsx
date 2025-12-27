@@ -16,6 +16,7 @@ import HistoryList from '../components/History/List';
 import CalendarModal from '../components/History/CalendarModal';
 import EmptyState from '../components/History/Empty';
 import LoadingSpinner from '../components/History/Spinner';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
                          libraryDAO,
@@ -23,6 +24,8 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
                          settingsDAO,
                          progressDAO,
                          kudoHistoryDAO}) => {
+  const insets = useSafeAreaInsets();
+
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -322,7 +325,7 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
 
       {/* Calendar Filter Button */}
       <TouchableOpacity
-        style={[styles.readButtonFab, { backgroundColor: currentTheme.primaryColor }]}
+        style={[styles.readButtonFab, { backgroundColor: currentTheme.primaryColor, bottom: 100 + insets.bottom }]}
         onPress={() => setShowCalendar(true)}
       >
         <Icon name="calendar-today" size={24} color="white" />
