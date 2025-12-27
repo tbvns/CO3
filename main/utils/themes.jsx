@@ -1,5 +1,6 @@
 export const themes = {
   light: {
+    name: 'light',
     backgroundColor: '#f9fafb',
     textColor: '#111827',
     secondaryTextColor: '#6b7280',
@@ -17,6 +18,7 @@ export const themes = {
     warningTextColor: '#b91c1c',
   },
   dark: {
+    name: 'dark',
     backgroundColor: '#1f2937',
     textColor: '#f9fafb',
     secondaryTextColor: '#d1d5db',
@@ -34,6 +36,7 @@ export const themes = {
     warningTextColor: '#fecaca',
   },
   black: {
+    name: 'black',
     backgroundColor: '#000000',
     textColor: '#ffffff',
     secondaryTextColor: '#a0a0a0',

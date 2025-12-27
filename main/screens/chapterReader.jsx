@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Animated,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { WebView } from 'react-native-webview';
@@ -592,6 +593,10 @@ const ChapterReader = ({
           { backgroundColor: currentTheme.backgroundColor },
         ]}
       >
+        <StatusBar
+          barStyle={currentTheme.name === 'light' ? 'dark-content' : 'light-content'}
+          backgroundColor={currentTheme.backgroundColor}
+        />
         <WebView
           ref={webViewRef}
           originWhitelist={['*']}

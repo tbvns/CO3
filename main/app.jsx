@@ -237,11 +237,11 @@ const App = () => {
   }, [workDAO]);
 
   useEffect(() => {
-    const navBarColor = currentTheme.headerBackground;
+    const navBarColor = screens.length === 0 ? currentTheme.headerBackground : currentTheme.backgroundColor;
     const isDark = theme === 'dark' || theme === 'black';
 
     SystemNavigationBar.setNavigationColor(navBarColor, isDark ? "dark" : "light");
-  }, [currentTheme, theme]);
+  }, [currentTheme, theme, screens]);
 
   const loadBooks = async () => {
     try {
@@ -400,6 +400,10 @@ const App = () => {
     console.log(screens);
     return (
       <>
+        <StatusBar
+          barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
+          backgroundColor={currentTheme.backgroundColor}
+        />
         <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
           <View style={[
             styles.screenWrapper,

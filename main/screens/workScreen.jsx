@@ -30,6 +30,7 @@ import CategorySelectionModal from '../components/WorkScreen/CategorySelectionMo
 import { markForLater } from '../web/other/markedLater';
 import Toast from 'react-native-toast-message';
 import { bookmark } from '../web/other/bookmarks';
+import SystemNavigationBar from 'react-native-system-navigation-bar';
 
 const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress }) => {
   const hasProgress = chapter.progress !== undefined && chapter.progress !== null;
@@ -76,6 +77,7 @@ const ReaderWrapper = ({
                          initialChapterData,
                          currentTheme,
                          setScreens,
+                         screens,
                          chapterList,
                          historyDAO,
                          progressDAO,
