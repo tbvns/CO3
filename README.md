@@ -15,7 +15,7 @@ The goal is to give you a better reading experience on your phone with features 
 
 ## Planned features
 - Update notifications when new chapters come out
-- Bookmarks
+- ~~Bookmarks~~ (Done !)
 - View and read comments
 - User profile pages
 - Statistics screen
