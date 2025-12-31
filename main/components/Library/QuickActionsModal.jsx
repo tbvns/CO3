@@ -14,6 +14,7 @@ import Toast from 'react-native-toast-message';
 import CategorySelectionModal from '../WorkScreen/CategorySelectionModal';
 import { markForLater } from '../../web/other/markedLater';
 import { bookmark } from '../../web/other/bookmarks';
+import { normalizeWorkData } from '../../storage/dao/WorkDAO';
 
 const QuickActionsModal = ({
                              isOpen,
@@ -83,7 +84,7 @@ const QuickActionsModal = ({
     try {
       const existingWork = await workDAO.get(work.id);
       if (!existingWork) {
-        await workDAO.add(work);
+        await workDAO.add(normalizeWorkData(work));
       }
 
       await libraryDAO.add(work.id, collection);

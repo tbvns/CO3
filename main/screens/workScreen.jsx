@@ -31,6 +31,7 @@ import { markForLater } from '../web/other/markedLater';
 import Toast from 'react-native-toast-message';
 import { bookmark } from '../web/other/bookmarks';
 import SystemNavigationBar from 'react-native-system-navigation-bar';
+import { normalizeWorkData } from '../storage/dao/WorkDAO';
 
 const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress }) => {
   const hasProgress = chapter.progress !== undefined && chapter.progress !== null;
@@ -258,7 +259,7 @@ const ChapterInfoScreen = ({
     try {
       const existingWork = await workDAO.get(workId);
       if (!existingWork) {
-        await workDAO.add(work);
+        await workDAO.add(normalizeWorkData(work));
       }
 
       await libraryDAO.add(workId, collection);

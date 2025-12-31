@@ -188,7 +188,7 @@ export async function fetchWorkFromWorkID(workId) {
     const url = `https://archiveofourown.org/works/${workId}?view_adult=true`;
 
     console.log(`Fetching work from: ${url}`);
-    const response = await ky.get(url, ).text();
+    const response = await ky.get(url).text();
     const doc = new DomParser().parseFromString(response, "text/html");
 
     if (!doc) {

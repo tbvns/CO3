@@ -201,3 +201,10 @@ export class WorkDAO {
     }
   }
 }
+
+
+export const normalizeWorkData = (work) => ({
+  ...work,
+  kudos: work.kudos ?? work.likes ?? null,
+  hits: work.hits ?? work.views ?? null,
+});

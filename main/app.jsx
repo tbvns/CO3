@@ -8,7 +8,10 @@ import {
   ScrollView,
   SafeAreaView,
   StatusBar,
-  Alert, BackHandler,
+  Alert,
+  BackHandler,
+  PermissionsAndroid,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -43,6 +46,8 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import SystemNavigationBar from 'react-native-system-navigation-bar';
+import { setup } from './web/updater';
+import { getJsonSettings } from './storage/jsonSettings';
 
 
 const AppWrapper = () => {
@@ -198,6 +203,19 @@ const App = () => {
   }, [screens]);
 
   const initializeApp = async () => {
+    const jsonSettings = await getJsonSettings();
+    setup(jsonSettings.time)
+
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
     try {
       const db = await database.open();
       const newWorkDAO = new WorkDAO(db);

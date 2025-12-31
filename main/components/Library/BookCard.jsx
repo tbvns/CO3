@@ -71,7 +71,7 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, librar
   let statusImage = imageMappings.isCompleted[book.isCompleted] || imageMappings.isCompleted.null;
 
   //Additional checks
-  if (book.category.split(" ").length > 1 && book.category !== "No category") {
+  if (book.category && book.category.split(" ").length > 1 && book.category !== "No category") {
     categoryImage = imageMappings.category.Multi;
   }
 

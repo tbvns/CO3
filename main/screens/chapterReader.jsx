@@ -597,6 +597,7 @@ const ChapterReader = ({
           barStyle={currentTheme.name === 'light' ? 'dark-content' : 'light-content'}
           backgroundColor={currentTheme.backgroundColor}
         />
+
         <WebView
           ref={webViewRef}
           originWhitelist={['*']}
