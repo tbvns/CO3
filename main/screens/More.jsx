@@ -197,16 +197,16 @@ const MoreScreen = ({
       icon: 'category',
       handler: () => handlePress('Categories'),
     },
-    // {
-    //   name: 'Statistics',
-    //   icon: 'bar-chart',
-    //   handler: () => handlePress('Statistics'),
-    // },
-    // {
-    //   name: 'Data and Storage',
-    //   icon: 'storage',
-    //   handler: () => handlePress('Data and Storage'),
-    // },
+    {
+      name: 'Statistics',
+      icon: 'bar-chart',
+      handler: () => handlePress('Statistics'),
+    },
+    {
+      name: 'Data and Storage',
+      icon: 'storage',
+      handler: () => handlePress('Data and Storage'),
+    },
     {
       name: 'About',
       icon: 'info',
