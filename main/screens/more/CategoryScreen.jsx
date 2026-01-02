@@ -1,18 +1,22 @@
 import {
-  Text,
-  View,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
+  Alert,
   SafeAreaView,
   ScrollView,
-  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-export default function CategoryScreen({ currentTheme, setScreens, libraryDAO }) {
+export default function CategoryScreen({
+  currentTheme,
+  setScreens,
+  libraryDAO,
+}) {
   const [categories, setCategories] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
@@ -36,7 +40,10 @@ export default function CategoryScreen({ currentTheme, setScreens, libraryDAO })
 
   async function saveCategories(categoriesToSave) {
     try {
-      await AsyncStorage.setItem('Categories', JSON.stringify(categoriesToSave));
+      await AsyncStorage.setItem(
+        'Categories',
+        JSON.stringify(categoriesToSave),
+      );
     } catch (error) {
       console.error('Error saving categories:', error);
     }
@@ -69,17 +76,15 @@ export default function CategoryScreen({ currentTheme, setScreens, libraryDAO })
           style: 'destructive',
         },
       ],
-      { cancelable: false }
+      { cancelable: false },
     );
   }
 
   async function removeCategories(removedCategory) {
-    const updated = categories.filter(
-      (category) => category !== removedCategory
-    );
+    const updated = categories.filter(category => category !== removedCategory);
     setCategories(updated);
     await saveCategories(updated);
-    await libraryDAO.deleteCollection(removedCategory)
+    await libraryDAO.deleteCollection(removedCategory);
   }
 
   async function updateCategory(oldName, newName) {
@@ -93,21 +98,20 @@ export default function CategoryScreen({ currentTheme, setScreens, libraryDAO })
 
     if (
       categories.some(
-        (cat) =>
-          cat.toLowerCase() === trimmedName.toLowerCase() &&
-          cat !== oldName
+        cat =>
+          cat.toLowerCase() === trimmedName.toLowerCase() && cat !== oldName,
       )
     ) {
       Alert.alert(
         'Duplicate Name',
         `A category named "${trimmedName}" already exists.`,
-        [{ text: 'OK', onPress: () => {} }]
+        [{ text: 'OK', onPress: () => {} }],
       );
       return;
     }
 
-    const updated = categories.map((cat) =>
-      cat === oldName ? trimmedName : cat
+    const updated = categories.map(cat =>
+      cat === oldName ? trimmedName : cat,
     );
     setCategories(updated);
 
@@ -212,7 +216,7 @@ export default function CategoryScreen({ currentTheme, setScreens, libraryDAO })
   });
 
   function onBack() {
-    setScreens((prev) => {
+    setScreens(prev => {
       const newScreens = [...prev];
       newScreens.pop();
       return newScreens;
@@ -224,11 +228,7 @@ export default function CategoryScreen({ currentTheme, setScreens, libraryDAO })
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={onBack}>
-            <Icon
-              name="arrow-back"
-              size={24}
-              color={currentTheme?.textColor}
-            />
+            <Icon name="arrow-back" size={24} color={currentTheme?.textColor} />
           </TouchableOpacity>
           <Text style={styles.title}>Manage Categories</Text>
         </View>
@@ -242,7 +242,7 @@ export default function CategoryScreen({ currentTheme, setScreens, libraryDAO })
             </Text>
           </View>
         ) : (
-          categories.map((category) => (
+          categories.map(category => (
             <View key={category} style={styles.categoryItem}>
               {editingId === category ? (
                 <>
@@ -305,10 +305,7 @@ export default function CategoryScreen({ currentTheme, setScreens, libraryDAO })
       </ScrollView>
 
       <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={addCategories}
-        >
+        <TouchableOpacity style={styles.addButton} onPress={addCategories}>
           <Icon name="add" size={24} color="white" />
           <Text style={styles.addButtonText}>Add Category</Text>
         </TouchableOpacity>

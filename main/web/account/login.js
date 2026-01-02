@@ -16,18 +16,20 @@ export default async function login(username, password) {
       body: formData,
       credentials: 'include', // Important for cookies
       headers: {
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        Accept:
+          'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
         'Accept-Encoding': 'gzip, deflate',
-        'Referer': 'https://archiveofourown.org/users/login',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      } //Yea cloudflare was hard on this one, so i'm officially a web browser YaY
-        //Like fr i'm a win 10 machine on chrome wdym
-        //We just need to pray cloudflare will leave me alone
+        Referer: 'https://archiveofourown.org/users/login',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+      }, //Yea cloudflare was hard on this one, so i'm officially a web browser YaY
+      //Like fr i'm a win 10 machine on chrome wdym
+      //We just need to pray cloudflare will leave me alone
     });
 
-    if (response.url === "https://archiveofourown.org/users/login") {
-      throw new Error("Wrong username or password");
+    if (response.url === 'https://archiveofourown.org/users/login') {
+      throw new Error('Wrong username or password');
     }
 
     // Extract the session cookie from the response headers
@@ -37,7 +39,10 @@ export default async function login(username, password) {
       const cookies = setCookieHeader.split(',');
       for (let cookie of cookies) {
         const trimmedCookie = cookie.trim();
-        if (trimmedCookie.includes('otwarchive') && trimmedCookie.includes('session=')) {
+        if (
+          trimmedCookie.includes('otwarchive') &&
+          trimmedCookie.includes('session=')
+        ) {
           // Extract the session value
           const sessionMatch = trimmedCookie.match(/session=([^;]+)/);
           if (sessionMatch) {
@@ -48,14 +53,18 @@ export default async function login(username, password) {
     }
 
     if (response.ok) {
-      if (response.redirected || response.url !== 'https://archiveofourown.org/users/login') {
-        console.log('Login appears successful but session cookie not found in headers');
+      if (
+        response.redirected ||
+        response.url !== 'https://archiveofourown.org/users/login'
+      ) {
+        console.log(
+          'Login appears successful but session cookie not found in headers',
+        );
         return null;
       }
     }
 
     throw new Error(`Login failed: ${response.status} ${response.statusText}`);
-
   } catch (error) {
     console.error('Login error:', error);
     throw error;

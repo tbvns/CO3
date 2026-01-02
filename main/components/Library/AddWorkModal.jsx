@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import {
+  Alert,
+  Modal,
+  SafeAreaView,
+  ScrollView,
   StyleSheet,
-  View,
   Text,
   TextInput,
   TouchableOpacity,
-  Modal,
-  ScrollView,
-  SafeAreaView,
-  Alert,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Picker } from '@react-native-picker/picker';
@@ -33,30 +33,22 @@ const AddWorkModal = ({ isOpen, onClose, onAdd, theme }) => {
     'General Audiences',
     'Teen And Up Audiences',
     'Mature',
-    'Explicit'
+    'Explicit',
   ];
 
-  const categories = [
-    'None',
-    'F/F',
-    'F/M',
-    'M/M',
-    'Gen',
-    'Multi',
-    'Other'
-  ];
+  const categories = ['None', 'F/F', 'F/M', 'M/M', 'Gen', 'Multi', 'Other'];
 
   const warningStatuses = [
     'NoWarningsApply',
     'ChoseNotToWarn',
     'WarningGiven',
-    'ExternalWork'
+    'ExternalWork',
   ];
 
   const completionStatuses = [
     { label: 'Unknown', value: null },
     { label: 'In Progress', value: false },
-    { label: 'Completed', value: true }
+    { label: 'Completed', value: true },
   ];
 
   const handleSubmit = () => {
@@ -67,8 +59,14 @@ const AddWorkModal = ({ isOpen, onClose, onAdd, theme }) => {
 
     const workData = {
       ...formData,
-      tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-      warnings: formData.warnings.split(',').map(warning => warning.trim()).filter(warning => warning),
+      tags: formData.tags
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag),
+      warnings: formData.warnings
+        .split(',')
+        .map(warning => warning.trim())
+        .filter(warning => warning),
       lastUpdated: new Date().toISOString().split('T')[0],
       likes: 0,
       bookmarks: 0,
@@ -102,276 +100,322 @@ const AddWorkModal = ({ isOpen, onClose, onAdd, theme }) => {
   };
 
   return (
-      <Modal
-          visible={isOpen}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={onClose}
-      >
-        <SafeAreaView style={styles.overlay}>
-          <View style={styles.modalContainer}>
-            <View style={[styles.modal, { backgroundColor: theme.cardBackground }]}>
-              <View style={styles.header}>
-                <Text style={[styles.title, { color: theme.textColor }]}>
-                  Add New Work
+    <Modal
+      visible={isOpen}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={onClose}
+    >
+      <SafeAreaView style={styles.overlay}>
+        <View style={styles.modalContainer}>
+          <View
+            style={[styles.modal, { backgroundColor: theme.cardBackground }]}
+          >
+            <View style={styles.header}>
+              <Text style={[styles.title, { color: theme.textColor }]}>
+                Add New Work
+              </Text>
+              <TouchableOpacity onPress={onClose}>
+                <Icon name="close" size={24} color={theme.iconColor} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.content}>
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: theme.textColor }]}>
+                  Title *
                 </Text>
-                <TouchableOpacity onPress={onClose}>
-                  <Icon name="close" size={24} color={theme.iconColor} />
-                </TouchableOpacity>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: theme.inputBackground,
+                      color: theme.textColor,
+                      borderColor: theme.borderColor,
+                    },
+                  ]}
+                  value={formData.title}
+                  onChangeText={value => handleInputChange('title', value)}
+                  placeholder="Enter book title"
+                  placeholderTextColor={theme.placeholderColor}
+                />
               </View>
 
-              <ScrollView style={styles.content}>
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.label, { color: theme.textColor }]}>
-                    Title *
-                  </Text>
-                  <TextInput
-                      style={[
-                        styles.input,
-                        {
-                          backgroundColor: theme.inputBackground,
-                          color: theme.textColor,
-                          borderColor: theme.borderColor,
-                        }
-                      ]}
-                      value={formData.title}
-                      onChangeText={(value) => handleInputChange('title', value)}
-                      placeholder="Enter book title"
-                      placeholderTextColor={theme.placeholderColor}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.label, { color: theme.textColor }]}>
-                    Author *
-                  </Text>
-                  <TextInput
-                      style={[
-                        styles.input,
-                        {
-                          backgroundColor: theme.inputBackground,
-                          color: theme.textColor,
-                          borderColor: theme.borderColor,
-                        }
-                      ]}
-                      value={formData.author}
-                      onChangeText={(value) => handleInputChange('author', value)}
-                      placeholder="Enter author name"
-                      placeholderTextColor={theme.placeholderColor}
-                  />
-                </View>
-
-                {/* Rating Picker */}
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.label, { color: theme.textColor }]}>
-                    Content Rating
-                  </Text>
-                  <View style={[
-                    styles.pickerContainer,
-                    { backgroundColor: theme.inputBackground, borderColor: theme.borderColor }
-                  ]}>
-                    <Picker
-                        selectedValue={formData.rating}
-                        onValueChange={(value) => handleInputChange('rating', value)}
-                        style={[styles.picker, { color: theme.textColor }]}
-                        dropdownIconColor={theme.textColor}
-                    >
-                      {ratings.map(rating => (
-                          <Picker.Item key={rating} label={rating} value={rating} />
-                      ))}
-                    </Picker>
-                  </View>
-                </View>
-
-                {/* Category Picker */}
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.label, { color: theme.textColor }]}>
-                    Relationship Category
-                  </Text>
-                  <View style={[
-                    styles.pickerContainer,
-                    { backgroundColor: theme.inputBackground, borderColor: theme.borderColor }
-                  ]}>
-                    <Picker
-                        selectedValue={formData.category}
-                        onValueChange={(value) => handleInputChange('category', value)}
-                        style={[styles.picker, { color: theme.textColor }]}
-                        dropdownIconColor={theme.textColor}
-                    >
-                      {categories.map(category => (
-                          <Picker.Item key={category} label={category} value={category} />
-                      ))}
-                    </Picker>
-                  </View>
-                </View>
-
-                {/* Warning Status Picker */}
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.label, { color: theme.textColor }]}>
-                    Warning Status
-                  </Text>
-                  <View style={[
-                    styles.pickerContainer,
-                    { backgroundColor: theme.inputBackground, borderColor: theme.borderColor }
-                  ]}>
-                    <Picker
-                        selectedValue={formData.warningStatus}
-                        onValueChange={(value) => handleInputChange('warningStatus', value)}
-                        style={[styles.picker, { color: theme.textColor }]}
-                        dropdownIconColor={theme.textColor}
-                    >
-                      {warningStatuses.map(status => (
-                          <Picker.Item key={status} label={status} value={status} />
-                      ))}
-                    </Picker>
-                  </View>
-                </View>
-
-                {/* Completion Status Picker */}
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.label, { color: theme.textColor }]}>
-                    Completion Status
-                  </Text>
-                  <View style={[
-                    styles.pickerContainer,
-                    { backgroundColor: theme.inputBackground, borderColor: theme.borderColor }
-                  ]}>
-                    <Picker
-                        selectedValue={formData.isCompleted}
-                        onValueChange={(value) => handleInputChange('isCompleted', value)}
-                        style={[styles.picker, { color: theme.textColor }]}
-                        dropdownIconColor={theme.textColor}
-                    >
-                      {completionStatuses.map(status => (
-                          <Picker.Item key={status.value} label={status.label} value={status.value} />
-                      ))}
-                    </Picker>
-                  </View>
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.label, { color: theme.textColor }]}>
-                    Description
-                  </Text>
-                  <TextInput
-                      style={[
-                        styles.textArea,
-                        {
-                          backgroundColor: theme.inputBackground,
-                          color: theme.textColor,
-                          borderColor: theme.borderColor,
-                        }
-                      ]}
-                      value={formData.description}
-                      onChangeText={(value) => handleInputChange('description', value)}
-                      placeholder="Enter book description"
-                      placeholderTextColor={theme.placeholderColor}
-                      multiline={true}
-                      numberOfLines={4}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.label, { color: theme.textColor }]}>
-                    Tags
-                  </Text>
-                  <TextInput
-                      style={[
-                        styles.input,
-                        {
-                          backgroundColor: theme.inputBackground,
-                          color: theme.textColor,
-                          borderColor: theme.borderColor,
-                        }
-                      ]}
-                      value={formData.tags}
-                      onChangeText={(value) => handleInputChange('tags', value)}
-                      placeholder="Enter tags separated by commas"
-                      placeholderTextColor={theme.placeholderColor}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.label, { color: theme.textColor }]}>
-                    Warnings
-                  </Text>
-                  <TextInput
-                      style={[
-                        styles.input,
-                        {
-                          backgroundColor: theme.inputBackground,
-                          color: theme.textColor,
-                          borderColor: theme.borderColor,
-                        }
-                      ]}
-                      value={formData.warnings}
-                      onChangeText={(value) => handleInputChange('warnings', value)}
-                      placeholder="Enter warnings separated by commas"
-                      placeholderTextColor={theme.placeholderColor}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.label, { color: theme.textColor }]}>
-                    Language
-                  </Text>
-                  <TextInput
-                      style={[
-                        styles.input,
-                        {
-                          backgroundColor: theme.inputBackground,
-                          color: theme.textColor,
-                          borderColor: theme.borderColor,
-                        }
-                      ]}
-                      value={formData.language}
-                      onChangeText={(value) => handleInputChange('language', value)}
-                      placeholder="Enter language"
-                      placeholderTextColor={theme.placeholderColor}
-                  />
-                </View>
-
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.label, { color: theme.textColor }]}>
-                    Image URL
-                  </Text>
-                  <TextInput
-                      style={[
-                        styles.input,
-                        {
-                          backgroundColor: theme.inputBackground,
-                          color: theme.textColor,
-                          borderColor: theme.borderColor,
-                        }
-                      ]}
-                      value={formData.image}
-                      onChangeText={(value) => handleInputChange('image', value)}
-                      placeholder="Enter image URL (optional)"
-                      placeholderTextColor={theme.placeholderColor}
-                  />
-                </View>
-              </ScrollView>
-
-              <View style={styles.footer}>
-                <TouchableOpacity
-                    style={[styles.cancelButton, { borderColor: theme.borderColor }]}
-                    onPress={onClose}
-                >
-                  <Text style={[styles.cancelButtonText, { color: theme.textColor }]}>
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.addButton, { backgroundColor: theme.primaryColor }]}
-                    onPress={handleSubmit}
-                >
-                  <Text style={styles.addButtonText}>Add Work</Text>
-                </TouchableOpacity>
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: theme.textColor }]}>
+                  Author *
+                </Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: theme.inputBackground,
+                      color: theme.textColor,
+                      borderColor: theme.borderColor,
+                    },
+                  ]}
+                  value={formData.author}
+                  onChangeText={value => handleInputChange('author', value)}
+                  placeholder="Enter author name"
+                  placeholderTextColor={theme.placeholderColor}
+                />
               </View>
+
+              {/* Rating Picker */}
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: theme.textColor }]}>
+                  Content Rating
+                </Text>
+                <View
+                  style={[
+                    styles.pickerContainer,
+                    {
+                      backgroundColor: theme.inputBackground,
+                      borderColor: theme.borderColor,
+                    },
+                  ]}
+                >
+                  <Picker
+                    selectedValue={formData.rating}
+                    onValueChange={value => handleInputChange('rating', value)}
+                    style={[styles.picker, { color: theme.textColor }]}
+                    dropdownIconColor={theme.textColor}
+                  >
+                    {ratings.map(rating => (
+                      <Picker.Item key={rating} label={rating} value={rating} />
+                    ))}
+                  </Picker>
+                </View>
+              </View>
+
+              {/* Category Picker */}
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: theme.textColor }]}>
+                  Relationship Category
+                </Text>
+                <View
+                  style={[
+                    styles.pickerContainer,
+                    {
+                      backgroundColor: theme.inputBackground,
+                      borderColor: theme.borderColor,
+                    },
+                  ]}
+                >
+                  <Picker
+                    selectedValue={formData.category}
+                    onValueChange={value =>
+                      handleInputChange('category', value)
+                    }
+                    style={[styles.picker, { color: theme.textColor }]}
+                    dropdownIconColor={theme.textColor}
+                  >
+                    {categories.map(category => (
+                      <Picker.Item
+                        key={category}
+                        label={category}
+                        value={category}
+                      />
+                    ))}
+                  </Picker>
+                </View>
+              </View>
+
+              {/* Warning Status Picker */}
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: theme.textColor }]}>
+                  Warning Status
+                </Text>
+                <View
+                  style={[
+                    styles.pickerContainer,
+                    {
+                      backgroundColor: theme.inputBackground,
+                      borderColor: theme.borderColor,
+                    },
+                  ]}
+                >
+                  <Picker
+                    selectedValue={formData.warningStatus}
+                    onValueChange={value =>
+                      handleInputChange('warningStatus', value)
+                    }
+                    style={[styles.picker, { color: theme.textColor }]}
+                    dropdownIconColor={theme.textColor}
+                  >
+                    {warningStatuses.map(status => (
+                      <Picker.Item key={status} label={status} value={status} />
+                    ))}
+                  </Picker>
+                </View>
+              </View>
+
+              {/* Completion Status Picker */}
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: theme.textColor }]}>
+                  Completion Status
+                </Text>
+                <View
+                  style={[
+                    styles.pickerContainer,
+                    {
+                      backgroundColor: theme.inputBackground,
+                      borderColor: theme.borderColor,
+                    },
+                  ]}
+                >
+                  <Picker
+                    selectedValue={formData.isCompleted}
+                    onValueChange={value =>
+                      handleInputChange('isCompleted', value)
+                    }
+                    style={[styles.picker, { color: theme.textColor }]}
+                    dropdownIconColor={theme.textColor}
+                  >
+                    {completionStatuses.map(status => (
+                      <Picker.Item
+                        key={status.value}
+                        label={status.label}
+                        value={status.value}
+                      />
+                    ))}
+                  </Picker>
+                </View>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: theme.textColor }]}>
+                  Description
+                </Text>
+                <TextInput
+                  style={[
+                    styles.textArea,
+                    {
+                      backgroundColor: theme.inputBackground,
+                      color: theme.textColor,
+                      borderColor: theme.borderColor,
+                    },
+                  ]}
+                  value={formData.description}
+                  onChangeText={value =>
+                    handleInputChange('description', value)
+                  }
+                  placeholder="Enter book description"
+                  placeholderTextColor={theme.placeholderColor}
+                  multiline={true}
+                  numberOfLines={4}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: theme.textColor }]}>
+                  Tags
+                </Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: theme.inputBackground,
+                      color: theme.textColor,
+                      borderColor: theme.borderColor,
+                    },
+                  ]}
+                  value={formData.tags}
+                  onChangeText={value => handleInputChange('tags', value)}
+                  placeholder="Enter tags separated by commas"
+                  placeholderTextColor={theme.placeholderColor}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: theme.textColor }]}>
+                  Warnings
+                </Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: theme.inputBackground,
+                      color: theme.textColor,
+                      borderColor: theme.borderColor,
+                    },
+                  ]}
+                  value={formData.warnings}
+                  onChangeText={value => handleInputChange('warnings', value)}
+                  placeholder="Enter warnings separated by commas"
+                  placeholderTextColor={theme.placeholderColor}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: theme.textColor }]}>
+                  Language
+                </Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: theme.inputBackground,
+                      color: theme.textColor,
+                      borderColor: theme.borderColor,
+                    },
+                  ]}
+                  value={formData.language}
+                  onChangeText={value => handleInputChange('language', value)}
+                  placeholder="Enter language"
+                  placeholderTextColor={theme.placeholderColor}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: theme.textColor }]}>
+                  Image URL
+                </Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: theme.inputBackground,
+                      color: theme.textColor,
+                      borderColor: theme.borderColor,
+                    },
+                  ]}
+                  value={formData.image}
+                  onChangeText={value => handleInputChange('image', value)}
+                  placeholder="Enter image URL (optional)"
+                  placeholderTextColor={theme.placeholderColor}
+                />
+              </View>
+            </ScrollView>
+
+            <View style={styles.footer}>
+              <TouchableOpacity
+                style={[
+                  styles.cancelButton,
+                  { borderColor: theme.borderColor },
+                ]}
+                onPress={onClose}
+              >
+                <Text
+                  style={[styles.cancelButtonText, { color: theme.textColor }]}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.addButton,
+                  { backgroundColor: theme.primaryColor },
+                ]}
+                onPress={handleSubmit}
+              >
+                <Text style={styles.addButtonText}>Add Work</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </SafeAreaView>
-      </Modal>
+        </View>
+      </SafeAreaView>
+    </Modal>
   );
 };
 

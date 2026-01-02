@@ -10,9 +10,9 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-export default function AboutScreen({setScreens, currentTheme}) {
+export default function AboutScreen({ setScreens, currentTheme }) {
   function onBack() {
-    setScreens((prev) => {
+    setScreens(prev => {
       const newScreens = [...prev];
       newScreens.pop();
       return newScreens;
@@ -25,23 +25,34 @@ export default function AboutScreen({setScreens, currentTheme}) {
         <TouchableOpacity onPress={onBack}>
           <Icon name="arrow-back" size={24} color={currentTheme.textColor} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: currentTheme.textColor }]}>About CO3</Text>
+        <Text style={[styles.title, { color: currentTheme.textColor }]}>
+          About CO3
+        </Text>
       </View>
       <ScrollView>
         <View style={styles.mainContent}>
-          <Image style={styles.image} source={require("../../res/CO3.png")} />
-          <View style={[styles.separator, {backgroundColor: currentTheme.borderColor}]} />
+          <Image style={styles.image} source={require('../../res/CO3.png')} />
+          <View
+            style={[
+              styles.separator,
+              { backgroundColor: currentTheme.borderColor },
+            ]}
+          />
           <Text style={[styles.title, { color: currentTheme.textColor }]}>
             Client Of Our Own
           </Text>
-          <Text style={[{ paddingTop: 20, color: currentTheme.textColor }]}>The Open Source AO3 Mobile Reader</Text>
-        </View>
-        <View style={[{margin: 16}]}>
-          <Text style={[{ color: currentTheme.textColor }]}>
-            CO3 is an open source project which aims at making reading on AO3 with a mobile device a lot easier.
+          <Text style={[{ paddingTop: 20, color: currentTheme.textColor }]}>
+            The Open Source AO3 Mobile Reader
           </Text>
-          <Text style={[{paddingTop: 5, color: currentTheme.textColor }]}>
-            It follows the GPL V2 licence, and will be free of ads, of subscription and of any paid features, forever.
+        </View>
+        <View style={[{ margin: 16 }]}>
+          <Text style={[{ color: currentTheme.textColor }]}>
+            CO3 is an open source project which aims at making reading on AO3
+            with a mobile device a lot easier.
+          </Text>
+          <Text style={[{ paddingTop: 5, color: currentTheme.textColor }]}>
+            It follows the GPL V2 licence, and will be free of ads, of
+            subscription and of any paid features, forever.
           </Text>
           <LinkButton
             url="https://github.com/tbvns/CO3/releases"
@@ -66,7 +77,7 @@ export default function AboutScreen({setScreens, currentTheme}) {
         </View>
       </ScrollView>
     </SafeAreaView>
-  )
+  );
 }
 
 function LinkButton({ url, label, theme }) {

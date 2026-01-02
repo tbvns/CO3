@@ -1,28 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Switch,
   SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { WebView } from 'react-native-webview';
 import Slider from '@react-native-community/slider';
-import { getJsonSettings, saveJsonSettings, UPDATE_INTERVALS, UPDATE_RESTRICTIONS } from '../../storage/jsonSettings';
+import {
+  getJsonSettings,
+  saveJsonSettings,
+  UPDATE_INTERVALS,
+  UPDATE_RESTRICTIONS,
+} from '../../storage/jsonSettings';
 import { themes } from '../../utils/themes';
 import CustomDropdown from '../../components/common/CustomDropdown';
 
 const PreferencesScreen = ({
-                             currentTheme,
-                             settingsDAO,
-                             setScreens,
-                             setTheme,
-                             viewMode,
-                             setViewMode,
-                           }) => {
+  currentTheme,
+  settingsDAO,
+  setScreens,
+  setTheme,
+  viewMode,
+  setViewMode,
+}) => {
   // DB Settings State
   const [fontSize, setFontSize] = useState(1.0);
   const [useCustomSize, setUseCustomSize] = useState(false);
@@ -70,7 +75,7 @@ const PreferencesScreen = ({
     }
   };
 
-  const saveDbSettings = async (newSettings) => {
+  const saveDbSettings = async newSettings => {
     try {
       const settings = await settingsDAO.getSettings();
       const updatedSettings = { ...settings, ...newSettings };
@@ -80,7 +85,7 @@ const PreferencesScreen = ({
     }
   };
 
-  const saveJsonSettingsData = async (newSettings) => {
+  const saveJsonSettingsData = async newSettings => {
     try {
       // Fetch fresh settings to prevent overwriting other fields
       const currentSettings = await getJsonSettings();
@@ -93,7 +98,7 @@ const PreferencesScreen = ({
 
   // --- Handlers ---
 
-  const handleFontSizeChange = (value) => {
+  const handleFontSizeChange = value => {
     const clampedValue = Math.min(Math.max(value, 0.5), 3);
     setFontSize(clampedValue);
     saveDbSettings({ fontSize: clampedValue });
@@ -105,13 +110,13 @@ const PreferencesScreen = ({
     saveDbSettings({ useCustomSize: newValue });
   };
 
-  const handleThemeChange = (newTheme) => {
+  const handleThemeChange = newTheme => {
     setLocalTheme(newTheme);
     saveDbSettings({ theme: newTheme });
     if (setTheme) setTheme(newTheme);
   };
 
-  const handleViewModeChange = (newMode) => {
+  const handleViewModeChange = newMode => {
     setLocalViewMode(newMode);
     saveDbSettings({ viewMode: newMode });
     if (setViewMode) setViewMode(newMode);
@@ -129,12 +134,12 @@ const PreferencesScreen = ({
     saveJsonSettingsData({ compactNotifications: newValue });
   };
 
-  const handleUpdateTimeChange = (value) => {
+  const handleUpdateTimeChange = value => {
     setUpdateTime(value);
     saveJsonSettingsData({ time: value });
   };
 
-  const handleUpdateRestrictionChange = (value) => {
+  const handleUpdateRestrictionChange = value => {
     setUpdateRestriction(value);
     // Logic requires wrapping restriction in an array
     saveJsonSettingsData({ updateRestriction: [value] });
@@ -179,15 +184,19 @@ const PreferencesScreen = ({
   const ThemeButton = ({ themeKey, label, isActive, onPress }) => {
     const buttonStyle = [
       styles.themeButton,
-      { backgroundColor: isActive ? activeTheme.primaryColor : 'transparent' }
+      { backgroundColor: isActive ? activeTheme.primaryColor : 'transparent' },
     ];
     const textStyle = [
       styles.themeButtonText,
-      { color: isActive ? '#ffffff' : activeTheme.textColor }
+      { color: isActive ? '#ffffff' : activeTheme.textColor },
     ];
 
     return (
-      <TouchableOpacity style={buttonStyle} onPress={onPress} activeOpacity={0.7}>
+      <TouchableOpacity
+        style={buttonStyle}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
         <Text style={textStyle}>{label}</Text>
       </TouchableOpacity>
     );
@@ -196,15 +205,19 @@ const PreferencesScreen = ({
   const ViewModeButton = ({ mode, label, isActive, onPress }) => {
     const buttonStyle = [
       styles.viewModeButton,
-      { backgroundColor: isActive ? activeTheme.primaryColor : 'transparent' }
+      { backgroundColor: isActive ? activeTheme.primaryColor : 'transparent' },
     ];
     const textStyle = [
       styles.viewModeButtonText,
-      { color: isActive ? '#ffffff' : activeTheme.textColor }
+      { color: isActive ? '#ffffff' : activeTheme.textColor },
     ];
 
     return (
-      <TouchableOpacity style={buttonStyle} onPress={onPress} activeOpacity={0.7}>
+      <TouchableOpacity
+        style={buttonStyle}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
         <Text style={textStyle}>{label}</Text>
       </TouchableOpacity>
     );
@@ -219,25 +232,55 @@ const PreferencesScreen = ({
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: activeTheme.backgroundColor }]}>
-      <View style={[styles.header, { borderBottomColor: activeTheme.borderColor, backgroundColor: activeTheme.headerBackground }]}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: activeTheme.backgroundColor },
+      ]}
+    >
+      <View
+        style={[
+          styles.header,
+          {
+            borderBottomColor: activeTheme.borderColor,
+            backgroundColor: activeTheme.headerBackground,
+          },
+        ]}
+      >
         <TouchableOpacity onPress={onBack}>
           <Icon name="arrow-back" size={24} color={activeTheme.iconColor} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: activeTheme.textColor }]}>Settings</Text>
+        <Text style={[styles.title, { color: activeTheme.textColor }]}>
+          Settings
+        </Text>
       </View>
 
       <ScrollView style={styles.content}>
         {/* READER SETTINGS */}
-        <View style={[styles.section, { borderBottomColor: activeTheme.borderColor }]}>
+        <View
+          style={[
+            styles.section,
+            { borderBottomColor: activeTheme.borderColor },
+          ]}
+        >
           <View style={styles.sectionHeader}>
             <Icon name="menu-book" size={20} color={activeTheme.iconColor} />
-            <Text style={[styles.sectionTitle, { color: activeTheme.textColor }]}>
+            <Text
+              style={[styles.sectionTitle, { color: activeTheme.textColor }]}
+            >
               Reader
             </Text>
           </View>
 
-          <View style={[styles.previewContainer, { backgroundColor: activeTheme.cardBackground, borderColor: activeTheme.borderColor }]}>
+          <View
+            style={[
+              styles.previewContainer,
+              {
+                backgroundColor: activeTheme.cardBackground,
+                borderColor: activeTheme.borderColor,
+              },
+            ]}
+          >
             <WebView
               originWhitelist={['*']}
               source={{ html: sampleHtml }}
@@ -248,23 +291,42 @@ const PreferencesScreen = ({
             />
           </View>
 
-          <View style={[styles.settingItem, { borderBottomColor: activeTheme.borderColor }]}>
+          <View
+            style={[
+              styles.settingItem,
+              { borderBottomColor: activeTheme.borderColor },
+            ]}
+          >
             <View style={styles.switchContainer}>
-              <Text style={[styles.settingText, { color: activeTheme.textColor }]}>
+              <Text
+                style={[styles.settingText, { color: activeTheme.textColor }]}
+              >
                 Use Custom Size
               </Text>
               <Switch
                 value={useCustomSize}
                 onValueChange={toggleCustomSize}
-                thumbColor={useCustomSize ? activeTheme.primaryColor : '#f4f3f4'}
-                trackColor={{ false: '#767577', true: `${activeTheme.primaryColor}40` }}
+                thumbColor={
+                  useCustomSize ? activeTheme.primaryColor : '#f4f3f4'
+                }
+                trackColor={{
+                  false: '#767577',
+                  true: `${activeTheme.primaryColor}40`,
+                }}
               />
             </View>
           </View>
 
           {useCustomSize && (
-            <View style={[styles.settingItem, { borderBottomColor: activeTheme.borderColor }]}>
-              <Text style={[styles.settingText, { color: activeTheme.textColor }]}>
+            <View
+              style={[
+                styles.settingItem,
+                { borderBottomColor: activeTheme.borderColor },
+              ]}
+            >
+              <Text
+                style={[styles.settingText, { color: activeTheme.textColor }]}
+              >
                 Font Size: {fontSize.toFixed(1)}
               </Text>
               <View style={styles.sliderContainer}>
@@ -279,7 +341,9 @@ const PreferencesScreen = ({
                   maximumTrackTintColor={activeTheme.borderColor}
                   thumbStyle={{ backgroundColor: activeTheme.primaryColor }}
                 />
-                <Text style={[styles.sizeInput, { color: activeTheme.textColor }]}>
+                <Text
+                  style={[styles.sizeInput, { color: activeTheme.textColor }]}
+                >
                   {fontSize.toFixed(1)}
                 </Text>
               </View>
@@ -288,33 +352,54 @@ const PreferencesScreen = ({
 
           <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
             <View style={styles.switchContainer}>
-              <Text style={[styles.settingText, { color: activeTheme.textColor }]}>
+              <Text
+                style={[styles.settingText, { color: activeTheme.textColor }]}
+              >
                 Show Chapter Date
               </Text>
               <Switch
                 value={showChapterDate}
                 onValueChange={handleShowChapterDate}
-                thumbColor={showChapterDate ? activeTheme.primaryColor : '#f4f3f4'}
-                trackColor={{ false: '#767577', true: `${activeTheme.primaryColor}40` }}
+                thumbColor={
+                  showChapterDate ? activeTheme.primaryColor : '#f4f3f4'
+                }
+                trackColor={{
+                  false: '#767577',
+                  true: `${activeTheme.primaryColor}40`,
+                }}
               />
             </View>
           </View>
         </View>
 
         {/* APPEARANCE SETTINGS */}
-        <View style={[styles.section, { borderBottomColor: activeTheme.borderColor }]}>
+        <View
+          style={[
+            styles.section,
+            { borderBottomColor: activeTheme.borderColor },
+          ]}
+        >
           <View style={styles.sectionHeader}>
             <Icon name="palette" size={20} color={activeTheme.iconColor} />
-            <Text style={[styles.sectionTitle, { color: activeTheme.textColor }]}>
+            <Text
+              style={[styles.sectionTitle, { color: activeTheme.textColor }]}
+            >
               Appearance
             </Text>
           </View>
 
           <View style={styles.settingItem}>
-            <Text style={[styles.settingText, { color: activeTheme.textColor }]}>
+            <Text
+              style={[styles.settingText, { color: activeTheme.textColor }]}
+            >
               Theme
             </Text>
-            <View style={[styles.themeContainer, { backgroundColor: activeTheme.inputBackground }]}>
+            <View
+              style={[
+                styles.themeContainer,
+                { backgroundColor: activeTheme.inputBackground },
+              ]}
+            >
               <ThemeButton
                 themeKey="light"
                 label="Light"
@@ -337,10 +422,17 @@ const PreferencesScreen = ({
           </View>
 
           <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
-            <Text style={[styles.settingText, { color: activeTheme.textColor }]}>
+            <Text
+              style={[styles.settingText, { color: activeTheme.textColor }]}
+            >
               View Mode
             </Text>
-            <View style={[styles.viewModeContainer, { backgroundColor: activeTheme.inputBackground }]}>
+            <View
+              style={[
+                styles.viewModeContainer,
+                { backgroundColor: activeTheme.inputBackground },
+              ]}
+            >
               <ViewModeButton
                 mode="full"
                 label="Full"
@@ -367,27 +459,48 @@ const PreferencesScreen = ({
         <View style={[styles.section, { borderBottomWidth: 0 }]}>
           <View style={styles.sectionHeader}>
             <Icon name="update" size={20} color={activeTheme.iconColor} />
-            <Text style={[styles.sectionTitle, { color: activeTheme.textColor }]}>
+            <Text
+              style={[styles.sectionTitle, { color: activeTheme.textColor }]}
+            >
               Updates
             </Text>
           </View>
 
-          <View style={[styles.settingItem, { borderBottomColor: activeTheme.borderColor }]}>
+          <View
+            style={[
+              styles.settingItem,
+              { borderBottomColor: activeTheme.borderColor },
+            ]}
+          >
             <View style={styles.switchContainer}>
-              <Text style={[styles.settingText, { color: activeTheme.textColor }]}>
+              <Text
+                style={[styles.settingText, { color: activeTheme.textColor }]}
+              >
                 Compact Notifications
               </Text>
               <Switch
                 value={compactNotifications}
                 onValueChange={handleCompactNotifications}
-                thumbColor={compactNotifications ? activeTheme.primaryColor : '#f4f3f4'}
-                trackColor={{ false: '#767577', true: `${activeTheme.primaryColor}40` }}
+                thumbColor={
+                  compactNotifications ? activeTheme.primaryColor : '#f4f3f4'
+                }
+                trackColor={{
+                  false: '#767577',
+                  true: `${activeTheme.primaryColor}40`,
+                }}
               />
             </View>
           </View>
 
-          <View style={[styles.settingItem, { borderBottomColor: activeTheme.borderColor }]}>
-            <Text style={[styles.settingText, { color: activeTheme.textColor }]}>
+          <View
+            style={[
+              styles.settingItem,
+              { borderBottomColor: activeTheme.borderColor },
+            ]}
+          >
+            <Text
+              style={[styles.settingText, { color: activeTheme.textColor }]}
+            >
               Check Frequency
             </Text>
             <CustomDropdown
@@ -396,7 +509,7 @@ const PreferencesScreen = ({
               theme={activeTheme}
               style={{ marginTop: 8 }}
             >
-              {Object.values(UPDATE_INTERVALS).map((interval) => (
+              {Object.values(UPDATE_INTERVALS).map(interval => (
                 <CustomDropdown.Item
                   key={interval.value}
                   label={interval.label}
@@ -407,7 +520,9 @@ const PreferencesScreen = ({
           </View>
 
           <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
-            <Text style={[styles.settingText, { color: activeTheme.textColor }]}>
+            <Text
+              style={[styles.settingText, { color: activeTheme.textColor }]}
+            >
               Network Restriction
             </Text>
             <CustomDropdown
@@ -416,7 +531,7 @@ const PreferencesScreen = ({
               theme={activeTheme}
               style={{ marginTop: 8 }}
             >
-              {Object.values(UPDATE_RESTRICTIONS).map((restriction) => (
+              {Object.values(UPDATE_RESTRICTIONS).map(restriction => (
                 <CustomDropdown.Item
                   key={restriction.value}
                   label={restriction.label}

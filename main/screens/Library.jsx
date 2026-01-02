@@ -1,25 +1,54 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
-  RefreshControl,
-  Alert,
-  Modal,
   FlatList,
+  Modal,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import BookCard from '../components/Library/BookCard';
 import CategorySelectionModal from '../components/WorkScreen/CategorySelectionModal.jsx';
 
 const SortIcon = ({ color, size }) => (
-  <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-    <View style={{ width: size * 0.8, height: size * 0.1, backgroundColor: color, borderRadius: size * 0.05, marginBottom: size * 0.15 }} />
-    <View style={{ width: size * 0.6, height: size * 0.1, backgroundColor: color, borderRadius: size * 0.05, marginBottom: size * 0.15 }} />
-    <View style={{ width: size * 0.4, height: size * 0.1, backgroundColor: color, borderRadius: size * 0.05 }} />
+  <View
+    style={{
+      width: size,
+      height: size,
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}
+  >
+    <View
+      style={{
+        width: size * 0.8,
+        height: size * 0.1,
+        backgroundColor: color,
+        borderRadius: size * 0.05,
+        marginBottom: size * 0.15,
+      }}
+    />
+    <View
+      style={{
+        width: size * 0.6,
+        height: size * 0.1,
+        backgroundColor: color,
+        borderRadius: size * 0.05,
+        marginBottom: size * 0.15,
+      }}
+    />
+    <View
+      style={{
+        width: size * 0.4,
+        height: size * 0.1,
+        backgroundColor: color,
+        borderRadius: size * 0.05,
+      }}
+    />
   </View>
 );
 

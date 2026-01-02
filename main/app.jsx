@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
   Alert,
   BackHandler,
   PermissionsAndroid,
   Platform,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -22,7 +22,6 @@ import { HistoryDAO } from './storage/dao/HistoryDAO';
 import { WorkDAO } from './storage/dao/WorkDAO';
 import { SettingsDAO } from './storage/dao/SettingsDAO';
 
-
 import { themes } from './utils/themes';
 import { STORAGE_KEYS } from './utils/constants';
 
@@ -32,7 +31,6 @@ import BrowseScreen from './screens/Browse';
 import HistoryScreen from './screens/History';
 import MoreScreen from './screens/More';
 import ChapterInfoScreen from './screens/workScreen'; // <--- IMPORT ADDED
-
 import { LibraryDAO } from './storage/dao/LibraryDAO';
 import { ProgressDAO } from './storage/dao/ProgressDAO';
 import { KudoHistoryDAO } from './storage/dao/KudosHistoryDAO';
@@ -46,7 +44,6 @@ import { setup, setupNotificationListeners } from './web/updater';
 import { getJsonSettings } from './storage/jsonSettings';
 import { UpdateDAO } from './storage/dao/UpdateDAO';
 import notifee from '@notifee/react-native';
-
 
 const AppWrapper = () => {
   return (

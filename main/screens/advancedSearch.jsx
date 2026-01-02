@@ -1,16 +1,15 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
   ActivityIndicator,
   SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import CustomDropdown from "../components/common/CustomDropdown";
+import CustomDropdown from '../components/common/CustomDropdown';
 
 const AO3_BASE_URL = 'https://archiveofourown.org/autocomplete';
 

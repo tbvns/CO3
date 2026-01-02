@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
   ActivityIndicator,
-  TouchableOpacity,
-  Modal,
   Alert,
-  RefreshControl,
   FlatList,
+  Modal,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { fetchFilteredWorks } from '../web/browse/fetchWorks';
 import BookCard from '../components/Library/BookCard';
@@ -16,10 +16,40 @@ import AdvancedSearchScreen from './advancedSearch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const FilterIcon = ({ color, size }) => (
-  <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-    <View style={{ width: size, height: size * 0.15, backgroundColor: color, borderRadius: size * 0.05, marginBottom: size * 0.1 }} />
-    <View style={{ width: size * 0.66, height: size * 0.15, backgroundColor: color, borderRadius: size * 0.05, marginBottom: size * 0.1 }} />
-    <View style={{ width: size * 0.33, height: size * 0.15, backgroundColor: color, borderRadius: size * 0.05 }} />
+  <View
+    style={{
+      width: size,
+      height: size,
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}
+  >
+    <View
+      style={{
+        width: size,
+        height: size * 0.15,
+        backgroundColor: color,
+        borderRadius: size * 0.05,
+        marginBottom: size * 0.1,
+      }}
+    />
+    <View
+      style={{
+        width: size * 0.66,
+        height: size * 0.15,
+        backgroundColor: color,
+        borderRadius: size * 0.05,
+        marginBottom: size * 0.1,
+      }}
+    />
+    <View
+      style={{
+        width: size * 0.33,
+        height: size * 0.15,
+        backgroundColor: color,
+        borderRadius: size * 0.05,
+      }}
+    />
   </View>
 );
 

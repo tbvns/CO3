@@ -1,56 +1,68 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const HistoryHeader = ({
-                           currentTheme,
-                           totalCount,
-                           isFilterActive,
-                           hasHistory,
-                           onClearHistory,
-                           onClearFilter,
-                           isKudosHistory = false,
-                       }) => {
-    return (
-        <View style={styles.header}>
-            <View>
-              {isKudosHistory ? null :
-                <Text style={[styles.title, { color: currentTheme.textColor }]}>
-                  Reading History
-                </Text>
-              }
-                <Text style={[styles.subtitle, { color: currentTheme.placeholderColor }]}>
-                    {isFilterActive
-                        ? `${totalCount} entries in selected date range`
-                        : `${totalCount} total entries`
-                    }
-                </Text>
-            </View>
+  currentTheme,
+  totalCount,
+  isFilterActive,
+  hasHistory,
+  onClearHistory,
+  onClearFilter,
+  isKudosHistory = false,
+}) => {
+  return (
+    <View style={styles.header}>
+      <View>
+        {isKudosHistory ? null : (
+          <Text style={[styles.title, { color: currentTheme.textColor }]}>
+            Reading History
+          </Text>
+        )}
+        <Text
+          style={[styles.subtitle, { color: currentTheme.placeholderColor }]}
+        >
+          {isFilterActive
+            ? `${totalCount} entries in selected date range`
+            : `${totalCount} total entries`}
+        </Text>
+      </View>
 
-            <View style={styles.headerButtons}>
-                {isFilterActive && (
-                    <TouchableOpacity
-                        style={[styles.clearFilterButton, { backgroundColor: currentTheme.primaryColor }]}
-                        onPress={onClearFilter}
-                    >
-                        <Text style={[styles.clearFilterText, { color: 'white' }]}>
-                            Clear Filter
-                        </Text>
-                    </TouchableOpacity>
-                )}
+      <View style={styles.headerButtons}>
+        {isFilterActive && (
+          <TouchableOpacity
+            style={[
+              styles.clearFilterButton,
+              { backgroundColor: currentTheme.primaryColor },
+            ]}
+            onPress={onClearFilter}
+          >
+            <Text style={[styles.clearFilterText, { color: 'white' }]}>
+              Clear Filter
+            </Text>
+          </TouchableOpacity>
+        )}
 
-                {hasHistory && (
-                    <TouchableOpacity
-                        style={[styles.clearButton, { borderColor: currentTheme.primaryColor }]}
-                        onPress={onClearHistory}
-                    >
-                        <Text style={[styles.clearButtonText, { color: currentTheme.primaryColor }]}>
-                            Clear
-                        </Text>
-                    </TouchableOpacity>
-                )}
-            </View>
-        </View>
-    );
+        {hasHistory && (
+          <TouchableOpacity
+            style={[
+              styles.clearButton,
+              { borderColor: currentTheme.primaryColor },
+            ]}
+            onPress={onClearHistory}
+          >
+            <Text
+              style={[
+                styles.clearButtonText,
+                { color: currentTheme.primaryColor },
+              ]}
+            >
+              Clear
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({

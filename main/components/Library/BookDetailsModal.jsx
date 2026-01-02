@@ -1,22 +1,31 @@
 import React from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
   Modal,
-  TouchableOpacity,
-  ScrollView,
-  SafeAreaView,
   Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const BookDetailsModal = ({ book, isOpen, onClose, mode, theme, onShowAllTags, openTagSearch,  }) => {
+const BookDetailsModal = ({
+  book,
+  isOpen,
+  onClose,
+  mode,
+  theme,
+  onShowAllTags,
+  openTagSearch,
+}) => {
   if (!book) return null;
 
   const MAX_TAGS_IN_SUMMARY_MODAL = 5;
 
-  const showTagsSection = mode === 'summary' || mode === 'full' || mode === 'allTags';
+  const showTagsSection =
+    mode === 'summary' || mode === 'full' || mode === 'allTags';
   const showWarningsSection = mode === 'summary' || mode === 'full';
   const showDescriptionSection = mode === 'summary' || mode === 'full';
   const showMetadataSection = mode === 'full';
@@ -36,18 +45,23 @@ const BookDetailsModal = ({ book, isOpen, onClose, mode, theme, onShowAllTags, o
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.overlay}>
-        <Pressable
-          style={styles.backdrop}
-          onPress={onClose}
-        />
+        <Pressable style={styles.backdrop} onPress={onClose} />
 
         <View style={styles.modalContainerWrapper} pointerEvents="box-none">
           <View style={styles.modalContainer}>
             <View
               style={[styles.modal, { backgroundColor: theme.cardBackground }]}
             >
-              <View style={[styles.header, { borderBottomColor: theme.borderColor }]}>
-                <Text style={[styles.title, { color: theme.textColor }]} numberOfLines={2}>
+              <View
+                style={[
+                  styles.header,
+                  { borderBottomColor: theme.borderColor },
+                ]}
+              >
+                <Text
+                  style={[styles.title, { color: theme.textColor }]}
+                  numberOfLines={2}
+                >
                   {modalTitle}
                 </Text>
                 <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -63,41 +77,74 @@ const BookDetailsModal = ({ book, isOpen, onClose, mode, theme, onShowAllTags, o
                 {showTagsSection && (
                   <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                      <Icon name="local-offer" size={18} color={theme.primaryColor} />
-                      <Text style={[styles.sectionTitle, { color: theme.textColor }]}>
+                      <Icon
+                        name="local-offer"
+                        size={18}
+                        color={theme.primaryColor}
+                      />
+                      <Text
+                        style={[
+                          styles.sectionTitle,
+                          { color: theme.textColor },
+                        ]}
+                      >
                         Tags:
                       </Text>
                     </View>
                     {book.tags && book.tags.length > 0 ? (
                       <View style={styles.tagsContainer}>
-                        {((mode === 'summary' || mode === 'full') && book.tags.length > MAX_TAGS_IN_SUMMARY_MODAL
-                            ? book.tags.slice(0, MAX_TAGS_IN_SUMMARY_MODAL)
-                            : book.tags
+                        {((mode === 'summary' || mode === 'full') &&
+                        book.tags.length > MAX_TAGS_IN_SUMMARY_MODAL
+                          ? book.tags.slice(0, MAX_TAGS_IN_SUMMARY_MODAL)
+                          : book.tags
                         ).map((tag, index) => (
                           <TouchableOpacity
                             key={index}
-                            style={[styles.tag, { backgroundColor: theme.tagBackground }]}
+                            style={[
+                              styles.tag,
+                              { backgroundColor: theme.tagBackground },
+                            ]}
                             onPress={() => openTagSearch(tag)}
                             activeOpacity={0.7}
                           >
-                            <Text style={[styles.tagText, { color: theme.tagTextColor }]}>
+                            <Text
+                              style={[
+                                styles.tagText,
+                                { color: theme.tagTextColor },
+                              ]}
+                            >
                               {tag}
                             </Text>
                           </TouchableOpacity>
                         ))}
-                        {((mode === 'summary' || mode === 'full') && book.tags.length > MAX_TAGS_IN_SUMMARY_MODAL && onShowAllTags) && (
-                          <TouchableOpacity
-                            style={[styles.seeAllButton, { borderColor: theme.primaryColor }]}
-                            onPress={onShowAllTags}
-                          >
-                            <Text style={[styles.seeAllText, { color: theme.primaryColor }]}>
-                              See all tags ({book.tags.length})
-                            </Text>
-                          </TouchableOpacity>
-                        )}
+                        {(mode === 'summary' || mode === 'full') &&
+                          book.tags.length > MAX_TAGS_IN_SUMMARY_MODAL &&
+                          onShowAllTags && (
+                            <TouchableOpacity
+                              style={[
+                                styles.seeAllButton,
+                                { borderColor: theme.primaryColor },
+                              ]}
+                              onPress={onShowAllTags}
+                            >
+                              <Text
+                                style={[
+                                  styles.seeAllText,
+                                  { color: theme.primaryColor },
+                                ]}
+                              >
+                                See all tags ({book.tags.length})
+                              </Text>
+                            </TouchableOpacity>
+                          )}
                       </View>
                     ) : (
-                      <Text style={[styles.noDataText, { color: theme.secondaryTextColor }]}>
+                      <Text
+                        style={[
+                          styles.noDataText,
+                          { color: theme.secondaryTextColor },
+                        ]}
+                      >
                         No tags available.
                       </Text>
                     )}
@@ -108,7 +155,12 @@ const BookDetailsModal = ({ book, isOpen, onClose, mode, theme, onShowAllTags, o
                   <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                       <Icon name="warning" size={18} color="#ef4444" />
-                      <Text style={[styles.sectionTitle, { color: theme.textColor }]}>
+                      <Text
+                        style={[
+                          styles.sectionTitle,
+                          { color: theme.textColor },
+                        ]}
+                      >
                         Warnings:
                       </Text>
                     </View>
@@ -120,8 +172,19 @@ const BookDetailsModal = ({ book, isOpen, onClose, mode, theme, onShowAllTags, o
                       >
                         <View style={styles.warningsContainer}>
                           {book.warnings.map((warning, index) => (
-                            <View key={index} style={[styles.warning, { backgroundColor: theme.warningBackground }]}>
-                              <Text style={[styles.warningText, { color: theme.warningTextColor }]}>
+                            <View
+                              key={index}
+                              style={[
+                                styles.warning,
+                                { backgroundColor: theme.warningBackground },
+                              ]}
+                            >
+                              <Text
+                                style={[
+                                  styles.warningText,
+                                  { color: theme.warningTextColor },
+                                ]}
+                              >
                                 {warning}
                               </Text>
                             </View>
@@ -129,7 +192,12 @@ const BookDetailsModal = ({ book, isOpen, onClose, mode, theme, onShowAllTags, o
                         </View>
                       </ScrollView>
                     ) : (
-                      <Text style={[styles.noDataText, { color: theme.secondaryTextColor }]}>
+                      <Text
+                        style={[
+                          styles.noDataText,
+                          { color: theme.secondaryTextColor },
+                        ]}
+                      >
                         No specific warnings for this book.
                       </Text>
                     )}
@@ -139,12 +207,23 @@ const BookDetailsModal = ({ book, isOpen, onClose, mode, theme, onShowAllTags, o
                 {showDescriptionSection && (
                   <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                      <Icon name="description" size={18} color={theme.iconColor} />
-                      <Text style={[styles.sectionTitle, { color: theme.textColor }]}>
+                      <Icon
+                        name="description"
+                        size={18}
+                        color={theme.iconColor}
+                      />
+                      <Text
+                        style={[
+                          styles.sectionTitle,
+                          { color: theme.textColor },
+                        ]}
+                      >
                         Description:
                       </Text>
                     </View>
-                    <Text style={[styles.description, { color: theme.textColor }]}>
+                    <Text
+                      style={[styles.description, { color: theme.textColor }]}
+                    >
                       {book.description}
                     </Text>
                   </View>
@@ -154,38 +233,72 @@ const BookDetailsModal = ({ book, isOpen, onClose, mode, theme, onShowAllTags, o
                   <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                       <Icon name="info" size={18} color={theme.iconColor} />
-                      <Text style={[styles.sectionTitle, { color: theme.textColor }]}>
+                      <Text
+                        style={[
+                          styles.sectionTitle,
+                          { color: theme.textColor },
+                        ]}
+                      >
                         Details:
                       </Text>
                     </View>
                     <View style={styles.metadataContainer}>
                       <View style={styles.metadataRow}>
-                        <Icon name="schedule" size={14} color={theme.iconColor} />
-                        <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                        <Icon
+                          name="schedule"
+                          size={14}
+                          color={theme.iconColor}
+                        />
+                        <Text
+                          style={[
+                            styles.metadataText,
+                            { color: theme.secondaryTextColor },
+                          ]}
+                        >
                           Updated: {book.lastUpdated}
                         </Text>
                       </View>
                       <View style={styles.metadataRow}>
                         <Icon name="favorite" size={14} color="#ef4444" />
-                        <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                        <Text
+                          style={[
+                            styles.metadataText,
+                            { color: theme.secondaryTextColor },
+                          ]}
+                        >
                           {book.likes?.toLocaleString() || 0} Likes
                         </Text>
                       </View>
                       <View style={styles.metadataRow}>
                         <Icon name="bookmark" size={14} color="#eab308" />
-                        <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                        <Text
+                          style={[
+                            styles.metadataText,
+                            { color: theme.secondaryTextColor },
+                          ]}
+                        >
                           {book.bookmarks?.toLocaleString() || 0} Bookmarks
                         </Text>
                       </View>
                       <View style={styles.metadataRow}>
                         <Icon name="visibility" size={14} color="#8b5cf6" />
-                        <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                        <Text
+                          style={[
+                            styles.metadataText,
+                            { color: theme.secondaryTextColor },
+                          ]}
+                        >
                           {book.views?.toLocaleString() || 0} Views
                         </Text>
                       </View>
                       <View style={styles.metadataRow}>
                         <Icon name="language" size={14} color="#22c55e" />
-                        <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                        <Text
+                          style={[
+                            styles.metadataText,
+                            { color: theme.secondaryTextColor },
+                          ]}
+                        >
                           {book.language || 'English'}
                         </Text>
                       </View>

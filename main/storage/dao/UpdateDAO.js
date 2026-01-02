@@ -20,13 +20,13 @@ export class UpdateDAO {
     await this.db.executeSql(
       `INSERT INTO updates (workId, chapterNumber, chapterID, date)
        VALUES (?, ?, ?, ?)`,
-      [workId, chapterNumber, chapterID, date || Date.now()]
+      [workId, chapterNumber, chapterID, date || Date.now()],
     );
   }
   async getLatestForWork(workId) {
     const [results] = await this.db.executeSql(
       'SELECT * FROM updates WHERE workId = ? ORDER BY date DESC LIMIT 1',
-      [workId]
+      [workId],
     );
 
     if (results.rows.length === 0) return null;
@@ -36,38 +36,41 @@ export class UpdateDAO {
   async getAllForWork(workId) {
     const [results] = await this.db.executeSql(
       'SELECT * FROM updates WHERE workId = ? ORDER BY date DESC',
-      [workId]
+      [workId],
     );
 
-    return Array.from({ length: results.rows.length }, (_, i) =>
-      new Update(results.rows.item(i))
+    return Array.from(
+      { length: results.rows.length },
+      (_, i) => new Update(results.rows.item(i)),
     );
   }
 
   async getAll() {
     const [results] = await this.db.executeSql(
-      'SELECT * FROM updates ORDER BY date DESC'
+      'SELECT * FROM updates ORDER BY date DESC',
     );
 
-    return Array.from({ length: results.rows.length }, (_, i) =>
-      new Update(results.rows.item(i))
+    return Array.from(
+      { length: results.rows.length },
+      (_, i) => new Update(results.rows.item(i)),
     );
   }
 
   async getPaginatedUpdates(limit, offset) {
     const [results] = await this.db.executeSql(
       'SELECT * FROM updates ORDER BY date DESC LIMIT ? OFFSET ?',
-      [limit, offset]
+      [limit, offset],
     );
 
-    return Array.from({ length: results.rows.length }, (_, i) =>
-      new Update(results.rows.item(i))
+    return Array.from(
+      { length: results.rows.length },
+      (_, i) => new Update(results.rows.item(i)),
     );
   }
 
   async getTotalCount() {
     const [results] = await this.db.executeSql(
-      'SELECT COUNT(*) as count FROM updates'
+      'SELECT COUNT(*) as count FROM updates',
     );
 
     return results.rows.item(0).count;
@@ -76,7 +79,7 @@ export class UpdateDAO {
   async getCountForWork(workId) {
     const [results] = await this.db.executeSql(
       'SELECT COUNT(*) as count FROM updates WHERE workId = ?',
-      [workId]
+      [workId],
     );
 
     return results.rows.item(0).count;

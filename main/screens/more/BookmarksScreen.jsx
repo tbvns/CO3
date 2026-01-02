@@ -1,33 +1,31 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
+  Linking,
+  RefreshControl,
   StyleSheet,
   Text,
-  View,
   TouchableOpacity,
-  RefreshControl,
-  Linking,
-  ActivityIndicator,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { fetchBookmarks } from '../../web/other/bookmarks';
 import BookCard from '../../components/Library/BookCard';
 import LoadingSpinner from '../../components/History/Spinner';
-import EmptyState from '../../components/History/Empty';
 import { getUsername } from '../../storage/Credentials';
-import Spinner from '../../components/History/Spinner';
 
 export default function BookmarksScreen({
-                                          setScreens,
-                                          currentTheme,
-                                          workDAO,
-                                          libraryDAO,
-                                          historyDAO,
-                                          settingsDAO,
-                                          progressDAO,
-                                          kudoHistoryDAO,
-                                          screens
-                                        }) {
+  setScreens,
+  currentTheme,
+  workDAO,
+  libraryDAO,
+  historyDAO,
+  settingsDAO,
+  progressDAO,
+  kudoHistoryDAO,
+  screens,
+}) {
   const [bookmarks, setBookmarks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -42,7 +40,7 @@ export default function BookmarksScreen({
     loadInitialBookmarks();
   }, []);
 
-  const formatWork = (work) => {
+  const formatWork = work => {
     return {
       id: work.id,
       title: work.title,
@@ -54,7 +52,9 @@ export default function BookmarksScreen({
       tags: work.tags,
       warnings: work.warnings,
       description: work.description,
-      lastUpdated: work.updated ? new Date(work.updated).toLocaleDateString() : 'Unknown',
+      lastUpdated: work.updated
+        ? new Date(work.updated).toLocaleDateString()
+        : 'Unknown',
       likes: work.kudos,
       bookmarks: work.bookmarks,
       views: work.hits,
@@ -64,7 +64,7 @@ export default function BookmarksScreen({
       dateAdded: undefined,
       collection: undefined,
       readIndex: undefined,
-      lastRead: undefined
+      lastRead: undefined,
     };
   };
 
@@ -120,7 +120,7 @@ export default function BookmarksScreen({
     });
   };
 
-  const openTagSearch = (tag) => {
+  const openTagSearch = tag => {
     console.log('Search for tag:', tag);
   };
 
@@ -147,25 +147,23 @@ export default function BookmarksScreen({
   const renderHeader = () => (
     <View style={styles.header}>
       <TouchableOpacity onPress={onBack}>
-        <Icon
-          name="arrow-back"
-          size={24}
-          color={currentTheme.textColor}
-        />
+        <Icon name="arrow-back" size={24} color={currentTheme.textColor} />
       </TouchableOpacity>
       <Text style={[styles.title, { color: currentTheme.textColor }]}>
         Bookmarks
       </Text>
 
-      <TouchableOpacity style={{ marginLeft: 'auto' }}
-                        onPress={() => getUsername().then(usrname => {
-                          Linking.openURL(`https://archiveofourown.org/users/${usrname}/bookmarks`)
-                        })}>
-        <Icon
-          name="link"
-          size={24}
-          color={currentTheme.textColor}
-        />
+      <TouchableOpacity
+        style={{ marginLeft: 'auto' }}
+        onPress={() =>
+          getUsername().then(usrname => {
+            Linking.openURL(
+              `https://archiveofourown.org/users/${usrname}/bookmarks`,
+            );
+          })
+        }
+      >
+        <Icon name="link" size={24} color={currentTheme.textColor} />
       </TouchableOpacity>
     </View>
   );
@@ -175,7 +173,12 @@ export default function BookmarksScreen({
     return (
       <View style={styles.loadingMore}>
         <ActivityIndicator size="small" color={currentTheme.primaryColor} />
-        <Text style={[styles.loadingMoreText, { color: currentTheme.placeholderColor }]}>
+        <Text
+          style={[
+            styles.loadingMoreText,
+            { color: currentTheme.placeholderColor },
+          ]}
+        >
           Loading more...
         </Text>
       </View>
@@ -206,7 +209,9 @@ export default function BookmarksScreen({
         onEndReached={loadMoreBookmarks}
         onEndReachedThreshold={0.1}
         ListEmptyComponent={
-          <Text style={[{textColor: currentTheme.textColor}]}>No works bookmarked yet</Text>
+          <Text style={[{ textColor: currentTheme.textColor }]}>
+            No works bookmarked yet
+          </Text>
         }
         ListFooterComponent={renderFooter}
         refreshControl={

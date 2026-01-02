@@ -1,13 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
+  Dimensions,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
-  Dimensions,
-  Platform,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');

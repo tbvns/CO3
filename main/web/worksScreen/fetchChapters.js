@@ -1,5 +1,6 @@
-import ky from "ky";
-let DomParser = require("react-native-html-parser").DOMParser;
+import ky from 'ky';
+
+let DomParser = require('react-native-html-parser').DOMParser;
 
 class Chapter {
   constructor({ id, name, workId, date }) {

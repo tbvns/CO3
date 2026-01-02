@@ -1,7 +1,8 @@
-import { getCredsToken, getUsername } from '../../storage/Credentials';
+import { getUsername } from '../../storage/Credentials';
 import ky from 'ky';
 import { parseWorkElements } from '../browse/fetchWorks';
-let DomParser = require("react-native-html-parser").DOMParser;
+
+let DomParser = require('react-native-html-parser').DOMParser;
 
 export async function fetchBookmarks(page, username) {
   let url;

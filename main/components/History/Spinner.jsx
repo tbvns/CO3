@@ -1,15 +1,20 @@
 import React from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 const LoadingSpinner = ({ currentTheme, message = 'Loading...' }) => {
-    return (
-        <View style={[styles.loadingContainer, { backgroundColor: currentTheme.backgroundColor }]}>
-            <ActivityIndicator size="large" color={currentTheme.primaryColor} />
-            <Text style={[styles.loadingText, { color: currentTheme.textColor }]}>
-                {message}
-            </Text>
-        </View>
-    );
+  return (
+    <View
+      style={[
+        styles.loadingContainer,
+        { backgroundColor: currentTheme.backgroundColor },
+      ]}
+    >
+      <ActivityIndicator size="large" color={currentTheme.primaryColor} />
+      <Text style={[styles.loadingText, { color: currentTheme.textColor }]}>
+        {message}
+      </Text>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({

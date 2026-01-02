@@ -1,59 +1,61 @@
-import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
   ActivityIndicator,
-  SafeAreaView,
   FlatList,
-  StatusBar,
-  Animated,
   Linking,
-  Alert,
   Modal,
   Pressable,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { LinearGradient } from 'react-native-linear-gradient';
 import BookDetailsModal from '../components/Library/BookDetailsModal';
-import { fetchChapters } from '../web/worksScreen/fetchChapters';
 import { fetchWorkFromWorkID } from '../web/worksScreen/fetchWork';
 import { fetchChapter } from '../web/worksScreen/fetchChapter';
 import ChapterReader from './chapterReader';
-import { navigateToNextChapter, navigateToPreviousChapter } from '../utils/ChapterNavigationHelpers';
+import {
+  navigateToNextChapter,
+  navigateToPreviousChapter,
+} from '../utils/ChapterNavigationHelpers';
 import sendKudo from '../web/other/kudoRequest';
-import { ChapterDAO } from '../storage/dao/ChapterDAO';
-import { ProgressDAO } from '../storage/dao/ProgressDAO';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CategorySelectionModal from '../components/WorkScreen/CategorySelectionModal';
 import { markForLater } from '../web/other/markedLater';
 import Toast from 'react-native-toast-message';
 import { bookmark } from '../web/other/bookmarks';
-import SystemNavigationBar from 'react-native-system-navigation-bar';
 import { normalizeWorkData } from '../storage/dao/WorkDAO';
 import { getJsonSettings } from '../storage/jsonSettings';
 
-const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress }) => {
+const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress, showDate }) => {
   const hasProgress = chapter.progress !== undefined && chapter.progress !== null;
-  const isRead = hasProgress && chapter.progress >= 0.98; // 98% or more
+  const isRead = hasProgress && chapter.progress >= 0.98;
 
-  const [jsonSettings, setJsonSettings] = useState(null);
+  const dateText = chapter.date || "";
+  const progressText = hasProgress ? `${(chapter.progress * 100).toFixed(0)}%` : "";
 
-  useEffect(() => {
-    getJsonSettings().then((settings) => setJsonSettings(settings));
-  }, []);
-
-  const showDate = jsonSettings?.showChapterDate && chapter.date;
+  const separator = (dateText && progressText) ? " | " : "";
+  const subtitleRaw = `${dateText}${separator}${progressText}`;
+  const subtitleToRender = subtitleRaw || " ";
 
   return (
     <TouchableOpacity
-      style={[styles.chapterItem, { borderBottomColor: currentTheme.borderColor }]}
+      style={[
+        styles.chapterItem,
+        {
+          borderBottomColor: currentTheme.inputBackground,
+          borderBottomWidth: 1
+        }
+      ]}
       onPress={onPress}
     >
       <View style={styles.chapterContent}>
-        {/* Chapter title, color changes if read */}
         <Text
+          numberOfLines={1}
           style={[
             styles.chapterTitle,
             { color: isRead ? currentTheme.secondaryTextColor : currentTheme.textColor }
@@ -62,19 +64,27 @@ const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress }) => {
           {chapter.name || `Chapter ${index + 1}`}
         </Text>
 
-        {/* Chapter date and progress */}
-        {(showDate || hasProgress) && (
+        {showDate && (
           <Text style={[styles.chapterDate, { color: currentTheme.secondaryTextColor }]}>
-            {showDate ? chapter.date : null}
-            {showDate && hasProgress ? " | " : null}
-            {hasProgress ? `${(chapter.progress * 100).toFixed(0)}%` : null}
+            {subtitleToRender}
           </Text>
         )}
       </View>
+
+      {/* Only show right-side progress if date is hidden (compact mode) */}
+      {!showDate && hasProgress && (
+        <View style={styles.rightProgressContainer}>
+          <Text style={[styles.progressRight, { color: currentTheme.secondaryTextColor }]}>
+            {progressText}
+          </Text>
+        </View>
+      )}
+
       <Icon
         name="chevron-right"
         size={20}
         color={currentTheme.iconColor}
+        style={styles.chevron}
       />
     </TouchableOpacity>
   );
@@ -206,6 +216,7 @@ const ChapterInfoScreen = ({
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [categoryAction, setCategoryAction] = useState(null);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [showDate, setShowDate] = useState(false);
 
   const showToast = (message, type = 'error') => {
     Toast.show({
@@ -222,6 +233,11 @@ const ChapterInfoScreen = ({
 
   useEffect(() => {
     loadCategories();
+    getJsonSettings().then((settings) => {
+      if (settings?.showChapterDate !== undefined) {
+        setShowDate(settings.showChapterDate);
+      }
+    });
   }, []);
 
   const loadCategories = async () => {
@@ -297,6 +313,10 @@ const ChapterInfoScreen = ({
         fetchWorkFromWorkID(workId),
         progressDAO.getProgressList(workId),
       ]);
+
+      if (!workData) {
+        throw new Error("Could not fetch work data");
+      }
 
       setWork(workData);
       setChapters(workData.chapters);
@@ -465,11 +485,8 @@ const ChapterInfoScreen = ({
       }
 
       let chapterContent;
-      if (originalIndex === 0) {
-        chapterContent = await fetchChapter(workId, null, currentTheme, settingsDAO);
-      } else {
-        chapterContent = await fetchChapter(workId, chapter.id, currentTheme, settingsDAO);
-      }
+      chapterContent = await fetchChapter(workId, chapter.id, currentTheme, settingsDAO);
+
       if (!chapterContent) {
         console.error("Could not fetch chapter content. Please try again.");
         return;
@@ -691,12 +708,17 @@ const ChapterInfoScreen = ({
       index={item.originalIndex}
       currentTheme={currentTheme}
       onPress={() => handleChapterPress(item, item.originalIndex)}
+      showDate={showDate}
     />
-  ), [currentTheme, handleChapterPress, chapterProgress]);
+  ), [currentTheme, handleChapterPress, chapterProgress, showDate]);
 
-  const getItemLayout = useCallback((data, index) => (
-    { length: 60, offset: 60 * index, index }
-  ), []);
+  const ITEM_HEIGHT_NO_DATE = 45;
+  const ITEM_HEIGHT_WITH_DATE = 63;
+
+  const getItemLayout = useCallback((data, index) => {
+    const itemHeight = showDate ? ITEM_HEIGHT_WITH_DATE : ITEM_HEIGHT_NO_DATE;
+    return { length: itemHeight, offset: itemHeight * index, index };
+  }, [showDate]);
 
   const ListHeaderComponent = () => (
     <View style={styles.workInfo}>
@@ -950,18 +972,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 0.5,
+    borderBottomWidth: 0,
   },
   chapterContent: {
     flex: 1,
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  rightProgressContainer: {
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    marginRight: 4,
+  },
+  progressRight: {
+    fontSize: 12,
+    fontWeight: '500',
   },
   chapterTitle: {
     fontSize: 16,
     fontWeight: '500',
-    marginBottom: 2,
+    marginBottom: 0,
+    lineHeight: 20,
   },
   chapterDate: {
     fontSize: 12,
+    marginTop: 2,
+    height: 16,
+    lineHeight: 16,
   },
   loadingContainer: {
     flex: 1,
@@ -1070,6 +1107,9 @@ const styles = StyleSheet.create({
   menuDivider: {
     height: 1,
     width: '100%',
+  },
+  chevron: {
+    marginLeft: 4,
   }
 });
 

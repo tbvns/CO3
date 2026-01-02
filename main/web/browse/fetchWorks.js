@@ -1,6 +1,7 @@
-import ky from "ky";
-import {Work} from "../../storage/models/work";
-let DomParser = require("react-native-html-parser").DOMParser;
+import ky from 'ky';
+import { Work } from '../../storage/models/work';
+
+let DomParser = require('react-native-html-parser').DOMParser;
 
 function getElementText(element) {
     if (!element) return null;

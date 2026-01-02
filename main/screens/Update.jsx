@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
   RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import UpdateBookCard from '../components/Update/UpdateBookCard';
@@ -13,19 +13,19 @@ import ChapterInfoScreen from './workScreen';
 import { run } from '../web/updater';
 
 const UpdateScreen = ({
-                        currentTheme,
-                        updateDAO,
-                        workDAO,
-                        setScreens,
-                        screens,
-                        libraryDAO,
-                        settingsDAO,
-                        historyDAO,
-                        progressDAO,
-                        kudoHistoryDAO,
-                        openTagSearch,
-                        databaseObj
-                      }) => {
+  currentTheme,
+  updateDAO,
+  workDAO,
+  setScreens,
+  screens,
+  libraryDAO,
+  settingsDAO,
+  historyDAO,
+  progressDAO,
+  kudoHistoryDAO,
+  openTagSearch,
+  databaseObj,
+}) => {
   const [updates, setUpdates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -67,7 +67,7 @@ const UpdateScreen = ({
     }
   };
 
-  const formatRelativeTime = (date) => {
+  const formatRelativeTime = date => {
     const now = new Date();
     const diffMs = now - date;
     const diffMins = Math.floor(diffMs / 60000);
@@ -75,12 +75,14 @@ const UpdateScreen = ({
     const diffDays = Math.floor(diffMs / 86400000);
 
     if (diffMins < 1) return 'just now';
-    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffMins < 60)
+      return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24)
+      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
     return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
   };
 
-  const groupUpdatesByDate = (updatesList) => {
+  const groupUpdatesByDate = updatesList => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -90,7 +92,7 @@ const UpdateScreen = ({
     const groups = {
       today: [],
       yesterday: [],
-      older: []
+      older: [],
     };
 
     updatesList.forEach(update => {
@@ -110,7 +112,7 @@ const UpdateScreen = ({
   };
 
   // UPDATED: Now calculates the index before opening
-  const handleUpdatePress = async (update) => {
+  const handleUpdatePress = async update => {
     let loadChapterIndex = null;
 
     if (update.chapterNumber) {
@@ -130,14 +132,15 @@ const UpdateScreen = ({
           }
         }
       } catch (e) {
-        console.log("Error finding chapter index", e);
+        console.log('Error finding chapter index', e);
         // Fallback
         loadChapterIndex = update.chapterNumber - 1;
       }
     }
 
     // Use functional update (prev => ...) to ensure we don't use stale state after the async await
-    setScreens(prev => [...prev,
+    setScreens(prev => [
+      ...prev,
       <ChapterInfoScreen
         key={`update_${update.id}`}
         workId={update.workId}
@@ -151,13 +154,18 @@ const UpdateScreen = ({
         kudoHistoryDAO={kudoHistoryDAO}
         openTagSearch={openTagSearch}
         loadChapter={loadChapterIndex} // Pass the calculated index
-      />
+      />,
     ]);
   };
 
   if (loading) {
     return (
-      <View style={[styles.centerContainer, { backgroundColor: currentTheme.backgroundColor }]}>
+      <View
+        style={[
+          styles.centerContainer,
+          { backgroundColor: currentTheme.backgroundColor },
+        ]}
+      >
         <Text style={[styles.loadingText, { color: currentTheme.textColor }]}>
           Loading updates...
         </Text>
@@ -168,25 +176,50 @@ const UpdateScreen = ({
   const groupedUpdates = groupUpdatesByDate(updates);
 
   return (
-    <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: currentTheme.backgroundColor },
+      ]}
+    >
       {/* Header with last update time and refresh button */}
-      <View style={[styles.headerBar, { backgroundColor: currentTheme.headerBackground, borderBottomColor: currentTheme.borderColor }]}>
+      <View
+        style={[
+          styles.headerBar,
+          {
+            backgroundColor: currentTheme.headerBackground,
+            borderBottomColor: currentTheme.borderColor,
+          },
+        ]}
+      >
         <View style={styles.headerLeft}>
           {lastUpdate && (
-            <Text style={[styles.lastUpdateText, { color: currentTheme.secondaryTextColor }]}>
+            <Text
+              style={[
+                styles.lastUpdateText,
+                { color: currentTheme.secondaryTextColor },
+              ]}
+            >
               Library last updated: {lastUpdate}
             </Text>
           )}
         </View>
         <TouchableOpacity
-          style={[styles.refreshButton, { backgroundColor: currentTheme.buttonBackground }]}
+          style={[
+            styles.refreshButton,
+            { backgroundColor: currentTheme.buttonBackground },
+          ]}
           onPress={handleManualUpdate}
           disabled={refreshing}
         >
           <Icon
             name="refresh"
             size={24}
-            color={refreshing ? currentTheme.placeholderColor : currentTheme.iconColor}
+            color={
+              refreshing
+                ? currentTheme.placeholderColor
+                : currentTheme.iconColor
+            }
           />
         </TouchableOpacity>
       </View>
@@ -205,11 +238,20 @@ const UpdateScreen = ({
       >
         {updates.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Icon name="check-circle" size={64} color={currentTheme.placeholderColor} />
+            <Icon
+              name="check-circle"
+              size={64}
+              color={currentTheme.placeholderColor}
+            />
             <Text style={[styles.emptyText, { color: currentTheme.textColor }]}>
               No updates yet
             </Text>
-            <Text style={[styles.emptySubtext, { color: currentTheme.secondaryTextColor }]}>
+            <Text
+              style={[
+                styles.emptySubtext,
+                { color: currentTheme.secondaryTextColor },
+              ]}
+            >
               Pull down or tap the refresh button to check for updates
             </Text>
           </View>
@@ -217,10 +259,15 @@ const UpdateScreen = ({
           <>
             {groupedUpdates.today.length > 0 && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    { color: currentTheme.textColor },
+                  ]}
+                >
                   Today
                 </Text>
-                {groupedUpdates.today.map((update) => (
+                {groupedUpdates.today.map(update => (
                   <UpdateBookCard
                     key={update.id}
                     update={update}
@@ -234,10 +281,15 @@ const UpdateScreen = ({
 
             {groupedUpdates.yesterday.length > 0 && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    { color: currentTheme.textColor },
+                  ]}
+                >
                   Yesterday
                 </Text>
-                {groupedUpdates.yesterday.map((update) => (
+                {groupedUpdates.yesterday.map(update => (
                   <UpdateBookCard
                     key={update.id}
                     update={update}
@@ -251,10 +303,15 @@ const UpdateScreen = ({
 
             {groupedUpdates.older.length > 0 && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: currentTheme.textColor }]}>
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    { color: currentTheme.textColor },
+                  ]}
+                >
                   Earlier
                 </Text>
-                {groupedUpdates.older.map((update) => (
+                {groupedUpdates.older.map(update => (
                   <UpdateBookCard
                     key={update.id}
                     update={update}

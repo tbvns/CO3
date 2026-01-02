@@ -13,7 +13,7 @@ export class KudoHistoryDAO {
     const { workId, date } = kudoHistoryEntry;
     await this.db.executeSql(
       'INSERT OR REPLACE INTO kudo_history (workId, date) VALUES (?, ?)',
-      [workId, date]
+      [workId, date],
     );
   }
 
@@ -25,7 +25,7 @@ export class KudoHistoryDAO {
   async get(workId) {
     const [results] = await this.db.executeSql(
       'SELECT * FROM kudo_history WHERE workId = ?',
-      [workId]
+      [workId],
     );
     if (results.rows.length === 0) return null;
     return new KudoHistory(results.rows.item(0));
@@ -37,7 +37,7 @@ export class KudoHistoryDAO {
    */
   async getLatestEntry() {
     const [results] = await this.db.executeSql(
-      'SELECT * FROM kudo_history ORDER BY date DESC LIMIT 1'
+      'SELECT * FROM kudo_history ORDER BY date DESC LIMIT 1',
     );
     if (results.rows.length > 0) {
       return new KudoHistory(results.rows.item(0));
@@ -51,11 +51,11 @@ export class KudoHistoryDAO {
    */
   async getAll() {
     const [results] = await this.db.executeSql(
-      'SELECT * FROM kudo_history ORDER BY date DESC'
+      'SELECT * FROM kudo_history ORDER BY date DESC',
     );
     return Array.from(
       { length: results.rows.length },
-      (_, i) => new KudoHistory(results.rows.item(i))
+      (_, i) => new KudoHistory(results.rows.item(i)),
     );
   }
 
@@ -70,11 +70,11 @@ export class KudoHistoryDAO {
   async getHistoryByDateRange(startDate, endDate, limit, offset) {
     const [results] = await this.db.executeSql(
       'SELECT * FROM kudo_history WHERE date BETWEEN ? AND ? ORDER BY date DESC LIMIT ? OFFSET ?',
-      [startDate, endDate, limit, offset]
+      [startDate, endDate, limit, offset],
     );
     return Array.from(
       { length: results.rows.length },
-      (_, i) => new KudoHistory(results.rows.item(i))
+      (_, i) => new KudoHistory(results.rows.item(i)),
     );
   }
 
@@ -87,7 +87,7 @@ export class KudoHistoryDAO {
   async getHistoryCountByDateRange(startDate, endDate) {
     const [results] = await this.db.executeSql(
       'SELECT COUNT(*) as count FROM kudo_history WHERE date BETWEEN ? AND ?',
-      [startDate, endDate]
+      [startDate, endDate],
     );
     return results.rows.item(0).count;
   }
@@ -101,11 +101,11 @@ export class KudoHistoryDAO {
   async getPaginatedHistory(limit, offset) {
     const [results] = await this.db.executeSql(
       'SELECT * FROM kudo_history ORDER BY date DESC LIMIT ? OFFSET ?',
-      [limit, offset]
+      [limit, offset],
     );
     return Array.from(
       { length: results.rows.length },
-      (_, i) => new KudoHistory(results.rows.item(i))
+      (_, i) => new KudoHistory(results.rows.item(i)),
     );
   }
 
@@ -115,7 +115,7 @@ export class KudoHistoryDAO {
    */
   async getTotalHistoryCount() {
     const [results] = await this.db.executeSql(
-      'SELECT COUNT(*) as count FROM kudo_history'
+      'SELECT COUNT(*) as count FROM kudo_history',
     );
     return results.rows.item(0).count;
   }
@@ -126,11 +126,11 @@ export class KudoHistoryDAO {
    */
   async getReadingDates() {
     const [results] = await this.db.executeSql(
-      'SELECT DISTINCT date FROM kudo_history ORDER BY date DESC'
+      'SELECT DISTINCT date FROM kudo_history ORDER BY date DESC',
     );
     return Array.from(
       { length: results.rows.length },
-      (_, i) => results.rows.item(i).date
+      (_, i) => results.rows.item(i).date,
     );
   }
 
@@ -139,10 +139,9 @@ export class KudoHistoryDAO {
    * @param {number} workId - The work ID of the entry to delete.
    */
   async delete(workId) {
-    await this.db.executeSql(
-      'DELETE FROM kudo_history WHERE workId = ?',
-      [workId]
-    );
+    await this.db.executeSql('DELETE FROM kudo_history WHERE workId = ?', [
+      workId,
+    ]);
   }
 
   /**

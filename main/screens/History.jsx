@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
   Alert,
-  ActivityIndicator,
   RefreshControl,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -18,12 +16,16 @@ import EmptyState from '../components/History/Empty';
 import LoadingSpinner from '../components/History/Spinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
-                         libraryDAO,
-                         setScreens,
-                         settingsDAO,
-                         progressDAO,
-                         kudoHistoryDAO}) => {
+const HistoryScreen = ({
+  currentTheme,
+  historyDAO,
+  workDAO,
+  libraryDAO,
+  setScreens,
+  settingsDAO,
+  progressDAO,
+  kudoHistoryDAO,
+}) => {
   const insets = useSafeAreaInsets();
 
   const [history, setHistory] = useState([]);
@@ -60,13 +62,13 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
     }
   };
 
-  const fetchAndCombineHistory = async (historyData) => {
+  const fetchAndCombineHistory = async historyData => {
     if (!historyData || historyData.length === 0) {
       return [];
     }
 
     const combinedHistory = await Promise.all(
-      historyData.map(async (item) => {
+      historyData.map(async item => {
         try {
           const work = await workDAO.get(item.workId);
           return {
@@ -75,14 +77,17 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
             book_author: work ? work.author : 'Unknown Author',
           };
         } catch (error) {
-          console.error(`Error fetching work for history item ${item.id}:`, error);
+          console.error(
+            `Error fetching work for history item ${item.id}:`,
+            error,
+          );
           return {
             ...item,
             book_title: 'Unknown Book',
             book_author: 'Unknown Author',
           };
         }
-      })
+      }),
     );
     return combinedHistory;
   };
@@ -103,9 +108,12 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
           startTimestamp,
           endTimestamp,
           PAGE_SIZE,
-          0
+          0,
         );
-        count = await historyDAO.getHistoryCountByDateRange(startTimestamp, endTimestamp);
+        count = await historyDAO.getHistoryCountByDateRange(
+          startTimestamp,
+          endTimestamp,
+        );
       } else {
         historyData = await historyDAO.getPaginatedHistory(PAGE_SIZE, 0); // Assuming historyDAO returns items with workId
         count = await historyDAO.getTotalHistoryCount();
@@ -122,7 +130,6 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
       setLoading(false);
     }
   };
-
 
   const loadMoreHistory = async () => {
     if (loadingMore || !hasMore) return;
@@ -142,7 +149,7 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
           startTimestamp,
           endTimestamp,
           PAGE_SIZE,
-          offset
+          offset,
         );
       } else {
         moreData = await historyDAO.getPaginatedHistory(PAGE_SIZE, offset);
@@ -195,10 +202,9 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
             }
           },
         },
-      ]
+      ],
     );
   };
-
 
   const applyDateFilter = async () => {
     try {
@@ -225,10 +231,15 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
           startTimestamp,
           endTimestamp,
           PAGE_SIZE,
-          0
+          0,
         );
-        const count = await historyDAO.getHistoryCountByDateRange(startTimestamp, endTimestamp);
-        const combinedFilteredHistory = await fetchAndCombineHistory(filteredHistory);
+        const count = await historyDAO.getHistoryCountByDateRange(
+          startTimestamp,
+          endTimestamp,
+        );
+        const combinedFilteredHistory = await fetchAndCombineHistory(
+          filteredHistory,
+        );
         setHistory(combinedFilteredHistory || []);
         setTotalCount(count);
         setHasMore(filteredHistory.length === PAGE_SIZE);
@@ -262,21 +273,34 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
     }
   };
 
-  const handleScroll = (event) => {
+  const handleScroll = event => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
     const paddingToBottom = 20;
 
-    if (layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom) {
+    if (
+      layoutMeasurement.height + contentOffset.y >=
+      contentSize.height - paddingToBottom
+    ) {
       loadMoreHistory();
     }
   };
 
   if (loading) {
-    return <LoadingSpinner currentTheme={currentTheme} message="Loading history..." />;
+    return (
+      <LoadingSpinner
+        currentTheme={currentTheme}
+        message="Loading history..."
+      />
+    );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: currentTheme.backgroundColor },
+      ]}
+    >
       <ScrollView
         style={styles.mainContent}
         onScroll={handleScroll}
@@ -325,7 +349,13 @@ const HistoryScreen = ({ currentTheme, historyDAO, workDAO,
 
       {/* Calendar Filter Button */}
       <TouchableOpacity
-        style={[styles.readButtonFab, { backgroundColor: currentTheme.primaryColor, bottom: 100 + insets.bottom }]}
+        style={[
+          styles.readButtonFab,
+          {
+            backgroundColor: currentTheme.primaryColor,
+            bottom: 100 + insets.bottom,
+          },
+        ]}
         onPress={() => setShowCalendar(true)}
       >
         <Icon name="calendar-today" size={24} color="white" />

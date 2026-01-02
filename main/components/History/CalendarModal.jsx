@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import {
-    Modal,
-    View,
-    Text,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    Dimensions,
-    StyleSheet,
+  Dimensions,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import Icon from 'react-native-vector-icons/MaterialIcons';

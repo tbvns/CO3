@@ -1,16 +1,15 @@
 import React, { useRef } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
   Animated,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import PreferencesScreen from './more/Preferences';
 import LoginScreen from './more/LoginScreen';
-import KudoHistory from './more/KudoHistory';
 import KudoHistoryScreen from './more/KudoHistory';
 import CategoryScreen from './more/CategoryScreen';
 import AboutScreen from './more/AboutScreen';
@@ -19,12 +18,23 @@ import BookmarksScreen from './more/BookmarksScreen';
 import ReadLaterScreen from './more/ReadLaterScreen';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMode, setViewMode, isIncognitoMode, toggleIncognitoMode, settingsDAO,
-                      workDAO,
-                      libraryDAO,
-                      historyDAO,
-                      progressDAO,
-                      kudoHistoryDAO }) => {
+const MoreScreen = ({
+  currentTheme,
+  setScreens,
+  screens,
+  theme,
+  setTheme,
+  viewMode,
+  setViewMode,
+  isIncognitoMode,
+  toggleIncognitoMode,
+  settingsDAO,
+  workDAO,
+  libraryDAO,
+  historyDAO,
+  progressDAO,
+  kudoHistoryDAO,
+}) => {
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -36,10 +46,11 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
     }).start();
   }, [fadeAnim]);
 
-  const handlePress = (screenName) => {
+  const handlePress = screenName => {
     switch (screenName) {
-      case "Preferences":
-        setScreens(prev => [...prev,
+      case 'Preferences':
+        setScreens(prev => [
+          ...prev,
           <PreferencesScreen
             currentTheme={currentTheme}
             theme={theme}
@@ -50,19 +61,18 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
             toggleIncognitoMode={toggleIncognitoMode}
             settingsDAO={settingsDAO}
             setScreens={setScreens}
-          />
+          />,
         ]);
         break;
-      case "Account":
-        setScreens(prev => [...prev,
-          <LoginScreen
-            currentTheme={currentTheme}
-            setScreens={setScreens}
-          />
+      case 'Account':
+        setScreens(prev => [
+          ...prev,
+          <LoginScreen currentTheme={currentTheme} setScreens={setScreens} />,
         ]);
         break;
-      case "KudosHistory":
-        setScreens(prev => [...prev,
+      case 'KudosHistory':
+        setScreens(prev => [
+          ...prev,
           <KudoHistoryScreen
             currentTheme={currentTheme}
             workDAO={workDAO}
@@ -72,11 +82,12 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
             settingsDAO={settingsDAO}
             progressDAO={progressDAO}
             kudoHistoryDAO={kudoHistoryDAO}
-          />
+          />,
         ]);
         break;
-      case "Bookmarks":
-        setScreens(prev => [...prev,
+      case 'Bookmarks':
+        setScreens(prev => [
+          ...prev,
           <BookmarksScreen
             currentTheme={currentTheme}
             workDAO={workDAO}
@@ -87,11 +98,12 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
             settingsDAO={settingsDAO}
             progressDAO={progressDAO}
             kudoHistoryDAO={kudoHistoryDAO}
-          />
+          />,
         ]);
-        break
-      case "ReadLater":
-        setScreens(prev => [...prev,
+        break;
+      case 'ReadLater':
+        setScreens(prev => [
+          ...prev,
           <ReadLaterScreen
             currentTheme={currentTheme}
             workDAO={workDAO}
@@ -102,11 +114,12 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
             settingsDAO={settingsDAO}
             progressDAO={progressDAO}
             kudoHistoryDAO={kudoHistoryDAO}
-          />
+          />,
         ]);
-        break
-      case "Categories":
-        setScreens(prev => [...prev,
+        break;
+      case 'Categories':
+        setScreens(prev => [
+          ...prev,
           <CategoryScreen
             currentTheme={currentTheme}
             workDAO={workDAO}
@@ -116,11 +129,12 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
             settingsDAO={settingsDAO}
             progressDAO={progressDAO}
             kudoHistoryDAO={kudoHistoryDAO}
-          />
+          />,
         ]);
-        break
-      case "About":
-        setScreens(prev => [...prev,
+        break;
+      case 'About':
+        setScreens(prev => [
+          ...prev,
           <AboutScreen
             currentTheme={currentTheme}
             workDAO={workDAO}
@@ -130,11 +144,12 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
             settingsDAO={settingsDAO}
             progressDAO={progressDAO}
             kudoHistoryDAO={kudoHistoryDAO}
-          />
+          />,
         ]);
-        break
-      case "Help":
-        setScreens(prev => [...prev,
+        break;
+      case 'Help':
+        setScreens(prev => [
+          ...prev,
           <HelpScreen
             currentTheme={currentTheme}
             workDAO={workDAO}
@@ -144,9 +159,9 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
             settingsDAO={settingsDAO}
             progressDAO={progressDAO}
             kudoHistoryDAO={kudoHistoryDAO}
-          />
+          />,
         ]);
-        break
+        break;
     }
     console.log(`${screenName} pressed`);
   };
@@ -155,58 +170,61 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
     {
       name: 'Preferences',
       icon: 'settings',
-      handler: () => handlePress('Preferences')
+      handler: () => handlePress('Preferences'),
     },
     {
       name: 'Account',
       icon: 'account-circle',
-      handler: () => handlePress('Account')
+      handler: () => handlePress('Account'),
     },
     {
       name: 'Kudos history',
       icon: 'favorite',
-      handler: () => handlePress('KudosHistory')
+      handler: () => handlePress('KudosHistory'),
     },
     {
       name: 'Bookmarks',
       icon: 'bookmarks',
-      handler: () => handlePress('Bookmarks')
+      handler: () => handlePress('Bookmarks'),
     },
     {
       name: 'Marked for later',
       icon: 'watch-later',
-      handler: () => handlePress('ReadLater')
+      handler: () => handlePress('ReadLater'),
     },
     {
       name: 'Categories',
       icon: 'category',
-      handler: () => handlePress('Categories')
+      handler: () => handlePress('Categories'),
     },
     {
       name: 'Statistics',
       icon: 'bar-chart',
-      handler: () => handlePress('Statistics')
+      handler: () => handlePress('Statistics'),
     },
     {
       name: 'Data and Storage',
       icon: 'storage',
-      handler: () => handlePress('Data and Storage')
+      handler: () => handlePress('Data and Storage'),
     },
     {
       name: 'About',
       icon: 'info',
-      handler: () => handlePress('About')
+      handler: () => handlePress('About'),
     },
     {
       name: 'Help',
       icon: 'help',
-      handler: () => handlePress('Help')
+      handler: () => handlePress('Help'),
     },
   ];
 
   return (
     <ScrollView
-      style={[styles.mainContent, { backgroundColor: currentTheme.backgroundColor }]}
+      style={[
+        styles.mainContent,
+        { backgroundColor: currentTheme.backgroundColor },
+      ]}
       contentContainerStyle={{
         paddingBottom: insets.bottom,
       }}
@@ -215,7 +233,9 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
         <Text style={[styles.title, { color: currentTheme.textColor }]}>
           More Options
         </Text>
-        <Text style={[styles.subtitle, { color: currentTheme.placeholderColor }]}>
+        <Text
+          style={[styles.subtitle, { color: currentTheme.placeholderColor }]}
+        >
           Additional settings and features
         </Text>
 
@@ -226,13 +246,15 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
               style={[
                 {
                   opacity: fadeAnim,
-                  transform: [{
-                    translateX: fadeAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [-20, 0]
-                    })
-                  }],
-                }
+                  transform: [
+                    {
+                      translateX: fadeAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [-20, 0],
+                      }),
+                    },
+                  ],
+                },
               ]}
             >
               <TouchableOpacity
@@ -242,7 +264,7 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
                     backgroundColor: currentTheme.cardBackground,
                     borderBottomColor: currentTheme.borderColor,
                   },
-                  index === menuItems.length - 1 && styles.lastItem
+                  index === menuItems.length - 1 && styles.lastItem,
                 ]}
                 onPress={item.handler}
                 activeOpacity={0.7}
@@ -254,7 +276,9 @@ const MoreScreen = ({ currentTheme, setScreens, screens, theme, setTheme, viewMo
                     color={currentTheme.primaryColor}
                   />
                 </View>
-                <Text style={[styles.menuText, { color: currentTheme.textColor }]}>
+                <Text
+                  style={[styles.menuText, { color: currentTheme.textColor }]}
+                >
                   {item.name}
                 </Text>
                 <Icon

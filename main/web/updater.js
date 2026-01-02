@@ -1,4 +1,4 @@
-import BackgroundFetch from "react-native-background-fetch";
+import BackgroundFetch from 'react-native-background-fetch';
 import { fetchWorkFromWorkID } from './worksScreen/fetchWork';
 import { database } from '../storage/Database';
 import { WorkDAO } from '../storage/dao/WorkDAO';
@@ -12,19 +12,29 @@ import notifee, {
 } from '@notifee/react-native';
 import { getJsonSettings } from '../storage/jsonSettings';
 
-const getMergedIconName = (work) => {
+const getMergedIconName = work => {
   let r = 'nr';
   switch (work.rating) {
-    case 'General Audiences': r = 'gen'; break;
-    case 'Teen And Up Audiences': r = 'teen'; break;
-    case 'Mature': r = 'mat'; break;
-    case 'Explicit': r = 'exp'; break;
-    case 'Not Rated': r = 'nr'; break;
+    case 'General Audiences':
+      r = 'gen';
+      break;
+    case 'Teen And Up Audiences':
+      r = 'teen';
+      break;
+    case 'Mature':
+      r = 'mat';
+      break;
+    case 'Explicit':
+      r = 'exp';
+      break;
+    case 'Not Rated':
+      r = 'nr';
+      break;
   }
 
   let c = 'gen';
-  const cat = work.category || "";
-  if (cat.split(" ").length > 1 && cat !== "No category") c = 'multi';
+  const cat = work.category || '';
+  if (cat.split(' ').length > 1 && cat !== 'No category') c = 'multi';
   else if (cat === 'F/F') c = 'ff';
   else if (cat === 'F/M') c = 'fm';
   else if (cat === 'M/M') c = 'mm';
@@ -33,13 +43,15 @@ const getMergedIconName = (work) => {
   else if (cat === 'Gen') c = 'gen';
 
   let w = 'none';
-  const warn = work.warnings || "";
+  const warn = work.warnings || '';
   if (work.warningStatus === 'Yes' || warn.includes('WarningGiven')) w = 'warn';
   else if (warn.includes('Creator Chose')) w = 'cntua';
   else if (warn.includes('No Archive')) w = 'none';
   else if (warn.includes('External')) w = 'ext';
 
-  const isComplete = work.isCompleted || (work.chapterCount > 0 && work.chapterCount === work.currentChapter);
+  const isComplete =
+    work.isCompleted ||
+    (work.chapterCount > 0 && work.chapterCount === work.currentChapter);
   const s = isComplete ? 'comp' : 'wip';
 
   return `ic_${r}_${c}_${w}_${s}`.toLowerCase();

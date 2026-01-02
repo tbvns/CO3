@@ -1,28 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  Modal,
-  TouchableOpacity,
-  ScrollView,
-  Switch,
-  Pressable,
   Linking,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const SideMenu = ({
-                    isOpen,
-                    onClose,
-                    theme,
-                    setTheme,
-                    isIncognitoMode,
-                    toggleIncognitoMode,
-                    viewMode,
-                    setViewMode,
-                    currentTheme,
-                  }) => {
+  isOpen,
+  onClose,
+  theme,
+  setTheme,
+  isIncognitoMode,
+  toggleIncognitoMode,
+  viewMode,
+  setViewMode,
+  currentTheme,
+}) => {
   const [localTheme, setLocalTheme] = useState(theme);
   const [localIncognito, setLocalIncognito] = useState(isIncognitoMode);
   const [localViewMode, setLocalViewMode] = useState(viewMode);
@@ -46,7 +46,7 @@ const SideMenu = ({
     }
   };
 
-  const handleThemeChange = (newTheme) => {
+  const handleThemeChange = newTheme => {
     const previousTheme = localTheme;
     setLocalTheme(newTheme);
 
@@ -57,7 +57,7 @@ const SideMenu = ({
     }
   };
 
-  const handleViewModeChange = (newMode) => {
+  const handleViewModeChange = newMode => {
     const previousMode = localViewMode;
     setLocalViewMode(newMode);
 
@@ -165,10 +165,7 @@ const SideMenu = ({
       onRequestClose={onClose}
     >
       <View style={styles.overlayContainer}>
-        <Pressable
-          style={styles.backdrop}
-          onPress={onClose}
-        />
+        <Pressable style={styles.backdrop} onPress={onClose} />
         <View style={styles.menuLayout} pointerEvents="box-none">
           <View
             style={[
@@ -294,7 +291,10 @@ const SideMenu = ({
               <View
                 style={[
                   styles.section,
-                  { borderBottomColor: currentTheme.borderColor, borderBottomWidth: 0 },
+                  {
+                    borderBottomColor: currentTheme.borderColor,
+                    borderBottomWidth: 0,
+                  },
                 ]}
               >
                 <View style={styles.switchContainer}>
@@ -332,7 +332,10 @@ const SideMenu = ({
             >
               <View style={styles.supportSection}>
                 <Text
-                  style={[styles.sectionTitle, { color: currentTheme.textColor }]}
+                  style={[
+                    styles.sectionTitle,
+                    { color: currentTheme.textColor },
+                  ]}
                 >
                   Support us
                 </Text>
@@ -342,7 +345,9 @@ const SideMenu = ({
                       styles.supportButton,
                       { backgroundColor: '#22c55e' },
                     ]}
-                    onPress={() => Linking.openURL("https://archiveofourown.org/donate")}
+                    onPress={() =>
+                      Linking.openURL('https://archiveofourown.org/donate')
+                    }
                   >
                     <Text style={styles.supportButtonText}>AO3</Text>
                   </TouchableOpacity>
@@ -351,7 +356,7 @@ const SideMenu = ({
                       styles.supportButton,
                       { backgroundColor: '#6366f1' },
                     ]}
-                    onPress={() => Linking.openURL("https://ko-fi.com/tbvns")}
+                    onPress={() => Linking.openURL('https://ko-fi.com/tbvns')}
                   >
                     <Text style={styles.supportButtonText}>CO3</Text>
                   </TouchableOpacity>

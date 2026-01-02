@@ -1,22 +1,35 @@
-import ky from "ky";
-let DomParser = require("react-native-html-parser").DOMParser;
+import ky from 'ky';
+
+let DomParser = require('react-native-html-parser').DOMParser;
 
 export async function fetchChapter(workId, chapterId, currentTheme = null, settingsDAO) {
   try {
-    const url = `https://archiveofourown.org/works/${workId}/chapters/${chapterId}?view_adult=true`;
+    let url;
+    if (!chapterId || String(chapterId) === String(workId)) {
+      url = `https://archiveofourown.org/works/${workId}?view_adult=true`;
+    } else {
+      url = `https://archiveofourown.org/works/${workId}/chapters/${chapterId}?view_adult=true`;
+    }
 
     console.log(`Fetching chapter from: ${url}`);
     const response = await ky.get(url).text();
     const doc = new DomParser().parseFromString(response, "text/html");
-    console.log(doc);
 
-    let chapterDiv = doc.getElementsByClassName("chapter")[1];
+    let chapterDiv = doc.getElementById("workskin");
 
     if (!chapterDiv) {
-      const chaptersContainer = doc.getElementById("chapters");
-      if (chaptersContainer) {
-        const userstuffDivs = chaptersContainer.getElementsByClassName("userstuff");
-        chapterDiv = userstuffDivs[0]; // Get the first userstuff div
+      const userstuffDivs = doc.getElementsByClassName("userstuff");
+      if (userstuffDivs.length > 0) {
+        let longest = userstuffDivs[0];
+        let maxLen = 0;
+        for(let i=0; i<userstuffDivs.length; i++) {
+          const txt = getElementText(userstuffDivs[i]) || "";
+          if (txt.length > maxLen) {
+            maxLen = txt.length;
+            longest = userstuffDivs[i];
+          }
+        }
+        chapterDiv = longest;
       }
     }
 
@@ -38,14 +51,11 @@ export async function fetchChapter(workId, chapterId, currentTheme = null, setti
       }
     }
 
-    const workskinDiv = doc.getElementById("workskin");
-    if (workskinDiv) {
-      const styleElements = workskinDiv.getElementsByTagName("style");
+    if (chapterDiv.getAttribute("id") === "workskin") {
+      const styleElements = chapterDiv.getElementsByTagName("style");
       for (let i = 0; i < styleElements.length; i++) {
         const styleContent = getElementText(styleElements[i]);
-        if (styleContent) {
-          cssStyles += styleContent + "\n";
-        }
+        if (styleContent) cssStyles += styleContent + "\n";
       }
     }
 
@@ -61,7 +71,7 @@ export async function fetchChapter(workId, chapterId, currentTheme = null, setti
 
     const completeHtml = await createCompleteHtml(chapterHtml, cssStyles, currentTheme, settingsDAO);
 
-    console.log(`Successfully fetched chapter ${chapterId} from work ${workId}`);
+    console.log(`Successfully fetched content for work ${workId}`);
 
     return completeHtml;
   } catch (error) {
@@ -83,7 +93,6 @@ function getElementText(element) {
 }
 
 async function createCompleteHtml(chapterHtml, cssStyles, currentTheme, settingsDAO) {
-  // Generate theme-based CSS variables
   const themeCSS = currentTheme ? generateThemeCSS(currentTheme) : '';
 
   const settings = await settingsDAO.getSettings();
@@ -100,12 +109,17 @@ async function createCompleteHtml(chapterHtml, cssStyles, currentTheme, settings
     
     .landmark {
         visibility: hidden;
+        display: none;
     }
     
     .title {
       display: none;
     }
     
+    .byline {
+       display: none;
+    }
+
     /* Base styles for better readability with theme integration */
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -169,14 +183,6 @@ async function createCompleteHtml(chapterHtml, cssStyles, currentTheme, settings
       font-weight: bold;
     }
     
-    #workskin .byline {
-      color: var(--secondary-text-color, #6b7280);
-    }
-    
-    #workskin .byline a {
-      color: var(--primary-color, #3b82f6);
-    }
-    
     /* Image Specific Styles */
     #workskin img {
       max-width: 100%; /* Ensures images don't overflow the container */
@@ -222,11 +228,8 @@ function generateThemeCSS(theme) {
 function getElementHtml(element) {
   if (!element) return null;
 
-  // For react-native-html-parser, we need to reconstruct the HTML manually
-  // since it doesn't have innerHTML property
   let html = `<${element.tagName}`;
 
-  // Add attributes
   if (element.attributes) {
     for (let i = 0; i < element.attributes.length; i++) {
       const attr = element.attributes[i];
@@ -236,15 +239,12 @@ function getElementHtml(element) {
 
   html += '>';
 
-  // Add child nodes
   if (element.childNodes) {
     for (let i = 0; i < element.childNodes.length; i++) {
       const child = element.childNodes[i];
       if (child.nodeType === 3) {
-        // Text node
         html += child.nodeValue;
       } else if (child.nodeType === 1) {
-        // Element node
         html += getElementHtml(child);
       }
     }

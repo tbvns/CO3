@@ -1,23 +1,23 @@
 import React from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
   Modal,
-  TouchableOpacity,
-  SafeAreaView,
   Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const CustomAlert = ({
-                       visible,
-                       title,
-                       message,
-                       onClose,
-                       theme,
-                       confirmText = "OK",
-                       onConfirm
-                     }) => {
+  visible,
+  title,
+  message,
+  onClose,
+  theme,
+  confirmText = 'OK',
+  onConfirm,
+}) => {
   const handleConfirm = () => {
     if (onConfirm) onConfirm();
     onClose();
@@ -34,11 +34,18 @@ const CustomAlert = ({
         <Pressable style={styles.overlayPressable} onPress={onClose}>
           <View style={styles.container}>
             <Pressable
-              style={[styles.alertBox, { backgroundColor: theme.cardBackground }]}
+              style={[
+                styles.alertBox,
+                { backgroundColor: theme.cardBackground },
+              ]}
               onPress={() => {}}
             >
-              <Text style={[styles.title, { color: theme.textColor }]}>{title}</Text>
-              <Text style={[styles.message, { color: theme.textColor }]}>{message}</Text>
+              <Text style={[styles.title, { color: theme.textColor }]}>
+                {title}
+              </Text>
+              <Text style={[styles.message, { color: theme.textColor }]}>
+                {message}
+              </Text>
               <TouchableOpacity
                 style={[styles.button, { backgroundColor: theme.primaryColor }]}
                 onPress={handleConfirm}

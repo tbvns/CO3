@@ -1,20 +1,22 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { fetchWorkFromWorkID } from '../../web/worksScreen/fetchWork';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import WorkScreen from '../../screens/workScreen';
-import ChapterReader from '../../screens/chapterReader';
 
-const HistoryItem = ({ item, currentTheme,
-                       libraryDAO,
-                       workDAO,
-                       setScreens,
-                       settingsDAO,
-                       historyDAO,
-                       progressDAO,
-                       kudoHistoryDAO, hasChapter = true}) => {
+const HistoryItem = ({
+  item,
+  currentTheme,
+  libraryDAO,
+  workDAO,
+  setScreens,
+  settingsDAO,
+  historyDAO,
+  progressDAO,
+  kudoHistoryDAO,
+  hasChapter = true,
+}) => {
   console.log(item.date);
 
-  const formatDate = (timestamp) => {
+  const formatDate = timestamp => {
     if (typeof timestamp !== 'number' || isNaN(timestamp)) {
       return 'N/A';
     }
@@ -28,9 +30,15 @@ const HistoryItem = ({ item, currentTheme,
     const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
 
     if (diffInDays === 0) {
-      return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      return `Today at ${date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`;
     } else if (diffInDays === 1) {
-      return `Yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      return `Yesterday at ${date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`;
     } else if (diffInDays < 7) {
       return `${diffInDays} days ago`;
     } else {
@@ -40,9 +48,9 @@ const HistoryItem = ({ item, currentTheme,
 
   const formatChapterRange = (start, end) => {
     if (!end || start === end) {
-      return `Chapter ${start+1}`;
+      return `Chapter ${start + 1}`;
     }
-    return `Chapters ${start+1} - ${end+1}`;
+    return `Chapters ${start + 1} - ${end + 1}`;
   };
 
   function handleClick() {
@@ -60,8 +68,8 @@ const HistoryItem = ({ item, currentTheme,
           progressDAO={progressDAO}
           loadChapter={item.chapter || item.chapterEnd || 0}
           kudoHistoryDAO={kudoHistoryDAO}
-        />
-      ])
+        />,
+      ]);
     } else {
       setScreens(prevScreens => [
         ...prevScreens,
@@ -75,37 +83,53 @@ const HistoryItem = ({ item, currentTheme,
           historyDAO={historyDAO}
           progressDAO={progressDAO}
           kudoHistoryDAO={kudoHistoryDAO}
-        />
-      ])
+        />,
+      ]);
     }
   }
 
   return (
     <TouchableOpacity onPress={handleClick} activeOpacity={0.7}>
-      <View style={[styles.historyItem, { backgroundColor: currentTheme.cardBackground }]}>
+      <View
+        style={[
+          styles.historyItem,
+          { backgroundColor: currentTheme.cardBackground },
+        ]}
+      >
         <View style={styles.itemHeader}>
-          <Text style={[styles.bookTitle, { color: currentTheme.textColor }]} numberOfLines={1}>
+          <Text
+            style={[styles.bookTitle, { color: currentTheme.textColor }]}
+            numberOfLines={1}
+          >
             {/* Use item.book_title if available (from joined data), otherwise fallback */}
             {item.book_title || 'Unknown Book'}
           </Text>
-          <Text style={[styles.readTime, { color: currentTheme.placeholderColor }]}>
+          <Text
+            style={[styles.readTime, { color: currentTheme.placeholderColor }]}
+          >
             {/* Use item.date from the History model */}
             {formatDate(item.date)}
           </Text>
         </View>
 
-        <Text style={[styles.bookAuthor, { color: currentTheme.placeholderColor }]} numberOfLines={1}>
+        <Text
+          style={[styles.bookAuthor, { color: currentTheme.placeholderColor }]}
+          numberOfLines={1}
+        >
           {/* Use item.book_author if available, otherwise fallback */}
           by {item.book_author || 'Unknown Author'}
         </Text>
 
-        {hasChapter ?
+        {hasChapter ? (
           <View style={styles.chapterInfo}>
-            <Text style={[styles.chapterText, { color: currentTheme.primaryColor }]}>
+            <Text
+              style={[styles.chapterText, { color: currentTheme.primaryColor }]}
+            >
               {/* Use item.chapter and item.chapterEnd from the History model */}
               {formatChapterRange(item.chapter, item.chapterEnd)}
             </Text>
-          </View> : null}
+          </View>
+        ) : null}
       </View>
     </TouchableOpacity>
   );

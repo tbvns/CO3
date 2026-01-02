@@ -1,9 +1,9 @@
-import ky from "ky";
-import {Work} from "../../storage/models/work";
+import ky from 'ky';
+import { Work } from '../../storage/models/work';
 import { getJsonSettings } from '../../storage/jsonSettings';
-import { fetchChapter } from './fetchChapter';
 import { fetchChapters } from './fetchChapters';
-let DomParser = require("react-native-html-parser").DOMParser;
+
+let DomParser = require('react-native-html-parser').DOMParser;
 
 function getElementText(element) {
   if (!element) return null;
@@ -234,7 +234,18 @@ export async function fetchWorkFromWorkID(workId) {
 
     const metadata = extractWorkMetadata(doc);
     const content = extractWorkContent(doc);
-    const chapters = (await getJsonSettings()).showChapterDate ? await fetchChapters(workId) : extractChapters(doc);
+    let chapters = (await getJsonSettings()).showChapterDate ? await fetchChapters(workId) : extractChapters(doc);
+
+    if (!chapters || chapters.length === 0) {
+      console.log("No chapters found. Assuming One-Shot.");
+      chapters = [{
+        id: workId,
+        workId: workId,
+        number: 1,
+        name: "One-shot",
+        date: metadata.published ? new Date(metadata.published).toISOString().split('T')[0] : null
+      }];
+    }
 
     const chapterInfo = parseChapters(metadata.chapters);
 

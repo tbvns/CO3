@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
   Animated,
   Platform,
   StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { WebView } from 'react-native-webview';

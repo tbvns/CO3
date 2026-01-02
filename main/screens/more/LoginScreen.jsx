@@ -1,46 +1,46 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
+  Linking,
+  Modal,
+  SafeAreaView,
+  ScrollView,
   StyleSheet,
-  View,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  Linking,
-  SafeAreaView,
-  ActivityIndicator,
-  Modal,
-} from "react-native";
-import Icon from "react-native-vector-icons/MaterialIcons";
-import login, { validateCookie } from "../../web/account/login";
+  View,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import login, { validateCookie } from '../../web/account/login';
 import {
-  setCredsPasswd,
-  getCredsPasswd,
-  setCredsToken,
-  getCredsToken,
   deleteCredsPasswd,
   deleteCredsToken,
-  setUsernameOnly,
+  getCredsPasswd,
+  getCredsToken,
   getUsername,
-} from "../../storage/Credentials";
-import CustomAlert from "../../components/CustomAlert";
+  setCredsPasswd,
+  setCredsToken,
+  setUsernameOnly,
+} from '../../storage/Credentials';
+import CustomAlert from '../../components/CustomAlert';
 
 const LoginScreen = ({ currentTheme, setScreens }) => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [rememberPassword, setRememberPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [validating, setValidating] = useState(true);
   const [alert, setAlert] = useState({
     visible: false,
-    title: "",
-    message: "",
+    title: '',
+    message: '',
   });
   const [sessionInfo, setSessionInfo] = useState({
     visible: false,
-    username: "",
-    password: "",
+    username: '',
+    password: '',
     hasStoredPassword: false,
   });
 
@@ -60,7 +60,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
         setIsLoggedIn(false);
       }
     } catch (error) {
-      console.error("Token validation error:", error);
+      console.error('Token validation error:', error);
       setIsLoggedIn(false);
     } finally {
       setValidating(false);
@@ -75,14 +75,14 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
     setAlert({ ...alert, visible: false });
   };
 
-  const formatStoredPassword = (password) => {
-    if (!password || password.length === 0) return "";
-    if (password.length === 1) return password + "*";
+  const formatStoredPassword = password => {
+    if (!password || password.length === 0) return '';
+    if (password.length === 1) return password + '*';
     if (password.length === 2) return password;
 
     const first = password.substring(0, 1);
     const last = password.charAt(password.length - 1);
-    const middle = "*".repeat(password.length - 2);
+    const middle = '*'.repeat(password.length - 2);
 
     return first + middle + last;
   };
@@ -103,27 +103,27 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
       setSessionInfo({
         visible: true,
         username: getUsername(),
-        password: "",
+        password: '',
         hasStoredPassword: false,
       });
     } catch (error) {
-      console.error("Error retrieving session info:", error);
-      showAlert("Error", "Failed to retrieve session information");
+      console.error('Error retrieving session info:', error);
+      showAlert('Error', 'Failed to retrieve session information');
     }
   };
 
   const hideSessionInfo = () => {
     setSessionInfo({
       visible: false,
-      username: "",
-      password: "",
+      username: '',
+      password: '',
       hasStoredPassword: false,
     });
   };
 
   const handleLogin = async () => {
     if (!username || !password) {
-      showAlert("Error", "Please enter both username and password");
+      showAlert('Error', 'Please enter both username and password');
       return;
     }
 
@@ -142,15 +142,15 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
         }
 
         setIsLoggedIn(true);
-        showAlert("Success", "Logged in successfully!");
+        showAlert('Success', 'Logged in successfully!');
       } else {
-        showAlert("Login Failed", "Invalid credentials or server error");
+        showAlert('Login Failed', 'Invalid credentials or server error');
       }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error('Login error:', error);
       showAlert(
-        "Login Error",
-        "An error occurred during login. Please try again."
+        'Login Error',
+        'An error occurred during login. Please try again.',
       );
     } finally {
       setIsLoading(false);
@@ -163,30 +163,30 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
       await deleteCredsPasswd();
 
       setIsLoggedIn(false);
-      setUsername("");
-      setPassword("");
+      setUsername('');
+      setPassword('');
       setRememberPassword(false);
     } catch (error) {
-      console.error("Logout error:", error);
-      showAlert("Error", "Failed to logout properly");
+      console.error('Logout error:', error);
+      showAlert('Error', 'Failed to logout properly');
     }
   };
 
   const showRememberPasswordInfo = () => {
     showAlert(
-      "Remember Password",
+      'Remember Password',
       "When enabled, we securely store your username and password using your device's biometric authentication or passcode. " +
-      "This allows us to automatically re-login in the background if your session expires, without interrupting your reading experience. " +
-      "Your login information is encrypted and never sent to external servers, only stored securely on your device."
+        'This allows us to automatically re-login in the background if your session expires, without interrupting your reading experience. ' +
+        'Your login information is encrypted and never sent to external servers, only stored securely on your device.',
     );
   };
 
   const openForgotPassword = () => {
-    Linking.openURL("https://archiveofourown.org/users/password/new");
+    Linking.openURL('https://archiveofourown.org/users/password/new');
   };
 
   const openGetInvited = () => {
-    Linking.openURL("https://archiveofourown.org/invite_requests");
+    Linking.openURL('https://archiveofourown.org/invite_requests');
   };
 
   if (validating) {
@@ -198,10 +198,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
         ]}
       >
         <View style={styles.centerContainer}>
-          <ActivityIndicator
-            size="large"
-            color={currentTheme.primaryColor}
-          />
+          <ActivityIndicator size="large" color={currentTheme.primaryColor} />
         </View>
       </SafeAreaView>
     );
@@ -217,11 +214,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={onBack}>
-            <Icon
-              name="arrow-back"
-              size={24}
-              color={currentTheme.textColor}
-            />
+            <Icon name="arrow-back" size={24} color={currentTheme.textColor} />
           </TouchableOpacity>
           <Text style={[styles.title_top, { color: currentTheme.textColor }]}>
             Account Settings
@@ -241,7 +234,9 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
               ]}
             >
               <Icon name="check-circle" size={48} color="green" />
-              <Text style={[styles.statusText, { color: currentTheme.textColor }]}>
+              <Text
+                style={[styles.statusText, { color: currentTheme.textColor }]}
+              >
                 You are logged in
               </Text>
               <Text
@@ -296,7 +291,9 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
                 { backgroundColor: currentTheme.cardBackground },
               ]}
             >
-              <Text style={[styles.modalTitle, { color: currentTheme.textColor }]}>
+              <Text
+                style={[styles.modalTitle, { color: currentTheme.textColor }]}
+              >
                 Current Session
               </Text>
               <View style={styles.sessionInfoContainer}>
@@ -308,7 +305,12 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
                 >
                   Username:
                 </Text>
-                <Text style={[styles.sessionValue, { color: currentTheme.textColor }]}>
+                <Text
+                  style={[
+                    styles.sessionValue,
+                    { color: currentTheme.textColor },
+                  ]}
+                >
                   {sessionInfo.username}
                 </Text>
               </View>
@@ -359,7 +361,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
   }
 
   function onBack() {
-    setScreens((prev) => {
+    setScreens(prev => {
       const newScreens = [...prev];
       newScreens.pop();
       return newScreens;
@@ -428,15 +430,16 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
               >
                 <Icon
                   name={
-                    rememberPassword
-                      ? "check-box"
-                      : "check-box-outline-blank"
+                    rememberPassword ? 'check-box' : 'check-box-outline-blank'
                   }
                   size={24}
                   color={currentTheme.primaryColor}
                 />
                 <Text
-                  style={[styles.rememberText, { color: currentTheme.textColor }]}
+                  style={[
+                    styles.rememberText,
+                    { color: currentTheme.textColor },
+                  ]}
                 >
                   Remember my password
                 </Text>
@@ -462,7 +465,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
               disabled={isLoading}
             >
               <Text style={styles.loginButtonText}>
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoading ? 'Logging in...' : 'Login'}
               </Text>
             </TouchableOpacity>
 

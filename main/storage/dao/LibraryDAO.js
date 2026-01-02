@@ -15,7 +15,7 @@ export class LibraryDAO {
 
     await this.db.executeSql(
       `INSERT OR REPLACE INTO library (workId, dateAdded, collection, readIndex) VALUES (?, ?, ?, ?)`,
-      [workId, dateAdded, collection, readIndex]
+      [workId, dateAdded, collection, readIndex],
     );
 
     return { workId, dateAdded, collection, readIndex };
@@ -24,7 +24,7 @@ export class LibraryDAO {
   async remove(workId) {
     const [result] = await this.db.executeSql(
       'DELETE FROM library WHERE workId = ?',
-      [workId]
+      [workId],
     );
     return result.rowsAffected > 0;
   }
@@ -33,12 +33,19 @@ export class LibraryDAO {
     const newReadIndex = Date.now();
     await this.db.executeSql(
       'UPDATE library SET readIndex = ? WHERE workId = ?',
-      [newReadIndex, workId]
+      [newReadIndex, workId],
     );
     return newReadIndex;
   }
 
-  async getByPage(page = 1, pageSize = 20, sortType = 'lastRead', collection = null, startDate = null, endDate = null) {
+  async getByPage(
+    page = 1,
+    pageSize = 20,
+    sortType = 'lastRead',
+    collection = null,
+    startDate = null,
+    endDate = null,
+  ) {
     const offset = (page - 1) * pageSize;
 
     let whereClause = '';
@@ -82,7 +89,11 @@ export class LibraryDAO {
         LIMIT ? OFFSET ?
     `;
 
-    const [results] = await this.db.executeSql(query, [...whereParams, pageSize, offset]);
+    const [results] = await this.db.executeSql(query, [
+      ...whereParams,
+      pageSize,
+      offset,
+    ]);
     const works = [];
 
     for (let i = 0; i < results.rows.length; i++) {
@@ -102,7 +113,7 @@ export class LibraryDAO {
         rating: row.rating,
         category: row.category,
         warningStatus: row.warningStatus,
-        isCompleted: row.isCompleted ? Boolean(row.isCompleted) : null
+        isCompleted: row.isCompleted ? Boolean(row.isCompleted) : null,
       };
 
       // Get tags and warnings for this work
@@ -112,12 +123,12 @@ export class LibraryDAO {
       const libraryData = {
         dateAdded: row.dateAdded,
         collection: row.collection,
-        readIndex: row.readIndex
+        readIndex: row.readIndex,
       };
 
       works.push({
         work: new Work(workData),
-        library: libraryData
+        library: libraryData,
       });
     }
 
@@ -131,7 +142,7 @@ export class LibraryDAO {
 
     await this.db.executeSql(
       'UPDATE library SET collection = ? WHERE collection = ?',
-      ['Default', collection]
+      ['Default', collection],
     );
 
     return true;
@@ -140,7 +151,7 @@ export class LibraryDAO {
   async renameCollection(oldName, newName) {
     await this.db.executeSql(
       'UPDATE library SET collection = ? WHERE collection = ?',
-      [newName, oldName]
+      [newName, oldName],
     );
     return true;
   }
@@ -153,7 +164,7 @@ export class LibraryDAO {
   `);
     return Array.from({ length: results.rows.length }, (_, i) => ({
       name: results.rows.item(i).collection,
-      count: results.rows.item(i).count
+      count: results.rows.item(i).count,
     }));
   }
 
@@ -186,7 +197,15 @@ export class LibraryDAO {
     return result.rows.item(0).total;
   }
 
-  async search(searchTerm, page = 1, pageSize = 20, sortType = 'lastRead', collection = null, startDate = null, endDate = null) {
+  async search(
+    searchTerm,
+    page = 1,
+    pageSize = 20,
+    sortType = 'lastRead',
+    collection = null,
+    startDate = null,
+    endDate = null,
+  ) {
     const offset = (page - 1) * pageSize;
 
     // Build WHERE clause for filters
@@ -205,7 +224,16 @@ export class LibraryDAO {
       EXISTS (SELECT 1 FROM work_tags wt JOIN tags t ON wt.tagId = t.id WHERE wt.workId = w.id AND t.name LIKE ?) OR
       EXISTS (SELECT 1 FROM work_warnings ww JOIN warnings wr ON ww.warningId = wr.id WHERE ww.workId = w.id AND wr.name LIKE ?)
     )`;
-    whereParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+    whereParams.push(
+      searchPattern,
+      searchPattern,
+      searchPattern,
+      searchPattern,
+      searchPattern,
+      searchPattern,
+      searchPattern,
+      searchPattern,
+    );
 
     if (collection) {
       whereClause += ' AND l.collection = ?';
@@ -246,7 +274,11 @@ export class LibraryDAO {
         LIMIT ? OFFSET ?
     `;
 
-    const [results] = await this.db.executeSql(query, [...whereParams, pageSize, offset]);
+    const [results] = await this.db.executeSql(query, [
+      ...whereParams,
+      pageSize,
+      offset,
+    ]);
     const works = [];
 
     for (let i = 0; i < results.rows.length; i++) {
@@ -266,7 +298,7 @@ export class LibraryDAO {
         rating: row.rating,
         category: row.category,
         warningStatus: row.warningStatus,
-        isCompleted: row.isCompleted ? Boolean(row.isCompleted) : null
+        isCompleted: row.isCompleted ? Boolean(row.isCompleted) : null,
       };
 
       // Get tags and warnings for this work
@@ -277,19 +309,24 @@ export class LibraryDAO {
       const libraryData = {
         dateAdded: row.dateAdded,
         collection: row.collection,
-        readIndex: row.readIndex
+        readIndex: row.readIndex,
       };
 
       works.push({
         work: new Work(workData),
-        library: libraryData
+        library: libraryData,
       });
     }
 
     return works;
   }
 
-  async getSearchCount(searchTerm, collection = null, startDate = null, endDate = null) {
+  async getSearchCount(
+    searchTerm,
+    collection = null,
+    startDate = null,
+    endDate = null,
+  ) {
     let whereClause = '';
     let whereParams = [];
 
@@ -305,7 +342,16 @@ export class LibraryDAO {
       EXISTS (SELECT 1 FROM work_tags wt JOIN tags t ON wt.tagId = t.id WHERE wt.workId = w.id AND t.name LIKE ?) OR
       EXISTS (SELECT 1 FROM work_warnings ww JOIN warnings wr ON ww.warningId = wr.id WHERE ww.workId = w.id AND wr.name LIKE ?)
     )`;
-    whereParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+    whereParams.push(
+      searchPattern,
+      searchPattern,
+      searchPattern,
+      searchPattern,
+      searchPattern,
+      searchPattern,
+      searchPattern,
+      searchPattern,
+    );
 
     if (collection) {
       whereClause += ' AND l.collection = ?';
@@ -333,14 +379,19 @@ export class LibraryDAO {
   }
 
   async getCollections() {
-    const [results] = await this.db.executeSql('SELECT DISTINCT collection FROM library ORDER BY collection');
-    return Array.from({ length: results.rows.length }, (_, i) => results.rows.item(i).collection);
+    const [results] = await this.db.executeSql(
+      'SELECT DISTINCT collection FROM library ORDER BY collection',
+    );
+    return Array.from(
+      { length: results.rows.length },
+      (_, i) => results.rows.item(i).collection,
+    );
   }
 
   async getLibraryEntry(workId) {
     const [results] = await this.db.executeSql(
       'SELECT * FROM library WHERE workId = ?',
-      [workId]
+      [workId],
     );
 
     if (results.rows.length === 0) return null;
@@ -350,43 +401,55 @@ export class LibraryDAO {
       workId: row.workId,
       dateAdded: row.dateAdded,
       collection: row.collection,
-      readIndex: row.readIndex
+      readIndex: row.readIndex,
     };
   }
 
   async updateCollection(workId, collection) {
     await this.db.executeSql(
       'UPDATE library SET collection = ? WHERE workId = ?',
-      [collection, workId]
+      [collection, workId],
     );
   }
 
   async isInLibrary(workId) {
     const [results] = await this.db.executeSql(
       'SELECT COUNT(*) as count FROM library WHERE workId = ?',
-      [workId]
+      [workId],
     );
     return results.rows.item(0).count > 0;
   }
 
   // Helper methods to get tags and warnings (reused from WorkDAO)
   async getTagsForWork(workId) {
-    const [results] = await this.db.executeSql(`
+    const [results] = await this.db.executeSql(
+      `
       SELECT t.name FROM tags t
                            JOIN work_tags wt ON t.id = wt.tagId
       WHERE wt.workId = ?
-    `, [workId]);
+    `,
+      [workId],
+    );
 
-    return Array.from({ length: results.rows.length }, (_, i) => results.rows.item(i).name);
+    return Array.from(
+      { length: results.rows.length },
+      (_, i) => results.rows.item(i).name,
+    );
   }
 
   async getWarningsForWork(workId) {
-    const [results] = await this.db.executeSql(`
+    const [results] = await this.db.executeSql(
+      `
       SELECT w.name FROM warnings w
                            JOIN work_warnings ww ON w.id = ww.warningId
       WHERE ww.workId = ?
-    `, [workId]);
+    `,
+      [workId],
+    );
 
-    return Array.from({ length: results.rows.length }, (_, i) => results.rows.item(i).name);
+    return Array.from(
+      { length: results.rows.length },
+      (_, i) => results.rows.item(i).name,
+    );
   }
 }

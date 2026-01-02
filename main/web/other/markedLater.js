@@ -2,7 +2,7 @@ import { getUsername } from '../../storage/Credentials';
 import ky from 'ky';
 import { parseWorkElements } from '../browse/fetchWorks';
 
-let DomParser = require("react-native-html-parser").DOMParser;
+let DomParser = require('react-native-html-parser').DOMParser;
 
 export async function fetchMarkedLater(page){
   const url = `https://archiveofourown.org/users/${await getUsername()}/readings?show=to-read&page=${page}`;

@@ -13,7 +13,7 @@ export class HistoryDAO {
     const { workId, date, chapter, chapterEnd } = historyEntry;
     await this.db.executeSql(
       'INSERT INTO history (workId, date, chapter, chapterEnd) VALUES (?, ?, ?, ?)',
-      [workId, date, chapter, chapterEnd]
+      [workId, date, chapter, chapterEnd],
     );
   }
 
@@ -22,7 +22,9 @@ export class HistoryDAO {
    * @returns {Promise<History|null>} The latest history entry or null if none exists.
    */
   async getLatestEntry() {
-    const [results] = await this.db.executeSql('SELECT * FROM history ORDER BY date DESC LIMIT 1');
+    const [results] = await this.db.executeSql(
+      'SELECT * FROM history ORDER BY date DESC LIMIT 1',
+    );
     if (results.rows.length > 0) {
       return results.rows.item(0);
     }
@@ -38,32 +40,46 @@ export class HistoryDAO {
   async updateChapterEnd(id, chapterEnd, date) {
     await this.db.executeSql(
       'UPDATE history SET chapterEnd = ?, date = ? WHERE id = ?',
-      [chapterEnd, date, id]
+      [chapterEnd, date, id],
     );
   }
 
   async getForWork(workId) {
-    const [results] = await this.db.executeSql('SELECT * FROM history WHERE workId = ? ORDER BY date DESC', [workId]);
-    return Array.from({ length: results.rows.length }, (_, i) => new History(results.rows.item(i)));
+    const [results] = await this.db.executeSql(
+      'SELECT * FROM history WHERE workId = ? ORDER BY date DESC',
+      [workId],
+    );
+    return Array.from(
+      { length: results.rows.length },
+      (_, i) => new History(results.rows.item(i)),
+    );
   }
 
   async getAll() {
-    const [results] = await this.db.executeSql('SELECT * FROM history ORDER BY date DESC');
-    return Array.from({ length: results.rows.length }, (_, i) => new History(results.rows.item(i)));
+    const [results] = await this.db.executeSql(
+      'SELECT * FROM history ORDER BY date DESC',
+    );
+    return Array.from(
+      { length: results.rows.length },
+      (_, i) => new History(results.rows.item(i)),
+    );
   }
 
   async getHistoryByDateRange(startDate, endDate, limit, offset) {
     const [results] = await this.db.executeSql(
       'SELECT * FROM history WHERE date BETWEEN ? AND ? ORDER BY date DESC LIMIT ? OFFSET ?',
-      [startDate, endDate, limit, offset]
+      [startDate, endDate, limit, offset],
     );
-    return Array.from({ length: results.rows.length }, (_, i) => new History(results.rows.item(i)));
+    return Array.from(
+      { length: results.rows.length },
+      (_, i) => new History(results.rows.item(i)),
+    );
   }
 
   async getHistoryCountByDateRange(startDate, endDate) {
     const [results] = await this.db.executeSql(
       'SELECT COUNT(*) as count FROM history WHERE date BETWEEN ? AND ?',
-      [startDate, endDate]
+      [startDate, endDate],
     );
     return results.rows.item(0).count;
   }
@@ -71,19 +87,29 @@ export class HistoryDAO {
   async getPaginatedHistory(limit, offset) {
     const [results] = await this.db.executeSql(
       'SELECT * FROM history ORDER BY date DESC LIMIT ? OFFSET ?',
-      [limit, offset]
+      [limit, offset],
     );
-    return Array.from({ length: results.rows.length }, (_, i) => new History(results.rows.item(i)));
+    return Array.from(
+      { length: results.rows.length },
+      (_, i) => new History(results.rows.item(i)),
+    );
   }
 
   async getTotalHistoryCount() {
-    const [results] = await this.db.executeSql('SELECT COUNT(*) as count FROM history');
+    const [results] = await this.db.executeSql(
+      'SELECT COUNT(*) as count FROM history',
+    );
     return results.rows.item(0).count;
   }
 
   async getReadingDates() {
-    const [results] = await this.db.executeSql('SELECT DISTINCT date FROM history ORDER BY date DESC');
-    return Array.from({ length: results.rows.length }, (_, i) => results.rows.item(i).date);
+    const [results] = await this.db.executeSql(
+      'SELECT DISTINCT date FROM history ORDER BY date DESC',
+    );
+    return Array.from(
+      { length: results.rows.length },
+      (_, i) => results.rows.item(i).date,
+    );
   }
 
   async delete(id) {

@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  ScrollView,
-  TouchableOpacity,
   Alert,
   RefreshControl,
+  ScrollView,
+  StyleSheet,
   Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -16,13 +16,16 @@ import EmptyState from '../../components/History/Empty';
 import LoadingSpinner from '../../components/History/Spinner';
 import KudoHistoryList from '../../components/History/KudoList';
 
-const KudoHistoryScreen = ({ currentTheme, workDAO,
-                         libraryDAO,
-                         setScreens,
-                         historyDAO,
-                         settingsDAO,
-                         progressDAO,
-                         kudoHistoryDAO}) => {
+const KudoHistoryScreen = ({
+  currentTheme,
+  workDAO,
+  libraryDAO,
+  setScreens,
+  historyDAO,
+  settingsDAO,
+  progressDAO,
+  kudoHistoryDAO,
+}) => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -57,13 +60,13 @@ const KudoHistoryScreen = ({ currentTheme, workDAO,
     }
   };
 
-  const fetchAndCombineHistory = async (historyData) => {
+  const fetchAndCombineHistory = async historyData => {
     if (!historyData || historyData.length === 0) {
       return [];
     }
 
     const combinedHistory = await Promise.all(
-      historyData.map(async (item) => {
+      historyData.map(async item => {
         try {
           const work = await workDAO.get(item.workId);
           return {
@@ -72,14 +75,17 @@ const KudoHistoryScreen = ({ currentTheme, workDAO,
             book_author: work ? work.author : 'Unknown Author',
           };
         } catch (error) {
-          console.error(`Error fetching work for history item ${item.id}:`, error);
+          console.error(
+            `Error fetching work for history item ${item.id}:`,
+            error,
+          );
           return {
             ...item,
             book_title: 'Unknown Book',
             book_author: 'Unknown Author',
           };
         }
-      })
+      }),
     );
     return combinedHistory;
   };
@@ -100,9 +106,12 @@ const KudoHistoryScreen = ({ currentTheme, workDAO,
           startTimestamp,
           endTimestamp,
           PAGE_SIZE,
-          0
+          0,
         );
-        count = await kudoHistoryDAO.getHistoryCountByDateRange(startTimestamp, endTimestamp);
+        count = await kudoHistoryDAO.getHistoryCountByDateRange(
+          startTimestamp,
+          endTimestamp,
+        );
       } else {
         historyData = await kudoHistoryDAO.getPaginatedHistory(PAGE_SIZE, 0);
         count = await kudoHistoryDAO.getTotalHistoryCount();
@@ -119,7 +128,6 @@ const KudoHistoryScreen = ({ currentTheme, workDAO,
       setLoading(false);
     }
   };
-
 
   const loadMoreHistory = async () => {
     if (loadingMore || !hasMore) return;
@@ -139,7 +147,7 @@ const KudoHistoryScreen = ({ currentTheme, workDAO,
           startTimestamp,
           endTimestamp,
           PAGE_SIZE,
-          offset
+          offset,
         );
       } else {
         moreData = await kudoHistoryDAO.getPaginatedHistory(PAGE_SIZE, offset);
@@ -192,10 +200,9 @@ const KudoHistoryScreen = ({ currentTheme, workDAO,
             }
           },
         },
-      ]
+      ],
     );
   };
-
 
   const applyDateFilter = async () => {
     try {
@@ -205,7 +212,10 @@ const KudoHistoryScreen = ({ currentTheme, workDAO,
 
       if (!dateRange.start) {
         setIsFilterActive(false);
-        const historyData = await kudoHistoryDAO.getPaginatedHistory(PAGE_SIZE, 0);
+        const historyData = await kudoHistoryDAO.getPaginatedHistory(
+          PAGE_SIZE,
+          0,
+        );
         const count = await kudoHistoryDAO.getTotalHistoryCount();
         const combinedHistory = await fetchAndCombineHistory(historyData);
         setHistory(combinedHistory || []);
@@ -222,10 +232,15 @@ const KudoHistoryScreen = ({ currentTheme, workDAO,
           startTimestamp,
           endTimestamp,
           PAGE_SIZE,
-          0
+          0,
         );
-        const count = await kudoHistoryDAO.getHistoryCountByDateRange(startTimestamp, endTimestamp);
-        const combinedFilteredHistory = await fetchAndCombineHistory(filteredHistory);
+        const count = await kudoHistoryDAO.getHistoryCountByDateRange(
+          startTimestamp,
+          endTimestamp,
+        );
+        const combinedFilteredHistory = await fetchAndCombineHistory(
+          filteredHistory,
+        );
         setHistory(combinedFilteredHistory || []);
         setTotalCount(count);
         setHasMore(filteredHistory.length === PAGE_SIZE);
@@ -245,7 +260,10 @@ const KudoHistoryScreen = ({ currentTheme, workDAO,
     try {
       setLoading(true);
       setCurrentPage(0);
-      const historyData = await kudoHistoryDAO.getPaginatedHistory(PAGE_SIZE, 0);
+      const historyData = await kudoHistoryDAO.getPaginatedHistory(
+        PAGE_SIZE,
+        0,
+      );
       const count = await kudoHistoryDAO.getTotalHistoryCount();
       const combinedHistory = await fetchAndCombineHistory(historyData);
       setHistory(combinedHistory || []);
@@ -259,17 +277,25 @@ const KudoHistoryScreen = ({ currentTheme, workDAO,
     }
   };
 
-  const handleScroll = (event) => {
+  const handleScroll = event => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
     const paddingToBottom = 20;
 
-    if (layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom) {
+    if (
+      layoutMeasurement.height + contentOffset.y >=
+      contentSize.height - paddingToBottom
+    ) {
       loadMoreHistory();
     }
   };
 
   if (loading) {
-    return <LoadingSpinner currentTheme={currentTheme} message="Loading kudos history..." />;
+    return (
+      <LoadingSpinner
+        currentTheme={currentTheme}
+        message="Loading kudos history..."
+      />
+    );
   }
 
   function onBack() {
@@ -281,12 +307,19 @@ const KudoHistoryScreen = ({ currentTheme, workDAO,
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: currentTheme.backgroundColor },
+      ]}
+    >
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack}>
           <Icon name="arrow-back" size={24} color={currentTheme.textColor} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: currentTheme.textColor }]}>Kudos History</Text>
+        <Text style={[styles.title, { color: currentTheme.textColor }]}>
+          Kudos History
+        </Text>
       </View>
 
       <ScrollView
@@ -338,7 +371,10 @@ const KudoHistoryScreen = ({ currentTheme, workDAO,
 
       {/* Calendar Filter Button */}
       <TouchableOpacity
-        style={[styles.readButtonFab, { backgroundColor: currentTheme.primaryColor }]}
+        style={[
+          styles.readButtonFab,
+          { backgroundColor: currentTheme.primaryColor },
+        ]}
         onPress={() => setShowCalendar(true)}
       >
         <Icon name="calendar-today" size={24} color="white" />

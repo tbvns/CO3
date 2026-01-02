@@ -1,17 +1,10 @@
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const NavItem = ({ icon, label, active, theme, onPress }) => {
   return (
-    <TouchableOpacity
-      style={styles.navItem}
-      onPress={onPress}
-    >
+    <TouchableOpacity style={styles.navItem} onPress={onPress}>
       <Icon
         name={icon}
         size={24}
@@ -20,7 +13,7 @@ const NavItem = ({ icon, label, active, theme, onPress }) => {
       <Text
         style={[
           styles.navLabel,
-          { color: active ? theme.primaryColor : theme.secondaryTextColor }
+          { color: active ? theme.primaryColor : theme.secondaryTextColor },
         ]}
       >
         {label}

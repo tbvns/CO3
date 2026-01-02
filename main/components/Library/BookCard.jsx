@@ -1,15 +1,7 @@
 import React, { useState } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import BookDetailsModal from './BookDetailsModal';
-import More from "../../screens/More";
-import MoreScreen from "../../screens/More";
 import ChapterInfoScreen from '../../screens/workScreen';
 import QuickActionsModal from './QuickActionsModal';
 
@@ -17,34 +9,34 @@ const imageMappings = {
   rating: {
     'General Audiences': require('../../res/status/public/icon-general-public.png'),
     'Teen And Up Audiences': require('../../res/status/public/icon-teen-public.png'),
-    'Mature': require('../../res/status/public/icon-mature-public.png'),
-    'Explicit': require('../../res/status/public/icon-explicite-public.png'),
+    Mature: require('../../res/status/public/icon-mature-public.png'),
+    Explicit: require('../../res/status/public/icon-explicite-public.png'),
     'Not Rated': require('../../res/status/public/icon-unknown-public.png'),
-    'default': require('../../res/status/public/icon-unknown-public.png'),
+    default: require('../../res/status/public/icon-unknown-public.png'),
   },
   category: {
     'F/F': require('../../res/status/relationship/icon-ff-relationships.png'),
     'F/M': require('../../res/status/relationship/icon-inter-relationships.png'),
     'M/M': require('../../res/status/relationship/icon-mm-relationships.png'),
-    'Multi': require('../../res/status/relationship/icon-multiple-relationships.png'),
-    'Gen': require('../../res/status/relationship/icon-none-relationships.png'),
-    'Other': require('../../res/status/relationship/icon-other-relationships.png'),
-    'None': require('../../res/status/relationship/icon-none-relationships.png'),
-    'default': require('../../res/status/relationship/icon-unknown-relationships.png'),
+    Multi: require('../../res/status/relationship/icon-multiple-relationships.png'),
+    Gen: require('../../res/status/relationship/icon-none-relationships.png'),
+    Other: require('../../res/status/relationship/icon-other-relationships.png'),
+    None: require('../../res/status/relationship/icon-none-relationships.png'),
+    default: require('../../res/status/relationship/icon-unknown-relationships.png'),
   },
   warningStatus: {
     'Creator Chose Not To Use Archive Warnings': require('../../res/status/warnings/icon-unspecified-warning.png'),
-    'WarningGiven': require('../../res/status/warnings/icon-has-warning.png'),
+    WarningGiven: require('../../res/status/warnings/icon-has-warning.png'),
     'No Archive Warnings Apply': require('../../res/status/warnings/icon-unknown-warning.png'),
-    'ExternalWork': require('../../res/status/warnings/icon-web-warning.png'),
-    'default': require('../../res/status/warnings/icon-unknown-warning.png'),
+    ExternalWork: require('../../res/status/warnings/icon-web-warning.png'),
+    default: require('../../res/status/warnings/icon-unknown-warning.png'),
   },
   isCompleted: {
     true: require('../../res/status/status/icon-done-status.png'),
     false: require('../../res/status/status/icon-unfinished-status.png'),
     null: require('../../res/status/status/icon-unknown-status.png'),
     undefined: require('../../res/status/status/icon-unknown-status.png'),
-  }
+  },
 };
 
 const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoHistoryDAO, openTagSearch, showDate = true }) => {

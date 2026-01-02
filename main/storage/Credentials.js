@@ -8,8 +8,9 @@ export async function getCredsPasswd() {
       authenticationPrompt: {
         title: 'Authenticate to access saved credentials',
         subtitle: 'Access is protected by your biometrics or device passcode',
-        description: 'To ensure your security, you need to authenticate before the app can access your saved login information.',
-      }
+        description:
+          'To ensure your security, you need to authenticate before the app can access your saved login information.',
+      },
     });
 
     if (creds) {

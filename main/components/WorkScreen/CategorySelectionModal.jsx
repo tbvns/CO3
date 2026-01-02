@@ -1,22 +1,22 @@
 import React from 'react';
 import {
   Modal,
-  View,
-  Text,
-  TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const CategorySelectionModal = ({
-                                  visible,
-                                  categories,
-                                  onSelect,
-                                  onCancel,
-                                  theme,
-                                  title = 'Select Collection',
-                                }) => {
+  visible,
+  categories,
+  onSelect,
+  onCancel,
+  theme,
+  title = 'Select Collection',
+}) => {
   return (
     <Modal
       visible={visible}
@@ -25,8 +25,12 @@ const CategorySelectionModal = ({
       onRequestClose={onCancel}
     >
       <View style={[styles.overlay, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
-        <View style={[styles.container, { backgroundColor: theme.cardBackground }]}>
-          <View style={[styles.header, { borderBottomColor: theme.borderColor }]}>
+        <View
+          style={[styles.container, { backgroundColor: theme.cardBackground }]}
+        >
+          <View
+            style={[styles.header, { borderBottomColor: theme.borderColor }]}
+          >
             <Text style={[styles.title, { color: theme.textColor }]}>
               {title}
             </Text>
@@ -46,7 +50,7 @@ const CategorySelectionModal = ({
                 style={[
                   styles.categoryItem,
                   { borderBottomColor: theme.borderColor },
-                  index === categories.length - 1 && { borderBottomWidth: 0 }
+                  index === categories.length - 1 && { borderBottomWidth: 0 },
                 ]}
                 onPress={() => onSelect(category)}
               >
@@ -64,10 +68,15 @@ const CategorySelectionModal = ({
 
           <View style={[styles.footer, { borderTopColor: theme.borderColor }]}>
             <TouchableOpacity
-              style={[styles.cancelButton, { backgroundColor: theme.inputBackground }]}
+              style={[
+                styles.cancelButton,
+                { backgroundColor: theme.inputBackground },
+              ]}
               onPress={onCancel}
             >
-              <Text style={[styles.cancelButtonText, { color: theme.textColor }]}>
+              <Text
+                style={[styles.cancelButtonText, { color: theme.textColor }]}
+              >
                 Cancel
               </Text>
             </TouchableOpacity>

@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  Text,
   Modal,
-  TouchableOpacity,
-  SafeAreaView,
   Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,13 +17,13 @@ import { bookmark } from '../../web/other/bookmarks';
 import { normalizeWorkData } from '../../storage/dao/WorkDAO';
 
 const QuickActionsModal = ({
-                             isOpen,
-                             onClose,
-                             work,
-                             theme,
-                             libraryDAO,
-                             workDAO,
-                           }) => {
+  isOpen,
+  onClose,
+  work,
+  theme,
+  libraryDAO,
+  workDAO,
+}) => {
   const [inLibrary, setInLibrary] = useState(false);
   const [categories, setCategories] = useState(null);
   const [categoryAction, setCategoryAction] = useState(null);
@@ -38,7 +38,7 @@ const QuickActionsModal = ({
           setCategories(
             loadedCategories.includes('Default')
               ? loadedCategories
-              : ['Default', ...loadedCategories]
+              : ['Default', ...loadedCategories],
           );
         } else {
           setCategories(['Default']);
@@ -80,7 +80,7 @@ const QuickActionsModal = ({
     return true;
   };
 
-  const addToLibrary = async (collection) => {
+  const addToLibrary = async collection => {
     try {
       const existingWork = await workDAO.get(work.id);
       if (!existingWork) {
@@ -145,7 +145,7 @@ const QuickActionsModal = ({
           text2: 'Successfully marked this work for later',
         });
       })
-      .catch((error) => {
+      .catch(error => {
         Toast.show({
           type: 'error',
           text1: 'Failed to Mark for Later',
@@ -154,7 +154,7 @@ const QuickActionsModal = ({
       });
   };
 
-  const handleCategorySelect = async (collection) => {
+  const handleCategorySelect = async collection => {
     setShowCategoryModal(false);
     onClose();
     try {
@@ -184,7 +184,7 @@ const QuickActionsModal = ({
           text2: 'Successfully bookmarked this work',
         });
       })
-      .catch((error) => {
+      .catch(error => {
         Toast.show({
           type: 'error',
           text1: 'Failed to Bookmark',
@@ -210,7 +210,12 @@ const QuickActionsModal = ({
             <View
               style={[styles.modal, { backgroundColor: theme.cardBackground }]}
             >
-              <View style={[styles.header, { borderBottomColor: theme.borderColor }]}>
+              <View
+                style={[
+                  styles.header,
+                  { borderBottomColor: theme.borderColor },
+                ]}
+              >
                 <Text
                   style={[styles.title, { color: theme.textColor }]}
                   numberOfLines={2}
@@ -231,7 +236,7 @@ const QuickActionsModal = ({
                     },
                   ]}
                   onPress={() => {
-                    handleAddToLibrary().then((willShowModal) => {
+                    handleAddToLibrary().then(willShowModal => {
                       if (willShowModal === false) {
                         onClose();
                       }
@@ -240,12 +245,12 @@ const QuickActionsModal = ({
                   activeOpacity={0.7}
                 >
                   <Icon
-                    name={inLibrary ? "remove" : "add"}
+                    name={inLibrary ? 'remove' : 'add'}
                     size={24}
                     color="white"
                   />
                   <Text style={styles.actionButtonText}>
-                    {inLibrary ? "Remove from library" : "Add to Library"}
+                    {inLibrary ? 'Remove from library' : 'Add to Library'}
                   </Text>
                 </TouchableOpacity>
 

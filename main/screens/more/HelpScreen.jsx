@@ -10,9 +10,9 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-export default function HelpScreen({setScreens, currentTheme}) {
+export default function HelpScreen({ setScreens, currentTheme }) {
   function onBack() {
-    setScreens((prev) => {
+    setScreens(prev => {
       const newScreens = [...prev];
       newScreens.pop();
       return newScreens;
@@ -25,18 +25,27 @@ export default function HelpScreen({setScreens, currentTheme}) {
         <TouchableOpacity onPress={onBack}>
           <Icon name="arrow-back" size={24} color={currentTheme.textColor} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: currentTheme.textColor }]}>Help</Text>
+        <Text style={[styles.title, { color: currentTheme.textColor }]}>
+          Help
+        </Text>
       </View>
       <ScrollView>
         <View style={styles.mainContent}>
-          <Image style={styles.image} source={require("../../res/CO3.png")} />
-          <View style={[styles.separator, {backgroundColor: currentTheme.borderColor}]} />
+          <Image style={styles.image} source={require('../../res/CO3.png')} />
+          <View
+            style={[
+              styles.separator,
+              { backgroundColor: currentTheme.borderColor },
+            ]}
+          />
           <Text style={[styles.title, { color: currentTheme.textColor }]}>
             Client Of Our Own
           </Text>
-          <Text style={[{ paddingTop: 20, color: currentTheme.textColor }]}>Do you need help or do you have an issue ?</Text>
+          <Text style={[{ paddingTop: 20, color: currentTheme.textColor }]}>
+            Do you need help or do you have an issue ?
+          </Text>
         </View>
-        <View style={[{margin: 16}]}>
+        <View style={[{ margin: 16 }]}>
           <LinkButton
             url="https://discord.gg/3wMGWu2xMF"
             label="Ask on the discord"
@@ -50,7 +59,7 @@ export default function HelpScreen({setScreens, currentTheme}) {
         </View>
       </ScrollView>
     </SafeAreaView>
-  )
+  );
 }
 
 function LinkButton({ url, label, theme }) {
