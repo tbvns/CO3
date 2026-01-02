@@ -31,7 +31,7 @@ const PreferencesScreen = ({
   // DB Settings State
   const [fontSize, setFontSize] = useState(1.0);
   const [useCustomSize, setUseCustomSize] = useState(false);
-  const [theme, setLocalTheme] = useState('light');
+  const [theme, setLocalTheme] = useState('black');
   const [localViewMode, setLocalViewMode] = useState('full');
 
   // JSON Settings State
@@ -40,7 +40,7 @@ const PreferencesScreen = ({
   const [updateTime, setUpdateTime] = useState(1440);
   const [updateRestriction, setUpdateRestriction] = useState(3);
 
-  const activeTheme = themes[theme] || themes.light;
+  const activeTheme = themes[theme] || themes.black;
 
   useEffect(() => {
     loadSettings();
@@ -157,24 +157,38 @@ const PreferencesScreen = ({
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           line-height: 1.6;
           padding: 20px;
-          background-color: ${activeTheme.backgroundColor};
-          color: ${activeTheme.textColor};
+          background-color: ${currentTheme.backgroundColor};
+          color: ${currentTheme.textColor};
           font-size: ${useCustomSize ? fontSize + 'em' : '1em'};
         }
         h1 { 
-          color: ${activeTheme.textColor};
-          border-bottom: 2px solid ${activeTheme.primaryColor};
+          color: ${currentTheme.textColor};
+          border-bottom: 2px solid ${currentTheme.primaryColor};
           padding-bottom: 8px;
         }
         p { 
-          color: ${activeTheme.textColor};
+          color: ${currentTheme.textColor};
           margin-bottom: 12px;
+        }
+        a { 
+          color: ${currentTheme.primaryColor};
+        }
+        blockquote {
+          border-left: 4px solid ${currentTheme.primaryColor};
+          background-color: ${currentTheme.inputBackground};
+          padding: 16px;
+          margin: 16px 0;
+          border-radius: 4px;
         }
       </style>
     </head>
     <body>
       <h1>Sample Chapter</h1>
-      <p>This is a sample text to preview your reader settings.</p>
+      <p>This is a sample text to preview your reader settings. You can adjust the font size using the controls below.</p>
+      <blockquote>
+        <p>Blockquotes and other elements will also reflect your custom settings.</p>
+      </blockquote>
+      <p>Try different font sizes to find what works best for you!</p>
     </body>
     </html>
   `;
@@ -287,7 +301,7 @@ const PreferencesScreen = ({
               style={{ height: 180 }}
               scalesPageToFit={true}
               bounces={false}
-              scrollEnabled={false}
+              nestedScrollEnabled={true}
             />
           </View>
 
