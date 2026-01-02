@@ -14,7 +14,7 @@ The goal is to give you a better reading experience on your phone with features 
 - **Completely free** - No subscriptions, no ads, ever
 
 ## Planned features
-- Update notifications when new chapters come out
+- ~~Update notifications when new chapters come out~~ (Done !)
 - ~~Bookmarks~~ (Done !)
 - View and read comments
 - User profile pages
