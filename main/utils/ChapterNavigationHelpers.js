@@ -97,7 +97,8 @@ export const navigateToPreviousChapter = async ({
                                                   currentChapterIndex,
                                                   currentTheme,
                                                   onChapterChange,
-                                                  historyDAO
+                                                  historyDAO,
+                                                  settingsDAO
                                                 }) => {
   try {
     // Check if there's a previous chapter
@@ -177,7 +178,7 @@ export const updateReadingProgress = async ({
       await historyDAO.updateChapterProgress(workId, chapterId, progress);
     }
 
-    // Call progress update callback
+    // Call progress Update callback
     if (onProgressUpdate) {
       onProgressUpdate({
         workId,

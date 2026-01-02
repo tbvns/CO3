@@ -32,10 +32,19 @@ import Toast from 'react-native-toast-message';
 import { bookmark } from '../web/other/bookmarks';
 import SystemNavigationBar from 'react-native-system-navigation-bar';
 import { normalizeWorkData } from '../storage/dao/WorkDAO';
+import { getJsonSettings } from '../storage/jsonSettings';
 
 const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress }) => {
   const hasProgress = chapter.progress !== undefined && chapter.progress !== null;
   const isRead = hasProgress && chapter.progress >= 0.98; // 98% or more
+
+  const [jsonSettings, setJsonSettings] = useState(null);
+
+  useEffect(() => {
+    getJsonSettings().then((settings) => setJsonSettings(settings));
+  }, []);
+
+  const showDate = jsonSettings?.showChapterDate && chapter.date;
 
   return (
     <TouchableOpacity
@@ -52,12 +61,13 @@ const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress }) => {
         >
           {chapter.name || `Chapter ${index + 1}`}
         </Text>
+
         {/* Chapter date and progress */}
-        {(chapter.date || hasProgress) && (
+        {(showDate || hasProgress) && (
           <Text style={[styles.chapterDate, { color: currentTheme.secondaryTextColor }]}>
-            {chapter.date}
-            {/* Display progress if available, regardless of "read" status */}
-            {hasProgress && ` | ${(chapter.progress * 100).toFixed(0)}%`}
+            {showDate ? chapter.date : null}
+            {showDate && hasProgress ? " | " : null}
+            {hasProgress ? `${(chapter.progress * 100).toFixed(0)}%` : null}
           </Text>
         )}
       </View>
@@ -283,14 +293,13 @@ const ChapterInfoScreen = ({
       setLoading(true);
       setError(null);
 
-      const [workData, chaptersData, progressData] = await Promise.all([
+      const [workData, progressData] = await Promise.all([
         fetchWorkFromWorkID(workId),
-        fetchChapters(workId),
         progressDAO.getProgressList(workId),
       ]);
 
       setWork(workData);
-      setChapters(chaptersData);
+      setChapters(workData.chapters);
 
       const progressMap = progressData.reduce((acc, item) => {
         acc[item.chapterID] = item.progress;
@@ -298,7 +307,7 @@ const ChapterInfoScreen = ({
       }, {});
       setChapterProgress(progressMap);
 
-      if (loadChapter !== null && chaptersData[loadChapter]) {
+      if (loadChapter !== null && workData.chapters && workData.chapters[loadChapter]) {
         setScreens(prev => {
           const newScreens = [...prev];
           newScreens.pop();
@@ -320,7 +329,7 @@ const ChapterInfoScreen = ({
           return newScreens;
         })
 
-        const chapterToLoad = chaptersData[loadChapter];
+        const chapterToLoad = workData.chapters[loadChapter];
         const chapterContent = await fetchChapter(
           workId,
           chapterToLoad.id,
@@ -336,11 +345,11 @@ const ChapterInfoScreen = ({
             chapterTitle: chapterToLoad.name,
             htmlContent: chapterContent,
             chapterIndex: loadChapter,
-            hasNextChapter: loadChapter < chaptersData.length - 1,
+            hasNextChapter: loadChapter < workData.chapters.length - 1,
             hasPreviousChapter: loadChapter > 0,
           };
 
-          const chapterListForNav = chaptersData.map((c) => ({
+          const chapterListForNav = workData.chapters.map((c) => ({
             id: c.id,
             title: c.name,
           }));

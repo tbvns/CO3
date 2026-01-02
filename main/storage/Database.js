@@ -13,6 +13,10 @@ class Database {
     return instance;
   }
 
+  static getInstance() {
+    return instance;
+  }
+
   async open() {
     if (this.db) {
       return this.db;
@@ -114,6 +118,17 @@ class Database {
                                             readIndex INTEGER DEFAULT 0,
                                             FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
         );`,
+      `CREATE TABLE IF NOT EXISTS updates (
+                                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                            workId TEXT NOT NULL,
+                                            chapterNumber INTEGER NOT NULL,
+                                            chapterID INTEGER NOT NULL,
+                                            date INTEGER NOT NULL,
+                                            FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE,
+        FOREIGN KEY (chapterID) REFERENCES chapters (id) ON DELETE CASCADE
+        );`,
+      `CREATE INDEX IF NOT EXISTS idx_updates_workId ON updates (workId);`,
+      `CREATE INDEX IF NOT EXISTS idx_updates_date ON updates (date);`,
       `CREATE INDEX IF NOT EXISTS idx_chapters_workId ON chapters (workId);`,
       `CREATE INDEX IF NOT EXISTS idx_history_workId ON history (workId);`,
       `CREATE INDEX IF NOT EXISTS idx_tags_name ON tags (name);`,

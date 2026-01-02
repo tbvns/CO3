@@ -96,52 +96,101 @@ const QuickActionsModal = ({
 
   const handleAddToLibrary = useCallback(async () => {
     if (inLibrary) {
-      return await showCategorySelection('remove');
+      onClose();
+      try {
+        await libraryDAO.remove(work.id);
+        setInLibrary(false);
+        Toast.show({
+          type: 'success',
+          text1: 'Removed from Library',
+          text2: 'Successfully removed this work from library',
+        });
+      } catch (error) {
+        Toast.show({
+          type: 'error',
+          text1: 'Failed to Remove',
+          text2: error.message || 'An error occurred',
+        });
+      }
+    } else if (categories.length === 1) {
+      onClose();
+      try {
+        await addToLibrary(categories[0]);
+        setInLibrary(true);
+        Toast.show({
+          type: 'success',
+          text1: 'Added to Library',
+          text2: 'Successfully added this work to the library',
+        });
+      } catch (error) {
+        Toast.show({
+          type: 'error',
+          text1: 'Failed to Add',
+          text2: error.message || 'An error occurred',
+        });
+      }
     } else {
-      return await showCategorySelection('add');
+      setCategoryAction('add');
+      setShowCategoryModal(true);
     }
-  }, [inLibrary, categories]);
+  }, [inLibrary, categories, work, workDAO, libraryDAO]);
 
-  const handleMarkForLater = async () => {
+  const handleMarkForLater = () => {
     onClose();
-    try {
-      await markForLater(work);
-      Toast.show({
-        type: 'success',
-        text1: 'Marked for Later',
-        text2: 'Successfully marked this work for later',
+    markForLater(work)
+      .then(() => {
+        Toast.show({
+          type: 'success',
+          text1: 'Marked for Later',
+          text2: 'Successfully marked this work for later',
+        });
+      })
+      .catch((error) => {
+        Toast.show({
+          type: 'error',
+          text1: 'Failed to Mark for Later',
+          text2: error.message || 'An error occurred',
+        });
       });
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to Mark for Later',
-        text2: error.message || 'An error occurred',
-      });
-    }
   };
 
   const handleCategorySelect = async (collection) => {
     setShowCategoryModal(false);
-    await addToLibrary(collection);
-    onClose();
-  };
-
-  const handleBookmark = async () => {
     onClose();
     try {
-      await bookmark(work);
+      await addToLibrary(collection);
+      setInLibrary(true);
       Toast.show({
         type: 'success',
-        text1: 'Bookmarked',
-        text2: 'Successfully bookmarked this work',
+        text1: 'Added to Library',
       });
     } catch (error) {
       Toast.show({
         type: 'error',
-        text1: 'Failed to Bookmark',
+        text1: 'Failed to Add',
         text2: error.message || 'An error occurred',
       });
     }
+  };
+
+  const handleBookmark = () => {
+    onClose();
+
+    bookmark(work)
+      .then(() => {
+        Toast.show({
+          type: 'success',
+          text1: 'Bookmarked',
+          text2: 'Successfully bookmarked this work',
+        });
+      })
+      .catch((error) => {
+        Toast.show({
+          type: 'error',
+          text1: 'Failed to Bookmark',
+          text2: error.message || 'An error occurred',
+        });
+      });
   };
 
   if (!work) return null;

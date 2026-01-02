@@ -1,5 +1,8 @@
 import ky from "ky";
 import {Work} from "../../storage/models/work";
+import { getJsonSettings } from '../../storage/jsonSettings';
+import { fetchChapter } from './fetchChapter';
+import { fetchChapters } from './fetchChapters';
 let DomParser = require("react-native-html-parser").DOMParser;
 
 function getElementText(element) {
@@ -137,6 +140,42 @@ function extractWorkMetadata(doc) {
   return result;
 }
 
+function extractChapters(doc) {
+  const chapters = [];
+
+  const selectElement = doc.getElementById("selected_id");
+  if (!selectElement) return chapters;
+
+  const options = selectElement.getElementsByTagName("option");
+
+  for (let i = 0; i < options.length; i++) {
+    const option = options[i];
+    const chapterId = option.getAttribute("value");
+    const optionText = getElementText(option);
+
+    if (!chapterId || !optionText) continue;
+
+    const match = optionText.match(/^(\d+)\.\s+(.+?)(?:\s+\[warning:.*\])?$/);
+
+    if (match) {
+      const chapterNumber = parseInt(match[1], 10);
+      let chapterName = match[2].trim();
+
+      chapterName = chapterName.replace(/\s*\[warning:.*\].*$/i, '').trim();
+
+      chapters.push({
+        id: parseInt(chapterId, 10),
+        workId: null,
+        number: chapterNumber,
+        name: `${chapterNumber}. ${chapterName}`,
+        date: null
+      });
+    }
+  }
+
+  return chapters;
+}
+
 export function extractWorkContent(doc) {
   const result = {
     title: null,
@@ -147,7 +186,6 @@ export function extractWorkContent(doc) {
   const workskinElement = doc.getElementById("workskin");
   if (!workskinElement) return result;
 
-  // Extract title from h2 with class "title heading"
   const h2Elements = workskinElement.getElementsByTagName("h2");
   for (let i = 0; i < h2Elements.length; i++) {
     if (h2Elements[i].getAttribute("class") === "title heading") {
@@ -156,7 +194,6 @@ export function extractWorkContent(doc) {
     }
   }
 
-  // Extract author from h3 with class "byline heading"
   const h3Elements = workskinElement.getElementsByTagName("h3");
   for (let i = 0; i < h3Elements.length; i++) {
     if (h3Elements[i].getAttribute("class") === "byline heading") {
@@ -168,7 +205,6 @@ export function extractWorkContent(doc) {
     }
   }
 
-  // Extract summary from div with class "summary module"
   const divElements = workskinElement.getElementsByTagName("div");
   for (let i = 0; i < divElements.length; i++) {
     if (divElements[i].getAttribute("class") === "summary module") {
@@ -198,6 +234,7 @@ export async function fetchWorkFromWorkID(workId) {
 
     const metadata = extractWorkMetadata(doc);
     const content = extractWorkContent(doc);
+    const chapters = (await getJsonSettings()).showChapterDate ? await fetchChapters(workId) : extractChapters(doc);
 
     const chapterInfo = parseChapters(metadata.chapters);
 
@@ -222,9 +259,9 @@ export async function fetchWorkFromWorkID(workId) {
       tags: metadata.tags || [],
       warnings: metadata.warnings || [],
       description: content.summary || null,
-      chapters: [],
+      chapters: chapters,
       currentChapter: chapterInfo.current,
-      chapterCount: chapterInfo.total,
+      chapterCount: chapterInfo.total || chapters.length,
       rating: metadata.rating || null,
       category: metadata.category || null,
       warningStatus: warningStatus,

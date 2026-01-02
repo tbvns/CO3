@@ -31,7 +31,7 @@ export class HistoryDAO {
 
   /**
    * Updates the end chapter and date of an existing history entry.
-   * @param {number} id - The ID of the history entry to update.
+   * @param {number} id - The ID of the history entry to Update.
    * @param {number} chapterEnd - The new end chapter number.
    * @param {number} date - The new date timestamp.
    */

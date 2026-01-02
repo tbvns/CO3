@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
   SafeAreaView,
   StatusBar,
   Alert,
@@ -32,22 +31,21 @@ import UpdateScreen from './screens/Update';
 import BrowseScreen from './screens/Browse';
 import HistoryScreen from './screens/History';
 import MoreScreen from './screens/More';
-import { fetchChapters } from './web/worksScreen/fetchChapters';
-import { fetchWorkFromWorkID } from './web/worksScreen/fetchWork';
+import ChapterInfoScreen from './screens/workScreen'; // <--- IMPORT ADDED
+
 import { LibraryDAO } from './storage/dao/LibraryDAO';
 import { ProgressDAO } from './storage/dao/ProgressDAO';
-import fetchLoginAuthenticityToken from './web/account/fetchAuthenticityToken';
-import login from './web/account/login';
 import { KudoHistoryDAO } from './storage/dao/KudosHistoryDAO';
-import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
 import CustomToast from './components/common/CustomToast';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import SystemNavigationBar from 'react-native-system-navigation-bar';
-import { setup } from './web/updater';
+import { setup, setupNotificationListeners } from './web/updater';
 import { getJsonSettings } from './storage/jsonSettings';
+import { UpdateDAO } from './storage/dao/UpdateDAO';
+import notifee from '@notifee/react-native';
 
 
 const AppWrapper = () => {
@@ -159,6 +157,7 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [activeScreen, setActiveScreen] = useState('library');
 
+  const [databaseObj, setDatabaseObj] = useState(null);
   const [workDAO, setWorkDAO] = useState(null);
   const [historyDAO, setHistoryDAO] = useState(null);
   const [settingsDAO, setSettingsDAO] = useState(null);
@@ -166,21 +165,126 @@ const App = () => {
   const [progressDAO, setProgressDAO] = useState(null);
   const [kudoDAO, setKudoDAO] = useState(null);
   const [kudoHistoryDAO, setKudoHistoryDAO] = useState(null);
+  const [updateDAO, setupdateDAO] = useState(null);
 
   const [screens, setScreens] = useState([]);
 
   const [selectedTag, setSelectedTag] = useState();
 
+  const currentTheme = useMemo(() => {
+    return (themes && themes[theme]) ? themes[theme] : (themes?.light || {
+      backgroundColor: 'white',
+      textColor: 'black',
+      headerBackground: '#f8f8f8',
+      iconColor: '#333',
+      inputBackground: '#eee',
+      borderColor: '#e0e0e0',
+      primaryColor: '#8b5cf6',
+      buttonBackground: '#eee',
+      placeholderColor: '#999',
+      cardBackground: '#fff',
+      secondaryTextColor: '#666',
+    });
+  }, [theme]);
+
+  const contextRef = useRef({
+    workDAO, libraryDAO, settingsDAO, historyDAO, progressDAO, kudoHistoryDAO, currentTheme
+  });
+
+  useEffect(() => {
+    contextRef.current = {
+      workDAO, libraryDAO, settingsDAO, historyDAO, progressDAO, kudoHistoryDAO, currentTheme
+    };
+  }, [workDAO, libraryDAO, settingsDAO, historyDAO, progressDAO, kudoHistoryDAO, currentTheme]);
+
+
   useEffect(() => {
     initializeApp();
+
+    const unsubscribeForeground = setupNotificationListeners(
+      setActiveScreen,
+      setScreens,
+      (workId, chapterId) => handleNotificationOpen(workId, chapterId)
+    );
+
+    const checkInitialNotification = async () => {
+      const initialNotification = await notifee.getInitialNotification();
+
+      if (initialNotification) {
+        if (initialNotification.notification.id === 'updateComplete') {
+          setActiveScreen('update');
+        } else if (initialNotification.notification.data?.action === 'OPEN_WORK') {
+          // Handle cold start from individual notification
+          const { workId, chapterId } = initialNotification.notification.data;
+          // We need to wait for DB to init, so we might need a small delay or check
+          setTimeout(() => handleNotificationOpen(workId, chapterId), 1000);
+        }
+      }
+    };
+
+    checkInitialNotification();
+
     return () => {
       if (database) {
         database.close();
       }
+      unsubscribeForeground();
     };
   }, []);
 
-  // Handle pressing the back button
+
+  const handleNotificationOpen = async (workId, chapterNumber) => {
+    const ctx = contextRef.current;
+
+    if (!ctx.workDAO) return;
+
+    try {
+      const { fetchWorkFromWorkID } = require('./web/worksScreen/fetchWork');
+      const work = await fetchWorkFromWorkID(workId);
+
+      if (!work) return;
+
+      let loadChapterIndex = null;
+
+      if (chapterNumber && work.chapters && work.chapters.length > 0) {
+        const targetNum = parseInt(chapterNumber);
+
+        const foundIndex = work.chapters.findIndex(c => c.number === targetNum);
+
+        if (foundIndex !== -1) {
+          loadChapterIndex = foundIndex;
+        }
+        else if (targetNum <= work.chapters.length && targetNum > 0) {
+          loadChapterIndex = targetNum - 1;
+        }
+      }
+
+      console.log(`[Notification] Opening Work: ${work.title}, Index: ${loadChapterIndex}`);
+
+      setScreens(prev => [...prev,
+        <ChapterInfoScreen
+          key={`notif_${workId}_${Date.now()}`}
+          workId={workId}
+          currentTheme={ctx.currentTheme}
+          libraryDAO={ctx.libraryDAO}
+          workDAO={ctx.workDAO}
+          setScreens={setScreens}
+          settingsDAO={ctx.settingsDAO}
+          historyDAO={ctx.historyDAO}
+          progressDAO={ctx.progressDAO}
+          kudoHistoryDAO={ctx.kudoHistoryDAO}
+          openTagSearch={openTagSearch}
+          loadChapter={loadChapterIndex}
+        />
+      ]);
+
+      setActiveScreen('update');
+
+    } catch (e) {
+      console.error("Failed to open work from notification", e);
+    }
+  };
+
   useEffect(() => {
     const backAction = () => {
       if (screens.length > 0) {
@@ -224,13 +328,16 @@ const App = () => {
       const newLibraryDAO = new LibraryDAO(db);
       const newProgressDAO = new ProgressDAO(db);
       const newKudoHistoryDAO = new KudoHistoryDAO(db);
+      const newUpdateDAO = new UpdateDAO(db);
 
+      setDatabaseObj(db)
       setWorkDAO(newWorkDAO);
       setHistoryDAO(newHistoryDAO);
       setSettingsDAO(newSettingsDAO);
       setLibraryDAO(newLibraryDAO);
       setProgressDAO(newProgressDAO);
       setKudoHistoryDAO(newKudoHistoryDAO)
+      setupdateDAO(newUpdateDAO);
 
       const loadedSettings = await newSettingsDAO.getSettings();
       setTheme(loadedSettings.theme);
@@ -337,20 +444,6 @@ const App = () => {
     }
   };
 
-  const currentTheme = (themes && themes[theme]) ? themes[theme] : (themes?.light || {
-    backgroundColor: 'white',
-    textColor: 'black',
-    headerBackground: '#f8f8f8',
-    iconColor: '#333',
-    inputBackground: '#eee',
-    borderColor: '#e0e0e0',
-    primaryColor: '#8b5cf6',
-    buttonBackground: '#eee',
-    placeholderColor: '#999',
-    cardBackground: '#fff',
-    secondaryTextColor: '#666',
-  });
-
   const openTagSearch = (tag) => {
     setSelectedTag(tag);
     setActiveScreen("browse")
@@ -381,7 +474,9 @@ const App = () => {
       kudoHistoryDAO,
       openTagSearch,
       selectedTag,
-      setSelectedTag
+      setSelectedTag,
+      updateDAO,
+      databaseObj,
     };
 
     switch (activeScreen) {
@@ -415,7 +510,7 @@ const App = () => {
 
   //render the screen if set instead of rendering the main menu
   if (screens.length !== 0) {
-    console.log(screens);
+    // console.log(screens);
     return (
       <>
         <StatusBar
