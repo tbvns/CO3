@@ -47,6 +47,7 @@ import { UpdateDAO } from './storage/dao/UpdateDAO';
 import notifee from '@notifee/react-native';
 import { Linking } from 'react-native';
 import { ChapterDAO } from './storage/dao/ChapterDAO';
+import GlobalSearchScreen from './screens/GlobalSearchScreen';
 
 const AppWrapper = () => {
   return (
@@ -56,9 +57,9 @@ const AppWrapper = () => {
   );
 };
 
-const TopBar = ({ currentTheme, activeScreen, setIsSideMenuOpen, searchTerm, setSearchTerm }) => {
+const TopBar = ({ currentTheme, activeScreen, setIsSideMenuOpen, searchTerm, setSearchTerm, setActiveScreen }) => {
   const insets = useSafeAreaInsets();
-  const showSearch = activeScreen === 'library';
+  const showSearch = activeScreen === 'library' || activeScreen === 'search' || activeScreen === 'browse';
 
   return (
     <View style={[styles.header, { backgroundColor: currentTheme.headerBackground, paddingTop: insets.top, }]}>
@@ -74,9 +75,12 @@ const TopBar = ({ currentTheme, activeScreen, setIsSideMenuOpen, searchTerm, set
                 borderColor: currentTheme.borderColor,
               }
             ]}
-            placeholder="Search books, authors..."
+            placeholder="Search works, authors..."
             placeholderTextColor={currentTheme.placeholderColor}
             value={searchTerm}
+            onPress={() => {
+              setActiveScreen('search')
+            }}
             onChangeText={setSearchTerm}
           />
         </View>
@@ -548,6 +552,8 @@ const App = () => {
         return <HistoryScreen {...screenProps} />;
       case 'more':
         return <MoreScreen {...screenProps} />;
+      case 'search':
+        return <GlobalSearchScreen {...screenProps} />
       default:
         return <LibraryScreen {...screenProps} />;
     }
@@ -606,6 +612,7 @@ const App = () => {
           setIsSideMenuOpen={setIsSideMenuOpen}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
+          setActiveScreen={setActiveScreen}
         />
 
         {renderScreen()}

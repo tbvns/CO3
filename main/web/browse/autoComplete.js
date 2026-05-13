@@ -8,14 +8,8 @@ const AO3_BASE_URL = 'https://archiveofourown.org/autocomplete';
  * @param {string} term - Search term
  * @returns {Promise<Array>} Array of suggestion objects with id and name
  */
-const fetchAutocompleteSuggestions = async (type, term) => {
+export const fetchAutocompleteSuggestions = async (type, term) => {
     if (!term || term.length < 2) {
-        return [];
-    }
-
-    const validTypes = ['character', 'relationship', 'freeform', 'fandom'];
-    if (!validTypes.includes(type)) {
-        console.error(`Invalid autocomplete type: ${type}`);
         return [];
     }
 
@@ -136,6 +130,7 @@ export default {
     fetchRelationshipSuggestions,
     fetchFreeformSuggestions,
     fetchFandomSuggestions,
+    fetchAutocompleteSuggestions,
     debounce,
     parseInputForAutocomplete,
     replaceLastTerm
