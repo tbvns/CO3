@@ -52,123 +52,8 @@ const imageMappings = {
   },
 };
 
-const UpdateBookCard = ({ update, workDAO, theme, onPress }) => {
-  const [work, setWork] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const [isInQueue, setIsInQueue] = useState(false);
-  const [hasFailed, setHasFailed] = useState(false);
-  const [isDownloadedFile, setIsDownloadedFile] = useState(false);
-  const [showDelete, setShowDelete] = useState(false);
-  const isMounted = useRef(true);
-
-  useEffect(() => {
-    loadWork();
-  }, [update.workId]);
-
-  const loadWork = async () => {
-    try {
-      const workData = await workDAO.get(update.workId);
-      setWork(workData);
-    } catch (error) {
-      console.error('Error loading work:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    isMounted.current = true;
-    const checkStatus = async () => {
-      if (!update.workId || !update.chapterID) return;
-      const queue = await getDownloadQueue();
-      const failedJson = await AsyncStorage.getItem('failedDownloads');
-      const failedList = failedJson ? JSON.parse(failedJson) : [];
-      const exists = await isDownloaded(update.workId, update.chapterID);
-
-      if (isMounted.current) {
-        setIsInQueue(queue.some(q => String(q.chapterId) === String(update.chapterID)));
-        setHasFailed(failedList.some(f => String(f.chapterId) === String(update.chapterID)));
-        setIsDownloadedFile(exists);
-      }
-    };
-    checkStatus();
-
-    const qSub = DeviceEventEmitter.addListener('queue_updated', (q) => {
-      if (isMounted.current) {
-        setIsInQueue(q.some(item => String(item.chapterId) === String(update.chapterID)));
-      }
-    });
-
-    const fSub = DeviceEventEmitter.addListener('failures_updated', (f) => {
-      if (isMounted.current) {
-        setHasFailed(f.some(item => String(item.chapterId) === String(update.chapterID)));
-      }
-    });
-
-    const cSub = DeviceEventEmitter.addListener('download_completed', (data) => {
-      if (isMounted.current && String(data.chapterId) === String(update.chapterID)) {
-        setIsInQueue(false);
-        setIsDownloadedFile(data.success);
-        if (!data.success) setHasFailed(true);
-      }
-    });
-
-    const rSub = DeviceEventEmitter.addListener('chapter_deleted', (data) => {
-      if (isMounted.current && String(data.chapterId) === String(update.chapterID)) {
-        setIsInQueue(false);
-        setIsDownloadedFile(!data.success);
-        if (!data.success) setHasFailed(true);
-      }
-    });
-
-    return () => {
-      isMounted.current = false;
-      qSub.remove();
-      fSub.remove();
-      cSub.remove();
-      rSub.remove();
-    };
-  }, [update.chapterID, update.workId])
-
-  const handleDownloadPress = async () => {
-    if (isInQueue) return;
-    if (isDownloadedFile) {
-      if (showDelete) {
-        try {
-          setIsInQueue(true);
-          await deleteDownloaded(update.workId, update.chapterID);
-          setIsDownloadedFile(false);
-          setShowDelete(false);
-        } catch (error) {
-          Toast.show({ type: "error", text1: "Error deleting", text2: error.message });
-        } finally {
-          if (isMounted.current) setIsInQueue(false);
-        }
-      } else {
-        setShowDelete(true);
-        setTimeout(() => {
-          if (isMounted.current) setShowDelete(false);
-        }, 3000);
-      }
-      return;
-    }
-
-    if (hasFailed) {
-      const failedJson = await AsyncStorage.getItem('failedDownloads');
-      const failedList = failedJson ? JSON.parse(failedJson) : [];
-      const newList = failedList.filter(f => String(f.chapterId) !== String(update.chapterID));
-      await AsyncStorage.setItem('failedDownloads', JSON.stringify(newList));
-      setHasFailed(false);
-      DeviceEventEmitter.emit('failures_updated', newList);
-    }
-
-    setIsInQueue(true);
-    await addToDownloadQueue({ workId: update.workId, chapterId: update.chapterID });
-    processQueue();
-  };
-
-  if (loading || !work) {
+const UpdateBookCard = ({ work, theme, onPress }) => {
+  if (!work) {
     return (
       <View style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.borderColor }]}>
         <Text style={[styles.loadingText, { color: theme.secondaryTextColor }]}>Loading...</Text>
@@ -198,7 +83,7 @@ const UpdateBookCard = ({ update, workDAO, theme, onPress }) => {
   }
 
   const images = [ratingImage, categoryImage, warningImage, statusImage];
-  const gridSize = 40;
+  const gridSize = 30;
   const imageSize = gridSize / 2;
 
   return (
@@ -206,7 +91,7 @@ const UpdateBookCard = ({ update, workDAO, theme, onPress }) => {
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={styles.content}>
+      <View style={[styles.content, {backgroundColor: theme.inputBackground}]}>
         <View
           style={[
             styles.imageGrid,
@@ -266,9 +151,14 @@ const UpdateBookCard = ({ update, workDAO, theme, onPress }) => {
             {work.title}
           </Text>
           <Text style={[styles.chapter, { color: theme.primaryColor }]}>
-            Chapter {update.chapterNumber}
+            By {work.author}
           </Text>
         </View>
+        <Icon
+          name="chevron-right"
+          size={16}
+          color={theme.iconColor}
+        />
       </View>
     </TouchableOpacity>
   );
@@ -285,6 +175,9 @@ const styles = StyleSheet.create({
   content: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 4,
+    paddingStart: 12,
+    paddingEnd: 12
   },
   imageGrid: {
     marginRight: 12,
@@ -302,8 +195,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 4,
   },
   chapter: {
     fontSize: 13,

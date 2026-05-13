@@ -2,6 +2,8 @@ import { ScrollView, Text, TouchableOpacity, View, StyleSheet } from 'react-nati
 import { useState, useEffect } from 'react';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import autoComplete from '../web/browse/autoComplete';
+import { fetchFilteredWorks } from '../web/browse/fetchWorks';
+import SmallBookCard from '../components/common/SmallBookCard';
 
 const SECTION_META = {
   'All Tags': { icon: 'tag-outline' },
@@ -66,6 +68,27 @@ function SectionHeader({ name, count, currentTheme }) {
   );
 }
 
+function WorksList({ name, values, currentTheme }) {
+  if (!values.works || values.works.length === 0) return null;
+
+  return (
+    <View style={styles.section}>
+      <SectionHeader name={name} count={values.works.length} currentTheme={currentTheme} />
+      <View style={[styles.itemsCard, { borderColor: currentTheme.borderColor }]}>
+        {values.works.slice(0, 5).map((v, i) => (
+          <View key={i}>
+            <SmallBookCard work={v} theme={currentTheme} />
+            {i < Math.min(values.works.length, 5) - 1 && (
+              <View style={[styles.divider, { backgroundColor: currentTheme.borderColor }]} />
+            )}
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+
 function ItemsList({ name, values, currentTheme }) {
   if (values.length === 0) return null;
 
@@ -103,7 +126,7 @@ function EmptyState({ currentTheme }) {
 export default function GlobalSearchScreen({ currentTheme, searchTerm, setActiveScreen }) {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
 
-  const [works, setWorks] = useState([]);
+  const [worksResult, setWorksResultResult] = useState([]);
   const [tags, setTags] = useState([]);
   const [fandoms, setFandoms] = useState([]);
   const [ships, setShips] = useState([]);
@@ -120,6 +143,7 @@ export default function GlobalSearchScreen({ currentTheme, searchTerm, setActive
         return;
       }
 
+      fetchFilteredWorks({"work_search[query]": term}).then(setWorksResultResult)
       autoComplete.fetchAutocompleteSuggestions('tag', term).then(setTags);
       autoComplete.fetchFandomSuggestions(term).then(setFandoms);
       autoComplete.fetchRelationshipSuggestions(term).then(setShips);
@@ -176,6 +200,7 @@ export default function GlobalSearchScreen({ currentTheme, searchTerm, setActive
         </View>
       ) : (
         <>
+          <WorksList name="Works" values={worksResult} currentTheme={currentTheme}/>
           <ItemsList name="All Tags" values={tags} currentTheme={currentTheme} />
           <ItemsList name="Fandoms" values={fandoms} currentTheme={currentTheme} />
           <ItemsList name="Relationships" values={ships} currentTheme={currentTheme} />
