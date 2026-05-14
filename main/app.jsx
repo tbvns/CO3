@@ -181,6 +181,7 @@ const App = () => {
   const [screens, setScreens] = useState([]);
 
   const [selectedTag, setSelectedTag] = useState();
+  const [selectedPreset, setSelectedPreset] = useState();
 
   const currentTheme = useMemo(() => {
     return (themes && themes[theme]) ? themes[theme] : (themes?.light || {
@@ -352,6 +353,10 @@ const App = () => {
           newScreens.pop();
           return newScreens;
         });
+        return true;
+      } else if (activeScreen === "search") {
+        setActiveScreen("library")
+        console.log("Back on search, opening library as fallback"); //For some reason if I remove this, it doesn't work. Might be the first heisenbug of this codebase
         return true;
       }
       return false;
@@ -538,7 +543,9 @@ const App = () => {
       setSelectedTag,
       updateDAO,
       databaseObj,
-      chapterDAO
+      chapterDAO,
+      selectedPreset,
+      setSelectedPreset
     };
 
     switch (activeScreen) {

@@ -240,7 +240,7 @@ export async function fetchFilteredWorks(filters = {}, page = 1) {
         }
 
         console.log(`Fetching works from: ${url}`);
-        const response = await ky.get(url).text();
+        const response = await ky.get(url, {timeout: 20000}).text();
         const doc = new DomParser().parseFromString(response, "text/html");
 
         const workElements = Array.from(doc.getElementsByTagName("li"))

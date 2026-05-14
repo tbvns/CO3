@@ -4,8 +4,13 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import autoComplete from '../web/browse/autoComplete';
 import { fetchFilteredWorks } from '../web/browse/fetchWorks';
 import SmallBookCard from '../components/common/SmallBookCard';
+import Toast from 'react-native-toast-message';
+import WorkScreen from './workScreen';
+import { searchJsonPreset } from '../storage/jsonSearches';
 
 const SECTION_META = {
+  'Library': { icon: 'bookmark-outline' },
+  'Works': { icon: 'book-outline' },
   'All Tags': { icon: 'tag-outline' },
   'Fandoms': { icon: 'television-play' },
   'Relationships':{ icon: 'heart-outline' },
@@ -47,6 +52,40 @@ function SearchItem({ value, onPress, currentTheme }) {
   );
 }
 
+function PresetItem({ value, onPress, currentTheme }) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[
+        styles.item,
+        {
+          backgroundColor: currentTheme.inputBackground,
+          borderColor: currentTheme.borderColor,
+        },
+      ]}
+      activeOpacity={0.7}
+    >
+      <Icon
+        name="layers-search-outline"
+        size={13}
+        color={currentTheme.primaryColor}
+        style={styles.itemIcon}
+      />
+      <Text
+        style={[styles.itemText, { color: currentTheme.textColor }]}
+        numberOfLines={1}
+      >
+        {value.name}
+      </Text>
+      <Icon
+        name="chevron-right"
+        size={16}
+        color={currentTheme.iconColor}
+      />
+    </TouchableOpacity>
+  );
+}
+
 function SectionHeader({ name, count, currentTheme }) {
   const meta = SECTION_META[name] ?? { icon: 'magnify' };
   return (
@@ -68,17 +107,38 @@ function SectionHeader({ name, count, currentTheme }) {
   );
 }
 
-function WorksList({ name, values, currentTheme }) {
-  if (!values.works || values.works.length === 0) return null;
+function WorksList({ name, values, currentTheme, libraryDAO, workDAO, setScreens, settingsDAO, historyDAO, progressDAO, kudoHistoryDAO, chapterDAO}) {
+  if (!values || values?.length === 0) return null;
+
+  console.log(values);
 
   return (
     <View style={styles.section}>
-      <SectionHeader name={name} count={values.works.length} currentTheme={currentTheme} />
+      <SectionHeader name={name} count={values.length} currentTheme={currentTheme} />
       <View style={[styles.itemsCard, { borderColor: currentTheme.borderColor }]}>
-        {values.works.slice(0, 5).map((v, i) => (
+        {values.slice(0, 5).map((v, i) => (
           <View key={i}>
-            <SmallBookCard work={v} theme={currentTheme} />
-            {i < Math.min(values.works.length, 5) - 1 && (
+            <SmallBookCard
+              work={v}
+              theme={currentTheme}
+              onPress={() => {
+                setScreens(prev => [...prev,
+                  <WorkScreen
+                    workId={v.id}
+                    currentTheme={currentTheme}
+                    settingsDAO={settingsDAO}
+                    workDAO={workDAO}
+                    libraryDAO={libraryDAO}
+                    setScreens={setScreens}
+                    historyDAO={historyDAO}
+                    progressDAO={progressDAO}
+                    kudoHistoryDAO={kudoHistoryDAO}
+                    chapterDAO={chapterDAO}
+                  />
+                ])
+              }}
+            />
+            {i < Math.min(values.length, 5) - 1 && (
               <View style={[styles.divider, { backgroundColor: currentTheme.borderColor }]} />
             )}
           </View>
@@ -88,8 +148,7 @@ function WorksList({ name, values, currentTheme }) {
   );
 }
 
-
-function ItemsList({ name, values, currentTheme }) {
+function ItemsList({ name, values, currentTheme, setScreens, openTagSearch }) {
   if (values.length === 0) return null;
 
   return (
@@ -98,7 +157,40 @@ function ItemsList({ name, values, currentTheme }) {
       <View style={[styles.itemsCard, { borderColor: currentTheme.borderColor }]}>
         {values.slice(0, 5).map((v, i) => (
           <View key={i}>
-            <SearchItem value={v} currentTheme={currentTheme} />
+            <SearchItem
+              value={v}
+              currentTheme={currentTheme}
+              onPress={() => {
+                openTagSearch(v.id)
+              }}
+            />
+            {i < Math.min(values.length, 5) - 1 && (
+              <View style={[styles.divider, { backgroundColor: currentTheme.borderColor }]} />
+            )}
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function PresetList({ name, values, currentTheme, setActiveScreen, openPreset }) {
+  if (values.length === 0) return null;
+
+  return (
+    <View style={styles.section}>
+      <SectionHeader name={name} count={values.length} currentTheme={currentTheme} />
+      <View style={[styles.itemsCard, { borderColor: currentTheme.borderColor }]}>
+        {values.slice(0, 5).map((v, i) => (
+          <View key={i}>
+            <PresetItem
+              value={v}
+              currentTheme={currentTheme}
+              onPress={() => {
+                openPreset(v.name)
+                setActiveScreen("browse")
+              }}
+            />
             {i < Math.min(values.length, 5) - 1 && (
               <View style={[styles.divider, { backgroundColor: currentTheme.borderColor }]} />
             )}
@@ -123,15 +215,19 @@ function EmptyState({ currentTheme }) {
   );
 }
 
-export default function GlobalSearchScreen({ currentTheme, searchTerm, setActiveScreen }) {
+export default function GlobalSearchScreen({ currentTheme, searchTerm, setActiveScreen, libraryDAO, setScreens, settingsDAO, workDAO, historyDAO, progressDAO, kudoHistoryDAO, chapterDAO, openTagSearch, setSelectedPreset }) {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
 
+  const [presetResults, setPresetResults] = useState([]);
+  const [libraryResults, setLibraryResults] = useState([]);
   const [worksResult, setWorksResultResult] = useState([]);
   const [tags, setTags] = useState([]);
   const [fandoms, setFandoms] = useState([]);
   const [ships, setShips] = useState([]);
   const [chars, setChars] = useState([]);
   const [freeform, setFreeform] = useState([]);
+
+  console.log(libraryResults);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -143,7 +239,11 @@ export default function GlobalSearchScreen({ currentTheme, searchTerm, setActive
         return;
       }
 
-      fetchFilteredWorks({"work_search[query]": term}).then(setWorksResultResult)
+      searchJsonPreset(term).then(setPresetResults)
+      libraryDAO.search(term).then(setLibraryResults)
+      fetchFilteredWorks({"work_search[query]": term, "work_search[sort_column]": "hits"})
+        .then(setWorksResultResult)
+        .catch(e => Toast.show({ type: "error", text1: "Error fetching works", text2: e.message }))
       autoComplete.fetchAutocompleteSuggestions('tag', term).then(setTags);
       autoComplete.fetchFandomSuggestions(term).then(setFandoms);
       autoComplete.fetchRelationshipSuggestions(term).then(setShips);
@@ -152,7 +252,7 @@ export default function GlobalSearchScreen({ currentTheme, searchTerm, setActive
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [libraryDAO, searchTerm]);
 
   const hasResults =
     tags.length > 0 ||
@@ -200,12 +300,36 @@ export default function GlobalSearchScreen({ currentTheme, searchTerm, setActive
         </View>
       ) : (
         <>
-          <WorksList name="Works" values={worksResult} currentTheme={currentTheme}/>
-          <ItemsList name="All Tags" values={tags} currentTheme={currentTheme} />
-          <ItemsList name="Fandoms" values={fandoms} currentTheme={currentTheme} />
-          <ItemsList name="Relationships" values={ships} currentTheme={currentTheme} />
-          <ItemsList name="Characters" values={chars} currentTheme={currentTheme} />
-          <ItemsList name="Freeform" values={freeform} currentTheme={currentTheme} />
+          <PresetList name="Presets" values={presetResults} currentTheme={currentTheme} setActiveScreen={setActiveScreen} openPreset={setSelectedPreset} />
+          <WorksList name="Library"
+                     values={libraryResults.map(r => r.work)}
+                     currentTheme={currentTheme}
+                     settingsDAO={settingsDAO}
+                     workDAO={workDAO}
+                     libraryDAO={libraryDAO}
+                     setScreens={setScreens}
+                     historyDAO={historyDAO}
+                     progressDAO={progressDAO}
+                     kudoHistoryDAO={kudoHistoryDAO}
+                     chapterDAO={chapterDAO}
+          />
+          <WorksList name="Works"
+                     values={worksResult?.works}
+                     currentTheme={currentTheme}
+                     settingsDAO={settingsDAO}
+                     workDAO={workDAO}
+                     libraryDAO={libraryDAO}
+                     setScreens={setScreens}
+                     historyDAO={historyDAO}
+                     progressDAO={progressDAO}
+                     kudoHistoryDAO={kudoHistoryDAO}
+                     chapterDAO={chapterDAO}
+          />
+          <ItemsList name="All Tags" values={tags} currentTheme={currentTheme} openTagSearch={openTagSearch} />
+          <ItemsList name="Fandoms" values={fandoms} currentTheme={currentTheme} openTagSearch={openTagSearch} />
+          <ItemsList name="Relationships" values={ships} currentTheme={currentTheme} openTagSearch={openTagSearch} />
+          <ItemsList name="Characters" values={chars} currentTheme={currentTheme} openTagSearch={openTagSearch} />
+          <ItemsList name="Freeform" values={freeform} currentTheme={currentTheme} openTagSearch={openTagSearch} />
 
           <Text style={{color: currentTheme.placeholderColor}}>
             You reached the end !
