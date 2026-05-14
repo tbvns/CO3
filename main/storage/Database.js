@@ -1,11 +1,11 @@
 import SQLite from 'react-native-sqlite-storage';
 import RNFS from 'react-native-fs';
 import { Platform } from 'react-native';
-import { from1to2, from2to3 } from './dbMigration';
+import { from1to2, from2to3, from3to4 } from './dbMigration';
 
 SQLite.enablePromise(true);
 
-const TARGET_VERSION = 3;
+const TARGET_VERSION = 4;
 
 let instance = null;
 
@@ -136,7 +136,10 @@ class Database {
         isIncognitoMode INTEGER DEFAULT 0,
         viewMode TEXT DEFAULT 'full',
         fontSize REAL DEFAULT 1.0,
-        useCustomSize INTEGER DEFAULT 0
+        useCustomSize INTEGER DEFAULT 0,
+        font TEXT DEFAULT '',
+        fontFamily TEXT DEFAULT 'Helvetica',
+        useCustomFont INTEGER DEFAULT 0
       );`,
       `CREATE TABLE IF NOT EXISTS library (
         workId TEXT PRIMARY KEY,
@@ -175,8 +178,8 @@ class Database {
       );
       if (settingsCheck.rows.item(0).count === 0) {
         await this.db.executeSql(
-          `INSERT INTO settings (id, theme, isIncognitoMode, viewMode, fontSize, useCustomSize) VALUES (?, ?, ?, ?, ?, ?)`,
-          [1, 'light', 0, 'full', 1.0, 0]
+          `INSERT INTO settings (id, theme, isIncognitoMode, viewMode, fontSize, useCustomSize, font, fontFamily, useCustomFont) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [1, 'light', 0, 'full', 1.0, 0, 'Helvetica', 0]
         );
       }
     } catch (error) {
@@ -194,6 +197,10 @@ class Database {
 
     if (currentVersion < 3) {
       await from2to3(this.db);
+    }
+
+    if (currentVersion < 4) {
+      await from3to4(this.db);
     }
 
     await this.setDatabaseVersion(TARGET_VERSION);

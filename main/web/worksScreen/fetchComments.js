@@ -3,7 +3,7 @@ import ky from 'ky';
 let DomParser = require('react-native-html-parser').DOMParser;
 
 class Comment {
-  constructor({ id, isBanner = false, isDeleted = false, author = "", authorIsDeleted = false, authorIsGuest = false, authorImg = "", date = "", content = "", html = "", children = [] }) {
+  constructor({ id, isBanner = false, isDeleted = false, author = "", authorIsDeleted = false, authorIsGuest = false, authorImg = "", username = null, date = "", content = "", html = "", children = [] }) {
     this.id = id;
     this.isBanner = isBanner;
     this.isDeleted = isDeleted;
@@ -11,6 +11,7 @@ class Comment {
     this.authorIsDeleted = authorIsDeleted;
     this.authorIsGuest = authorIsGuest;
     this.authorImg = authorImg;
+    this.username = username;
     this.date = date;
     this.content = content;
     this.html = html;
@@ -33,7 +34,7 @@ function getElementText(element) {
 export async function fetchComments(setCannotNext, setStep, preferHTML, singleChapter, workOrChapterId, page = 1) {
   try {
     setStep("Fetching");
-    var url = `https://archiveofourown.org/comments/show_comments?${singleChapter ? 'work' : 'chapter'}_id=${workOrChapterId}`;
+    var url = `https://archiveofourown.org/comments/show_comments?${singleChapter ? 'work' : 'chapter'}_id=${Math.abs(workOrChapterId)}`;
     if (!singleChapter) url += '&page=' + page
 
     console.log(`Fetching comments from: ${url}`);
@@ -95,9 +96,11 @@ export async function fetchComments(setCannotNext, setStep, preferHTML, singleCh
       const comH = coms[i].getElementsByClassName("byline", false)[0];
 
       const authorIsDeleted = comH.childNodes[0].length > 12;
-      let author, authorIsGuest;
+      let author, authorIsGuest, username;
       if (!authorIsDeleted) {
         const aOrSpan = comH.childNodes[1];
+        let authorURL = aOrSpan.getAttribute("href")?.split("/");
+        if (authorURL && authorURL.length > 2) username = authorURL[2];
         authorIsGuest = aOrSpan.tagName !== "a";
         author = getElementText(aOrSpan);
       }
@@ -124,6 +127,7 @@ export async function fetchComments(setCannotNext, setStep, preferHTML, singleCh
         authorIsDeleted,
         authorIsGuest,
         author,
+        username,
         date: timestamp,
         authorImg,
         content,

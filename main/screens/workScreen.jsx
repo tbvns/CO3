@@ -238,6 +238,9 @@ const ReaderWrapper = ({
                          settingsDAO,
                          jsonSettings,
                          libraryDAO,
+                         chapterDAO,
+                         kudoHistoryDAO,
+                         workDAO,
                        }) => {
   const [chapterData, setChapterData] = useState(initialChapterData);
   const [loading, setLoading] = useState(false);
@@ -350,6 +353,11 @@ const ReaderWrapper = ({
           settingsDAO={settingsDAO}
           progressDAO={progressDAO}
           historyDAO={historyDAO}
+          chapterDAO={chapterDAO}
+          kudoHistoryDAO={kudoHistoryDAO}
+          libraryDAO={libraryDAO}
+          setScreens={setScreens}
+          workDAO={workDAO}
         />
       )}
     </SafeAreaView>
@@ -579,6 +587,9 @@ const ChapterInfoScreen = ({
                   progressDAO={progressDAO}
                   jsonSettings={jsonSettings}
                   libraryDAO={libraryDAO}
+                  chapterDAO={chapterDAO}
+                  kudoHistoryDAO={kudoHistoryDAO}
+                  workDAO={workDAO}
                 />
               );
 
@@ -721,6 +732,9 @@ const ChapterInfoScreen = ({
           progressDAO={progressDAO}
           jsonSettings={jsonSettings}
           libraryDAO={libraryDAO}
+          chapterDAO={chapterDAO}
+          kudoHistoryDAO={kudoHistoryDAO}
+          workDAO={workDAO}
         />
       ]);
 

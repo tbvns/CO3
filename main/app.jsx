@@ -47,6 +47,8 @@ import { UpdateDAO } from './storage/dao/UpdateDAO';
 import notifee from '@notifee/react-native';
 import { Linking } from 'react-native';
 import { ChapterDAO } from './storage/dao/ChapterDAO';
+import { exists, readFile } from 'react-native-fs';
+import { loadFont } from '@vitrion/react-native-load-fonts';
 
 const AppWrapper = () => {
   return (
@@ -404,6 +406,10 @@ const App = () => {
       const booksData = await newWorkDAO.getAll();
       setBooks(booksData);
 
+      if (loadedSettings.useCustomFont && (await exists(loadedSettings.font))) {
+        const fontContent = await readFile(loadedSettings.font, 'base64');
+        await loadFont(loadedSettings.fontFamily, fontContent, loadedSettings.font.split('.')[-1]).catch(e => console.error(e));
+      }
     } catch (error) {
       console.error('Error initializing app:', error);
       Alert.alert('Error', 'Failed to initialize app');

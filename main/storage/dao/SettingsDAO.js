@@ -19,6 +19,7 @@ export class SettingsDAO {
         const data = results.rows.item(0);
         data.isIncognitoMode = Boolean(data.isIncognitoMode);
         data.useCustomSize = Boolean(data.useCustomSize);
+        data.useCustomFont = Boolean(data.useCustomFont);
         console.log(data);
         return new Settings(data);
       }
@@ -34,14 +35,15 @@ export class SettingsDAO {
    * @param {Settings} settings - The settings object to save.
    */
   async saveSettings(settings) {
-    const { id, theme, isIncognitoMode, viewMode, fontSize, useCustomSize } =
+    const { id, theme, isIncognitoMode, viewMode, fontSize, useCustomSize, font, fontFamily, useCustomFont } =
       settings;
     try {
       const incognitoModeInt = isIncognitoMode ? 1 : 0;
       const useCustomSizeInt = useCustomSize ? 1 : 0;
+      const useCustomFontInt = useCustomFont ? 1 : 0;
       await this.db.executeSql(
-        `INSERT OR REPLACE INTO settings (id, theme, isIncognitoMode, viewMode, fontSize, useCustomSize) VALUES (?, ?, ?, ?, ?, ?)`,
-        [id, theme, incognitoModeInt, viewMode, fontSize, useCustomSizeInt],
+        `INSERT OR REPLACE INTO settings (id, theme, isIncognitoMode, viewMode, fontSize, useCustomSize, font, fontFamily, useCustomFont) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, theme, incognitoModeInt, viewMode, fontSize, useCustomSizeInt, font, fontFamily, useCustomFontInt],
       );
     } catch (error) {
       console.error('Error saving settings:', error);

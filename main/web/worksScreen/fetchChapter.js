@@ -120,6 +120,7 @@ async function createCompleteHtml(chapterHtml, cssStyles, currentTheme, settings
   <style>
     /* Theme variables */
     ${themeCSS}
+    ${settings.useCustomFont ? `@font-face {font-family: '${settings.fontFamily}'; src: url('${settings.font}')}` : ""}
     
     .landmark {
         visibility: hidden;
@@ -136,7 +137,7 @@ async function createCompleteHtml(chapterHtml, cssStyles, currentTheme, settings
 
     /* Base styles for better readability with theme integration */
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: ${settings.useCustomFont ? settings.fontFamily :  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"};
       line-height: 1.6;
       max-width: 800px;
       margin: 0 auto;

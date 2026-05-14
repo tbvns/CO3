@@ -62,3 +62,28 @@ export async function from2to3(db) {
     throw error;
   }
 }
+
+export async function from3to4(db) {
+  console.log("Migrating database from version 3 to 4...");
+  try {
+    const [tableInfo] = await db.executeSql("PRAGMA table_info(settings);");
+    let fcExists = false, ffcExists = false, ucfcExists = false;
+    for (let i = 0; i < tableInfo.rows.length; i++) {
+      switch (tableInfo.rows.item(i).name) {
+        case 'font': fcExists = true;
+        case 'fontFamily': ffcExists = true;
+        case 'useCustomFont': ucfcExists = true;
+        default: continue
+      }
+    }
+
+    if (!fcExists) await db.executeSql("ALTER TABLE settings ADD COLUMN font TEXT DEFAULT '';");
+    if (!ffcExists) await db.executeSql("ALTER TABLE settings ADD COLUMN fontFamily TEXT DEFAULT 'Helvetica';");
+    if (!ucfcExists) await db.executeSql("ALTER TABLE settings ADD COLUMN useCustomFont INTEGER DEFAULT 0;");
+
+    console.log("Migration to version 4 complete.");
+  } catch (error) {
+    console.error("Migration from3to4 failed:", error);
+    throw error;
+  }
+}

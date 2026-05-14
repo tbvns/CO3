@@ -78,6 +78,11 @@ const ChapterReader = ({
                          progressDAO,
                          historyDAO,
                          settingsDAO,
+                         setScreens,
+                         libraryDAO,
+                         kudoHistoryDAO,
+                         chapterDAO,
+                         workDAO,
                        }) => {
   const [barsVisible, setBarsVisible] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -312,7 +317,7 @@ const ChapterReader = ({
       workId,
       chapterID,
       progressDAO,
-    ],
+    ]
   );
 
   const handleForwardButton = useCallback(async () => {
@@ -623,6 +628,7 @@ const ChapterReader = ({
         <WebView
           ref={webViewRef}
           originWhitelist={['*']}
+          allowFileAccess={true}
           source={{ html: htmlContent || '<p>Something went horribly wrong if you see this</p>' }}
           style={styles.webView}
           injectedJavaScript={injectedJavaScript}
@@ -656,7 +662,11 @@ const ChapterReader = ({
           visible={commentsVisible}
           onRequestClose={() => setCommentsVisible(false)}
         >
-          <CommentsScreen setCommentsVisible={setCommentsVisible} currentTheme={currentTheme} singleChapter={totalChapters<2} workOrChapterId={chapterID || workId} />
+          <CommentsScreen
+            setCommentsVisible={setCommentsVisible} currentTheme={currentTheme} singleChapter={totalChapters<2}
+            workOrChapterId={chapterID || workId} chapterDAO={chapterDAO} historyDAO={historyDAO} kudoHistoryDAO={kudoHistoryDAO}
+            libraryDAO={libraryDAO} progressDAO={progressDAO} setScreens={setScreens} settingsDAO={settingsDAO} workDAO={workDAO}
+          />
         </Modal>
       </View>
     </GestureHandlerRootView>

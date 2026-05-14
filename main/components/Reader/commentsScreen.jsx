@@ -7,14 +7,19 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Modal,
 } from 'react-native';
 import { useCallback, useEffect, useState } from "react"
 import { fetchComments } from '../../web/worksScreen/fetchComments';
 import HtmlTextRenderer from '../common/HtmlTextRenderer';
 import { getJsonSettings } from '../../storage/jsonSettings';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import UserInfoScreen from '../../screens/UserInfo';
 
-export const CommentsScreen = ({ setCommentsVisible, currentTheme, singleChapter, workOrChapterId }) => {
+export const CommentsScreen = ({
+  setCommentsVisible, currentTheme, singleChapter, workOrChapterId, setScreens,
+  workDAO, libraryDAO, historyDAO, settingsDAO, progressDAO, kudoHistoryDAO, chapterDAO,
+}) => {
   const [loading, setLoading] = useState(true);
   const [cannotNext, setCannotNext] = useState(true);
   const [step, setStep] = useState("Initializing");
@@ -74,9 +79,30 @@ export const CommentsScreen = ({ setCommentsVisible, currentTheme, singleChapter
                 Deleted User
               </Text>
             ) : (
-              <Text style={[styles.commentAuthor, { color: currentTheme.textColor }]}>
-                {comment.author} {comment.authorIsGuest ?? "(Guest)"}
-              </Text>)}
+              <TouchableOpacity activeOpacity={0} onPress={() => {
+                comment.username ? setScreens(p => {
+                  return [...p,
+                  <UserInfoScreen
+                    username={comment.username}
+                    currentTheme={currentTheme}
+                    setScreens={setScreens}
+                    onBack={() => setScreens(prev => prev.slice(0, -1))}
+                    settingsDAO={settingsDAO}
+                    historyDAO={historyDAO}
+                    progressDAO={progressDAO}
+                    kudoHistoryDAO={kudoHistoryDAO}
+                    libraryDAO={libraryDAO}
+                    workDAO={workDAO}
+                    chapterDAO={chapterDAO}
+                  />
+                  ]
+                }) : null;
+              }}>
+                <Text style={[styles.commentAuthor, { color: currentTheme.textColor }, comment.username ? { borderBottomWidth: 1, borderBottomColor: currentTheme.textColor } : {}]}>
+                  {comment.author} {comment.authorIsGuest ? "(Guest)" : null /* The "??" operator is sometimes broken */}
+                </Text>
+              </TouchableOpacity>
+            )}
             {minusList.includes(comment.id) ? (
               <Text style={[styles.commentAuthor, { color: currentTheme.secondaryTextColor }]}>
                 Comment reduced

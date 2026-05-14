@@ -20,6 +20,9 @@ import {
 } from '../../storage/jsonSettings';
 import { themes } from '../../utils/themes';
 import CustomDropdown from '../../components/common/CustomDropdown';
+import { pick, keepLocalCopy } from '@react-native-documents/picker';
+import { loadFont, loadFontFromFile } from "@vitrion/react-native-load-fonts";
+import { readFile } from "react-native-fs"
 
 const PreferencesScreen = ({
   currentTheme,
@@ -32,6 +35,9 @@ const PreferencesScreen = ({
   // DB Settings State
   const [fontSize, setFontSize] = useState(1.0);
   const [useCustomSize, setUseCustomSize] = useState(false);
+  const [font, setFont] = useState("");
+  const [fontFamily, setFontFamily] = useState("");
+  const [useCustomFont, setUseCustomFont] = useState(false);
   const [theme, setLocalTheme] = useState('black');
   const [localViewMode, setLocalViewMode] = useState('full');
 
@@ -48,6 +54,8 @@ const PreferencesScreen = ({
 
   const activeTheme = themes[theme] || themes.black;
 
+  const dynamicStyle = [{ color: activeTheme.textColor }, useCustomFont ? { fontFamily } : {}]
+
   useEffect(() => {
     loadSettings();
   }, []);
@@ -59,6 +67,9 @@ const PreferencesScreen = ({
       if (dbSettings) {
         setFontSize(dbSettings.fontSize || 1.0);
         setUseCustomSize(dbSettings.useCustomSize || false);
+        setFont(dbSettings.font || '');
+        setFontFamily(dbSettings.fontFamily || 'Helvetica')
+        setUseCustomFont(dbSettings.useCustomFont || false);
         setLocalTheme(dbSettings.theme || 'light');
         setLocalViewMode(dbSettings.viewMode || 'full');
       }
@@ -121,6 +132,26 @@ const PreferencesScreen = ({
     const newValue = !useCustomSize;
     setUseCustomSize(newValue);
     saveDbSettings({ useCustomSize: newValue });
+  };
+
+  const handleFontChange = async () => {
+    const [picked] = await pick({ type: ['font/ttf', 'font/otf'] });
+    if (!picked || !picked.name) return;
+
+    keepLocalCopy({ destination: 'cachesDirectory', files: [{ uri: picked.uri, fileName: picked.name }] }).then(async ([dest]) => {
+      const fontContent = await readFile(dest.localUri, 'base64');
+
+      const f = await loadFont(picked.name.split('.').slice(0, -2).join('.'), fontContent, picked.type.split('/')[1]).catch(e => console.error(e));
+      setFont(dest.localUri);
+      setFontFamily(f);
+      saveDbSettings({ fontFamily: f, font: dest.localUri });
+    });
+  };
+
+  const toggleCustomFont = () => {
+    const newValue = !useCustomFont;
+    setUseCustomFont(newValue);
+    saveDbSettings({ useCustomFont: newValue });
   };
 
   const handleThemeChange = newTheme => {
@@ -194,8 +225,10 @@ const PreferencesScreen = ({
     <head>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <style>
+        ${useCustomFont ? `@font-face {font-family: '${fontFamily}'; src: url('${font}')}` : ""}
+
         body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          font-family: ${useCustomFont ? fontFamily : "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"};
           line-height: 1.6;
           padding: 20px;
           background-color: ${currentTheme.backgroundColor};
@@ -244,6 +277,7 @@ const PreferencesScreen = ({
     const textStyle = [
       styles.themeButtonText,
       { color: isActive ? '#ffffff' : activeTheme.textColor },
+      dynamicStyle[1]
     ];
 
     return (
@@ -265,6 +299,7 @@ const PreferencesScreen = ({
     const textStyle = [
       styles.viewModeButtonText,
       { color: isActive ? '#ffffff' : activeTheme.textColor },
+      dynamicStyle[1]
     ];
 
     return (
@@ -305,7 +340,7 @@ const PreferencesScreen = ({
         <TouchableOpacity onPress={onBack}>
           <Icon name="arrow-back" size={24} color={activeTheme.iconColor} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: activeTheme.textColor }]}>
+        <Text style={[styles.title, { color: activeTheme.textColor }, useCustomFont ? { fontFamily } : { fontWeight: 'bold' }]}>
           Settings
         </Text>
       </View>
@@ -321,7 +356,7 @@ const PreferencesScreen = ({
           <View style={styles.sectionHeader}>
             <Icon name="menu-book" size={20} color={activeTheme.iconColor} />
             <Text
-              style={[styles.sectionTitle, { color: activeTheme.textColor }]}
+              style={[styles.sectionTitle, ...dynamicStyle]}
             >
               Reader
             </Text>
@@ -339,6 +374,7 @@ const PreferencesScreen = ({
             <WebView
               originWhitelist={['*']}
               source={{ html: sampleHtml }}
+              allowFileAccess={true}
               style={{ height: 180 }}
               scalesPageToFit={true}
               bounces={false}
@@ -354,7 +390,7 @@ const PreferencesScreen = ({
           >
             <View style={styles.switchContainer}>
               <Text
-                style={[styles.settingText, { color: activeTheme.textColor }]}
+                style={[styles.settingText, ...dynamicStyle]}
               >
                 Use Custom Size
               </Text>
@@ -380,7 +416,7 @@ const PreferencesScreen = ({
               ]}
             >
               <Text
-                style={[styles.settingText, { color: activeTheme.textColor }]}
+                style={[styles.settingText, ...dynamicStyle]}
               >
                 Font Size: {fontSize.toFixed(1)}
               </Text>
@@ -397,11 +433,52 @@ const PreferencesScreen = ({
                   thumbStyle={{ backgroundColor: activeTheme.primaryColor }}
                 />
                 <Text
-                  style={[styles.sizeInput, { color: activeTheme.textColor }]}
+                  style={[styles.sizeInput, ...dynamicStyle]}
                 >
                   {fontSize.toFixed(1)}
                 </Text>
               </View>
+            </View>
+          )}
+
+          <View
+            style={[
+              styles.settingItem,
+              { borderBottomColor: activeTheme.borderColor },
+            ]}
+          >
+            <View style={styles.switchContainer}>
+              <Text
+                style={[styles.settingText, ...dynamicStyle]}
+              >
+                Use Custom Font
+              </Text>
+              <Switch
+                value={useCustomFont}
+                onValueChange={toggleCustomFont}
+                thumbColor={
+                  useCustomFont ? activeTheme.primaryColor : '#f4f3f4'
+                }
+                trackColor={{
+                  false: '#767577',
+                  true: `${activeTheme.primaryColor}40`,
+                }}
+              />
+            </View>
+          </View>
+
+          {useCustomFont && (
+            <View
+              style={[
+                styles.settingItem,
+                { borderBottomColor: activeTheme.borderColor, justifyContent: "center", alignItems: "center" },
+              ]}
+            >
+              <TouchableOpacity style={[styles.viewModeButton, { backgroundColor: activeTheme.primaryColor, paddingBottom: 0, marginHorizontal: 0 }]} activeOpacity={0.3} onPress={handleFontChange}>
+                <Text style={[styles.settingText, ...dynamicStyle]}>
+                  {fontFamily}
+                </Text>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -411,7 +488,7 @@ const PreferencesScreen = ({
           ]}>
             <View style={styles.switchContainer}>
               <Text
-                style={[styles.settingText, { color: activeTheme.textColor }]}
+                style={[styles.settingText, ...dynamicStyle]}
               >
                 Show Chapter Date
               </Text>
@@ -437,7 +514,7 @@ const PreferencesScreen = ({
           >
             <View style={[styles.switchContainer]}>
               <Text
-                style={[styles.settingText, { color: activeTheme.textColor }]}
+                style={[styles.settingText, ...dynamicStyle]}
               >
                 Allow selecting text
               </Text>
@@ -466,7 +543,7 @@ const PreferencesScreen = ({
           <View style={styles.sectionHeader}>
             <Icon name="palette" size={20} color={activeTheme.iconColor} />
             <Text
-              style={[styles.sectionTitle, { color: activeTheme.textColor }]}
+              style={[styles.sectionTitle, ...dynamicStyle]}
             >
               Appearance
             </Text>
@@ -474,7 +551,7 @@ const PreferencesScreen = ({
 
           <View style={styles.settingItem}>
             <Text
-              style={[styles.settingText, { color: activeTheme.textColor }]}
+              style={[styles.settingText, ...dynamicStyle]}
             >
               Theme
             </Text>
@@ -507,7 +584,7 @@ const PreferencesScreen = ({
 
           <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
             <Text
-              style={[styles.settingText, { color: activeTheme.textColor }]}
+              style={[styles.settingText, ...dynamicStyle]}
             >
               View Mode
             </Text>
@@ -546,7 +623,7 @@ const PreferencesScreen = ({
           >
             <View style={styles.switchContainer}>
               <Text
-                style={[styles.settingText, { color: activeTheme.textColor }]}
+                style={[styles.settingText, ...dynamicStyle]}
               >
                 Prefer Full Descriptions
               </Text>
@@ -573,7 +650,7 @@ const PreferencesScreen = ({
           >
             <View style={styles.switchContainer}>
               <Text
-                style={[styles.settingText, { color: activeTheme.textColor }]}
+                style={[styles.settingText, ...dynamicStyle]}
               >
                 Prefer HTML Styling
               </Text>
@@ -599,7 +676,7 @@ const PreferencesScreen = ({
           <View style={styles.sectionHeader}>
             <Icon name="update" size={20} color={activeTheme.iconColor} />
             <Text
-              style={[styles.sectionTitle, { color: activeTheme.textColor }]}
+              style={[styles.sectionTitle, ...dynamicStyle]}
             >
               Updates
             </Text>
@@ -613,7 +690,7 @@ const PreferencesScreen = ({
           >
             <View style={styles.switchContainer}>
               <Text
-                style={[styles.settingText, { color: activeTheme.textColor }]}
+                style={[styles.settingText, ...dynamicStyle]}
               >
                 Compact Notifications
               </Text>
@@ -638,7 +715,7 @@ const PreferencesScreen = ({
             ]}
           >
             <Text
-              style={[styles.settingText, { color: activeTheme.textColor }]}
+              style={[styles.settingText, ...dynamicStyle]}
             >
               Check Frequency
             </Text>
@@ -660,7 +737,7 @@ const PreferencesScreen = ({
 
           <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
             <Text
-              style={[styles.settingText, { color: activeTheme.textColor }]}
+              style={[styles.settingText, ...dynamicStyle]}
             >
               Network Restriction
             </Text>
@@ -685,7 +762,7 @@ const PreferencesScreen = ({
           <View style={styles.sectionHeader}>
             <Icon name="download" size={20} color={activeTheme.iconColor} />
             <Text
-              style={[styles.sectionTitle, { color: activeTheme.textColor }]}
+              style={[styles.sectionTitle, ...dynamicStyle]}
             >
               Download
             </Text>
@@ -700,7 +777,7 @@ const PreferencesScreen = ({
           >
             <View style={styles.switchContainer}>
               <Text
-                style={[styles.settingText, { color: activeTheme.textColor }]}
+                style={[styles.settingText, ...dynamicStyle]}
               >
                 Download on Update
               </Text>
@@ -719,7 +796,7 @@ const PreferencesScreen = ({
           </View>
           <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
             <Text
-              style={[styles.settingText, { color: activeTheme.textColor }]}
+              style={[styles.settingText, ...dynamicStyle]}
             >
               Download while reading
             </Text>
@@ -757,7 +834,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
     marginLeft: 16,
   },
   content: {
