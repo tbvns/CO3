@@ -141,10 +141,10 @@ const PreferencesScreen = ({
     keepLocalCopy({ destination: 'cachesDirectory', files: [{ uri: picked.uri, fileName: picked.name }] }).then(async ([dest]) => {
       const fontContent = await readFile(dest.localUri, 'base64');
 
-      const f = await loadFont(picked.name.split('.').slice(0, -2).join('.'), fontContent, picked.type.split('/')[1]).catch(e => console.error(e));
+      const ff = await loadFont(picked.name.replace(/\.(?=.*\.)/g, '').split('.')[0], fontContent, picked.type.split('/')[1]).catch(e => console.error(e));
       setFont(dest.localUri);
-      setFontFamily(f);
-      saveDbSettings({ fontFamily: f, font: dest.localUri });
+      setFontFamily(ff);
+      saveDbSettings({ fontFamily: ff, font: dest.localUri });
     });
   };
 
