@@ -118,11 +118,9 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
     }
   }, [appliedFilters, currentPage, hasMore, loadingMore]);
 
-  // Separate effect for loading works when filters change
-  // Only depend on appliedFilters, not on loadWorks function
   useEffect(() => {
     loadWorks(true);
-  }, [appliedFilters]); // REMOVED loadWorks from dependencies
+  }, [appliedFilters]);
 
   // Handle preset selection
   useEffect(() => {
@@ -178,8 +176,6 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
           statusText: 'Preset Error'
         });
       } finally {
-        // Use setTimeout to defer reset and allow state updates to process
-        // This prevents the effect from re-firing and ensures filters are applied
         setTimeout(() => {
           setSelectedPreset(null);
         }, 0);
