@@ -16,6 +16,7 @@ import BookCard from '../components/Library/BookCard';
 import AdvancedSearchScreen from './advancedSearch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getJsonSettings } from '../storage/jsonSettings';
+import { getAllPresets } from '../storage/jsonSearches';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const FilterIcon = ({ color, size }) => (
@@ -26,7 +27,7 @@ const ClearIcon = ({ color, size }) => (
   <Icon name={"close"} style={{color: color}} size={size} />
 );
 
-const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoHistoryDAO, openTagSearch, selectedTag, setSelectedTag, chapterDAO }) => {
+const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoHistoryDAO, openTagSearch, selectedTag, setSelectedTag, chapterDAO, selectedPreset, setSelectedPreset }) => {
   const insets = useSafeAreaInsets();
 
   const [works, setWorks] = useState([]);
@@ -120,6 +121,69 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
   useEffect(() => {
     loadWorks(true);
   }, [appliedFilters]);
+
+  // Handle preset selection
+  useEffect(() => {
+    if (selectedPreset == null) return;
+
+    console.log('Applying preset:', selectedPreset);
+
+    const applyPreset = async () => {
+      try {
+        const presets = await getAllPresets();
+        const found = presets.find(p => p.name === selectedPreset);
+        if (!found) {
+          console.warn('Preset not found:', selectedPreset);
+          return;
+        }
+
+        const p = found.preset;
+        const itemsToString = (items) =>
+          Array.isArray(items) ? items.map(i => i.name).join(',') : '';
+
+        const filters = {};
+        if (p.anyField) filters['work_search[query]'] = p.anyField;
+        if (p.title) filters['work_search[title]'] = p.title;
+        if (p.creator) filters['work_search[creators]'] = p.creator;
+        if (p.date) filters['work_search[revised_at]'] = p.date;
+        if (p.completionStatus) filters['work_search[complete]'] = p.completionStatus;
+        if (p.crossoverStatus) filters['work_search[crossover]'] = p.crossoverStatus;
+        if (p.singleChapter) filters['work_search[single_chapter]'] = '1';
+        if (p.wordCount) filters['work_search[word_count]'] = p.wordCount;
+        if (p.language) filters['work_search[language_id]'] = p.language;
+        if (p.fandoms?.length) filters['work_search[fandom_names]'] = itemsToString(p.fandoms);
+        if (p.rating) filters['work_search[rating_ids]'] = p.rating;
+        if (p.warnings?.length) filters['work_search[archive_warning_ids][]']= p.warnings;
+        if (p.categories?.length) filters['work_search[category_ids][]'] = p.categories;
+        if (p.characters?.length) filters['work_search[character_names]'] = itemsToString(p.characters);
+        if (p.relationships?.length) filters['work_search[relationship_names]'] = itemsToString(p.relationships);
+        if (p.additionalTags?.length)filters['work_search[freeform_names]'] = itemsToString(p.additionalTags);
+        if (p.hits) filters['work_search[hits]'] = p.hits;
+        if (p.kudos) filters['work_search[kudos_count]'] = p.kudos;
+        if (p.comments) filters['work_search[comments_count]'] = p.comments;
+        if (p.bookmarks) filters['work_search[bookmarks_count]'] = p.bookmarks;
+        filters['work_search[sort_column]'] = p.sortBy || 'revised_at';
+        filters['work_search[sort_direction]'] = p.sortDirection || 'desc';
+
+        console.log('Setting filters from preset:', filters);
+        setAppliedFilters(filters);
+        setHasFilters(true);
+      } catch (err) {
+        console.error('Error applying preset:', err);
+        setError({
+          message: `Failed to apply preset: ${err.message}`,
+          status: 'Error',
+          statusText: 'Preset Error'
+        });
+      } finally {
+        setTimeout(() => {
+          setSelectedPreset(null);
+        }, 0);
+      }
+    };
+
+    applyPreset();
+  }, [selectedPreset, setSelectedPreset]);
 
   useEffect(() => {
     if (selectedTag != null) {
@@ -297,33 +361,33 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
   return (
     <View style={{flex: 1, backgroundColor: currentTheme.backgroundColor}}>
       {loading ? renderLoading() : (
-          error ? rennderError() : (
-              <FlatList
-                data={works}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.contentContainer}
-                ListHeaderComponent={renderHeader}
-                ListFooterComponent={renderFooter}
-                onEndReached={handleLoadMore}
-                onEndReachedThreshold={0.5}
-                initialNumToRender={3}
-                maxToRenderPerBatch={5}
-                removeClippedSubviews={true}
-                updateCellsBatchingPeriod={50}
-                windowSize={5}
-                showsVerticalScrollIndicator={false}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={handleRefresh}
-                    colors={[currentTheme.primaryColor]}
-                    tintColor={currentTheme.primaryColor}
-                  />
-                }
+        error ? rennderError() : (
+          <FlatList
+            data={works}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.contentContainer}
+            ListHeaderComponent={renderHeader}
+            ListFooterComponent={renderFooter}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
+            initialNumToRender={3}
+            maxToRenderPerBatch={5}
+            removeClippedSubviews={true}
+            updateCellsBatchingPeriod={50}
+            windowSize={5}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={[currentTheme.primaryColor]}
+                tintColor={currentTheme.primaryColor}
               />
-            )
+            }
+          />
         )
+      )
       }
 
       {/* Filter FAB */}

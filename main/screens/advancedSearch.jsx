@@ -448,7 +448,34 @@ const AdvancedSearchScreen = ({ currentTheme, onClose, onSearch, savedFilters = 
   const [sortDirection, setSortDirection] = useState(savedFilters['work_search[sort_direction]'] || 'desc');
 
   useEffect(() => {
-    loadTempPreset();
+    if ( //This is fucking bad but it works really well so i'm not changing it
+      anyField !== undefined ||
+      title !== undefined ||
+      creator !== undefined ||
+      date !== undefined ||
+      completionStatus !== undefined ||
+      crossoverStatus !== undefined ||
+      singleChapter !== undefined ||
+      wordCount !== undefined ||
+      language !== undefined ||
+      fandoms !== undefined ||
+      rating !== undefined ||
+      warnings !== undefined ||
+      categories !== undefined ||
+      characters !== undefined ||
+      relationships !== undefined ||
+      additionalTags !== undefined ||
+      hits !== undefined ||
+      kudos !== undefined ||
+      comments !== undefined ||
+      bookmarks !== undefined ||
+      sortBy !== undefined ||
+      sortDirection !== undefined
+    ) {
+      console.log("Filters applied, skipping loading temporary preset");
+    } else {
+      loadTempPreset();
+    }
     loadPresetsFromStorage();
   }, []);
 

@@ -32,15 +32,6 @@ import { bookmark } from '../web/other/bookmarks';
 import { normalizeWorkData } from '../storage/dao/WorkDAO';
 import { getJsonSettings } from '../storage/jsonSettings';
 import UserInfoScreen from './UserInfo';
-import HtmlTextRenderer from '../components/common/HtmlTextRenderer';
-import Animated, {
-  Extrapolate,
-  Extrapolation,
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 import { processQueue } from '../downloads/DownloadManager';
 import {
   addToDownloadQueue,

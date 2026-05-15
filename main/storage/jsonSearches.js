@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { presets } from '../../babel.config';
 
 const STORAGE_KEY = 'SearchPresets';
 const TEMP_STORAGE_KEY = 'tempPreset';
@@ -17,6 +18,13 @@ export async function getJsonPresets() {
     console.error('Error getting JSON settings:', error);
     return DEFAULT_DATA;
   }
+}
+
+export async function searchJsonPreset(term) {
+  const jsonPresets = await getJsonPresets();
+  console.log("res:", jsonPresets);
+  const res = jsonPresets.presets.filter(o => o.name.toLowerCase().includes(term.toLowerCase()))
+  return res;
 }
 
 export async function pushJsonPreset(jsonObject) {
