@@ -471,13 +471,18 @@ const PreferencesScreen = ({
             <View
               style={[
                 styles.settingItem,
-                { borderBottomColor: activeTheme.borderColor, justifyContent: "center", alignItems: "center" },
+                { borderBottomColor: activeTheme.borderColor },
               ]}
             >
-              <TouchableOpacity style={[styles.viewModeButton, { backgroundColor: activeTheme.primaryColor, paddingBottom: 0, marginHorizontal: 0 }]} activeOpacity={0.3} onPress={handleFontChange}>
+              <TouchableOpacity style={[styles.viewModeSelectButton, { backgroundColor: activeTheme.buttonBackground, paddingBottom: 0, marginHorizontal: 0, borderColor: activeTheme.borderColor, alignContent: "center" }]} activeOpacity={0.3} onPress={handleFontChange}>
                 <Text style={[styles.settingText, ...dynamicStyle]}>
                   {fontFamily}
                 </Text>
+                <Icon
+                  name={"chevron-right"}
+                  size={24}
+                  style={{color: currentTheme.placeholderColor, marginLeft: "auto"}}
+                />
               </TouchableOpacity>
             </View>
           )}
@@ -916,6 +921,15 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: 'center',
     marginHorizontal: 1,
+  },
+  viewModeSelectButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginHorizontal: 1,
+    borderWidth: 1,
+    flexDirection: "row"
   },
   viewModeButtonText: {
     fontSize: 14,
