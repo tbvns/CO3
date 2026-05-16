@@ -1,4 +1,5 @@
 import ky from 'ky';
+import getUrl from '../requestManager';
 
 let DomParser = require('react-native-html-parser').DOMParser;
 
@@ -16,7 +17,7 @@ export async function fetchLoginAuthenticityToken() {
 
 export async function fetchKudoAuthenticityToken(workId) {
   try {
-    let html = await ky.get("http://archiveofourown.org/works/" + workId).text();
+    let html = await getUrl("http://archiveofourown.org/works/" + workId);
     html = html.replace("<br \\>", '');
 
     const doc = new DomParser().parseFromString(html, "text/html");

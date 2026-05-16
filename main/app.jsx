@@ -50,12 +50,17 @@ import { ChapterDAO } from './storage/dao/ChapterDAO';
 import { exists, readFile } from 'react-native-fs';
 import { loadFont } from '@vitrion/react-native-load-fonts';
 import GlobalSearchScreen from './screens/GlobalSearchScreen';
+import { Host } from 'react-native-portalize';
+import WebviewFetcher from './web/WebviewFetcher';
 
 const AppWrapper = () => {
   return (
-    <SafeAreaProvider>
-      <App />
-    </SafeAreaProvider>
+    <Host>
+      <SafeAreaProvider>
+        <App />
+      </SafeAreaProvider>
+      <WebviewFetcher />
+    </Host>
   );
 };
 

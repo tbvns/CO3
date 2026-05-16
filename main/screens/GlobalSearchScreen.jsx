@@ -244,17 +244,30 @@ export default function GlobalSearchScreen({ currentTheme, searchTerm, setActive
       fetchFilteredWorks({"work_search[query]": term, "work_search[sort_column]": "hits"})
         .then(setWorksResultResult)
         .catch(e => Toast.show({ type: "error", text1: "Error fetching works", text2: e.message }))
-      autoComplete.fetchAutocompleteSuggestions('tag', term).then(setTags);
-      autoComplete.fetchFandomSuggestions(term).then(setFandoms);
-      autoComplete.fetchRelationshipSuggestions(term).then(setShips);
-      autoComplete.fetchCharacterSuggestions(term).then(setChars);
-      autoComplete.fetchFreeformSuggestions(term).then(setFreeform);
+      autoComplete.fetchAutocompleteSuggestions('tag', term)
+        .then(setTags)
+        .catch(e => Toast.show({ type: "error", text1: "Error fetching tags", text2: e.message }));
+      autoComplete.fetchFandomSuggestions(term)
+        .then(setFandoms)
+        .catch(e => Toast.show({ type: "error", text1: "Error fetching fandoms", text2: e.message }));
+      autoComplete.fetchRelationshipSuggestions(term)
+        .then(setShips)
+        .catch(e => Toast.show({ type: "error", text1: "Error fetching ships", text2: e.message }));
+      autoComplete.fetchCharacterSuggestions(term)
+        .then(setChars)
+        .catch(e => Toast.show({ type: "error", text1: "Error fetching characters", text2: e.message }));
+      autoComplete.fetchFreeformSuggestions(term)
+        .then(setFreeform)
+        .catch(e => Toast.show({ type: "error", text1: "Error fetching freeforms", text2: e.message }));
     }, 500);
 
     return () => clearTimeout(timer);
   }, [libraryDAO, searchTerm]);
 
   const hasResults =
+    (worksResult?.works?.length ?? 0) > 0 ||
+    libraryResults.length > 0 ||
+    presetResults.length > 0 ||
     tags.length > 0 ||
     fandoms.length > 0 ||
     ships.length > 0 ||

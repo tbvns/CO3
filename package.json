@@ -38,6 +38,7 @@
     "react-native-html-parser": "^0.1.0",
     "react-native-keychain": "^10.0.0",
     "react-native-linear-gradient": "^2.8.3",
+    "react-native-portalize": "^1.0.7",
     "react-native-reanimated": "^3.18.0",
     "react-native-render-html": "^6.3.4",
     "react-native-safe-area-context": "^5.6.2",

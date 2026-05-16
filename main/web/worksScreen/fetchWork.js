@@ -3,6 +3,7 @@ import { Work } from '../../storage/models/work';
 import { getJsonSettings } from '../../storage/jsonSettings';
 import { fetchChapters } from './fetchChapters';
 import { processQueue } from '../../downloads/DownloadManager';
+import getUrl from '../requestManager';
 
 let DomParser = require('react-native-html-parser').DOMParser;
 
@@ -250,7 +251,7 @@ export async function fetchWorkFromWorkID(workId, workDAO, chapterDAO, force = f
     const url = `https://archiveofourown.org/works/${workId}?view_adult=true`;
     console.log(`[Web] Fetching work from: ${url}`);
 
-    const response = await ky.get(url).text();
+    const response = await getUrl(url);
     const doc = new DomParser().parseFromString(response, 'text/html');
 
     if (!doc) {

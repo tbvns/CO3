@@ -1,5 +1,6 @@
 import ky from 'ky';
 import { getDownloaded, isDownloaded } from '../../downloads/Downloader';
+import getUrl from '../requestManager';
 
 let DomParser = require('react-native-html-parser').DOMParser;
 
@@ -12,7 +13,7 @@ export async function fetchChapter(workId, chapterId) {
   }
 
   console.log(`Fetching chapter from: ${url}`);
-  const response = await ky.get(url).text();
+  const response = await getUrl(url);
   const doc = new DomParser().parseFromString(response, 'text/html');
 
   let chapterDiv = doc.getElementById('workskin');

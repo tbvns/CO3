@@ -32,8 +32,7 @@ export const fetchAutocompleteSuggestions = async (type, term) => {
         // Ensure we return an array of objects with id and name properties
         return Array.isArray(data) ? data : [];
     } catch (error) {
-        console.error(`Error fetching ${type} autocomplete:`, error);
-        return [];
+        throw error;
     }
 };
 

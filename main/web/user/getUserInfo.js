@@ -1,4 +1,5 @@
 import ky from 'ky';
+import getUrl from '../requestManager';
 
 let DomParser = require('react-native-html-parser').DOMParser;
 
@@ -6,7 +7,7 @@ export async function getUserInfo( username ) {
 
   const url = `https://archiveofourown.org/users/${username}/profile`;
 
-  const res = await ky.get(url).text();
+  const res = await getUrl(url);
 
   const doc = new DomParser().parseFromString(res, "text/html");
   const avatarParent = Array.from(doc.getElementsByTagName("a")).filter(a => a ? a.getAttribute("href") === `/users/${username}` : false);

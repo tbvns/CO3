@@ -1,4 +1,5 @@
 import ky from 'ky';
+import getUrl from '../requestManager';
 
 let DomParser = require('react-native-html-parser').DOMParser;
 
@@ -58,7 +59,7 @@ export async function fetchChapters(workId) {
     const url = `https://archiveofourown.org/works/${workId}/navigate?view_adult=true`;
 
     console.log(`Fetching chapters from: ${url}`);
-    const response = await ky.get(url).text();
+    const response = await getUrl(url);
     const doc = new DomParser().parseFromString(response, "text/html");
 
     const chapterList = doc.getElementsByClassName("chapter index group")[0];

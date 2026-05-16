@@ -1,6 +1,7 @@
 import { getUsername } from '../../storage/Credentials';
 import ky from 'ky';
 import { parseWorkElements } from '../browse/fetchWorks';
+import getUrl from '../requestManager';
 
 let DomParser = require('react-native-html-parser').DOMParser;
 
@@ -14,7 +15,7 @@ export async function fetchUserWorks(page, username) {
     }
 
     console.log(`Fetching works from: ${url}`);
-    const response = await ky.get(url).text();
+    const response = await getUrl(url);
     const doc = new DomParser().parseFromString(response, "text/html");
 
     const mainDiv = doc.getElementById("main");

@@ -878,9 +878,8 @@ const styles = StyleSheet.create({
   checkboxMark: { color: 'white', fontWeight: 'bold' },
   radio: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   radioInner: { width: 12, height: 12, borderRadius: 6 },
-  button: { padding: 15, borderRadius: 8, alignItems: 'center', marginTop: 20, marginBottom: 40 },
+  button: { padding: 15, borderRadius: 8, alignItems: 'center', marginTop: 20, marginBottom: 100 },
   buttonText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
-  // Autocomplete styles
   autocompleteContainer: {
     borderWidth: 1,
     borderRadius: 8,

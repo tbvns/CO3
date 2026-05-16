@@ -1,8 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
+  BackHandler,
   DeviceEventEmitter,
+  Dimensions,
   FlatList,
   Modal,
   RefreshControl,
@@ -35,7 +38,38 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
+
+  const [searchMounted, setSearchMounted] = useState(false); // mount once, never unmount
+  const slideAnim = useRef(new Animated.Value(Dimensions.get('window').height)).current;
+
+  const openSearch = () => {
+    setSearchMounted(true); // mount on first open only
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 260,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (searchMounted && slideAnim._value === 0) {
+        closeSearch();
+        return true;
+      }
+      return false;
+    });
+
+    return () => subscription.remove();
+  }, [searchMounted, slideAnim, closeSearch]);
+
+  const closeSearch = () => {
+    Animated.timing(slideAnim, {
+      toValue: Dimensions.get('window').height,
+      duration: 220,
+      useNativeDriver: true,
+    }).start();
+  };
 
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -47,13 +81,13 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
 
   useEffect(() => {
     const subscription = DeviceEventEmitter.addListener('doubleTap', (id) => {
-      setIsSearchVisible(true)
+      openSearch()
     })
 
     return () => {
       subscription.remove()
     }
-  }, [])
+  }, [openSearch])
 
   const loadWorks = useCallback(async (reset = false) => {
     if (!reset && Object.keys(appliedFilters).length === 0) return;
@@ -335,8 +369,6 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
     )
   }
 
-
-
   const rennderError = () => {
     return (
       <View style={[styles.centerContainer, { backgroundColor: currentTheme.backgroundColor }]}>
@@ -393,7 +425,7 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
       {/* Filter FAB */}
       <TouchableOpacity
         style={[styles.fab, { backgroundColor: currentTheme.primaryColor, bottom: 100 + insets.bottom }]}
-        onPress={() => setIsSearchVisible(true)}
+        onPress={() => openSearch()}
       >
         <FilterIcon color="white" size={24} />
       </TouchableOpacity>
@@ -408,18 +440,21 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
         </TouchableOpacity>
       )}
 
-      <Modal
-        transparent={false}
-        visible={isSearchVisible}
-        onRequestClose={() => setIsSearchVisible(false)}
-      >
-        <AdvancedSearchScreen
-          currentTheme={currentTheme}
-          onClose={() => setIsSearchVisible(false)}
-          onSearch={handleSearchFilters}
-          savedFilters={appliedFilters}
-        />
-      </Modal>
+      {searchMounted && (
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            { transform: [{ translateY: slideAnim }], zIndex: 100 },
+          ]}
+        >
+          <AdvancedSearchScreen
+            currentTheme={currentTheme}
+            onClose={closeSearch}
+            onSearch={handleSearchFilters}
+            savedFilters={appliedFilters}
+          />
+        </Animated.View>
+      )}
     </View>
   );
 };
