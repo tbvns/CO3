@@ -245,7 +245,7 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
   const handleSearchFilters = (filters) => {
     setAppliedFilters(filters);
     setHasFilters(Object.keys(filters).length > 0);
-    setIsSearchVisible(false);
+    closeSearch()
   };
 
   const handleClearFilters = () => {

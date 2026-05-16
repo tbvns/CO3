@@ -247,7 +247,7 @@ export async function fetchFilteredWorks(filters = {}, page = 1) {
         console.log(response);
 
         if (error) {
-          return null;
+          throw "Failed to load works";
         }
 
         const doc = new DomParser().parseFromString(response, "text/html");
@@ -268,12 +268,7 @@ export async function fetchFilteredWorks(filters = {}, page = 1) {
         };
     } catch (error) {
         console.error("Error fetching worksScreen:", error);
-        return {
-            works: [],
-            currentPage: 1,
-            maxPages: 1,
-            hasMore: false
-        };
+        throw error;
     }
 }
 

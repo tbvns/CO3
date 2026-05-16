@@ -35,6 +35,7 @@ export default function BookmarksScreen({
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState('med');
+  const [error, setError] = useState(null);
 
   const PAGE_SIZE = 20;
 
@@ -80,6 +81,7 @@ export default function BookmarksScreen({
     } catch (error) {
       console.error('Error loading bookmarks:', error);
       setBookmarks([]);
+      setError(error)
     } finally {
       setLoading(false);
     }
@@ -103,6 +105,7 @@ export default function BookmarksScreen({
       }
     } catch (error) {
       console.error('Error loading more bookmarks:', error);
+      setError(error)
     } finally {
       setLoadingMore(false);
     }
@@ -168,6 +171,27 @@ export default function BookmarksScreen({
     </View>
   );
 
+  const rennderError = () => {
+    return (
+      <View style={[styles.centerContainer, { backgroundColor: currentTheme.backgroundColor }]}>
+        <View style={[styles.errorContainer, { backgroundColor: currentTheme.cardBackground, borderColor: currentTheme.borderColor }]}>
+          <Text style={[styles.errorTitle, { color: currentTheme.textColor }]}>
+            Failed to Load Bookmarks
+          </Text>
+          <Text style={[styles.errorMessage, { color: currentTheme.secondaryTextColor }]}>
+            {error.message}
+          </Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: currentTheme.primaryColor }]}
+            onPress={() => loadInitialBookmarks()}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   const renderFooter = () => {
     if (!loadingMore) return null;
     return (
@@ -203,37 +227,38 @@ export default function BookmarksScreen({
     >
       {renderHeader()}
 
-
-      {
-        bookmarks.length === 0 ? (
-          <EmptyState currentTheme={currentTheme}
-                      textLine1={"No bookmarks yet."}
-                      textLine2={"Bookmarked work will appear here."}
-          />
-        ) : (
-          <FlatList
-            data={bookmarks}
-            renderItem={renderBookmark}
-            keyExtractor={(item, index) => `${item.id || index}`}
-            onEndReached={loadMoreBookmarks}
-            onEndReachedThreshold={0.1}
-            ListFooterComponent={renderFooter}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={[currentTheme.primaryColor]}
-                tintColor={currentTheme.primaryColor}
-              />
-            }
-            contentContainerStyle={styles.contentContainer}
-            scrollEventThrottle={16}
-            removeClippedSubviews={true}
-            maxToRenderPerBatch={10}
-            updateCellsBatchingPeriod={50}
-          />
-        )
-      }
+      {error ?
+        rennderError()
+      : (
+          bookmarks.length === 0 ? (
+            <EmptyState currentTheme={currentTheme}
+                        textLine1={"No bookmarks yet."}
+                        textLine2={"Bookmarked work will appear here."}
+            />
+          ) : (
+            <FlatList
+              data={bookmarks}
+              renderItem={renderBookmark}
+              keyExtractor={(item, index) => `${item.id || index}`}
+              onEndReached={loadMoreBookmarks}
+              onEndReachedThreshold={0.1}
+              ListFooterComponent={renderFooter}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={[currentTheme.primaryColor]}
+                  tintColor={currentTheme.primaryColor}
+                />
+              }
+              contentContainerStyle={styles.contentContainer}
+              scrollEventThrottle={16}
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={10}
+              updateCellsBatchingPeriod={50}
+            />
+          )
+        )}
 
     </View>
   );
@@ -286,5 +311,37 @@ const styles = StyleSheet.create({
     height: "90%",
     alignItems: "center",
     justifyContent: "center"
+  },
+  errorContainer: {
+    padding: 24,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    maxWidth: '90%',
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  errorMessage: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  retryButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 6,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
   }
 });

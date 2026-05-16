@@ -42,8 +42,7 @@ export async function fetchBookmarks(page, username) {
     return parseWorkElements(workElements)
 
   } catch (error) {
-    console.error(error);
-    return null;
+    throw error;
   } finally {
     console.log("finished loading", url);
   }
