@@ -243,22 +243,22 @@ export default function GlobalSearchScreen({ currentTheme, searchTerm, setActive
       libraryDAO.search(term).then(setLibraryResults)
       fetchFilteredWorks({"work_search[query]": term, "work_search[sort_column]": "hits"})
         .then(setWorksResultResult)
-        .catch(e => Toast.show({ type: "error", text1: "Error fetching works", text2: e.message }))
+        .catch(e => Toast.show({ type: "error", text1: "Error fetching works", text2: e.message, position: "bottom", bottomOffset: 100 }))
       autoComplete.fetchAutocompleteSuggestions('tag', term)
         .then(setTags)
-        .catch(e => Toast.show({ type: "error", text1: "Error fetching tags", text2: e.message }));
+        .catch(e => Toast.show({ type: "error", text1: "Error fetching tags", text2: e.message, position: "bottom", bottomOffset: 100 }));
       autoComplete.fetchFandomSuggestions(term)
         .then(setFandoms)
-        .catch(e => Toast.show({ type: "error", text1: "Error fetching fandoms", text2: e.message }));
+        .catch(e => Toast.show({ type: "error", text1: "Error fetching fandoms", text2: e.message, position: "bottom", bottomOffset: 100 }));
       autoComplete.fetchRelationshipSuggestions(term)
         .then(setShips)
-        .catch(e => Toast.show({ type: "error", text1: "Error fetching ships", text2: e.message }));
+        .catch(e => Toast.show({ type: "error", text1: "Error fetching ships", text2: e.message, position: "bottom", bottomOffset: 100 }));
       autoComplete.fetchCharacterSuggestions(term)
         .then(setChars)
-        .catch(e => Toast.show({ type: "error", text1: "Error fetching characters", text2: e.message }));
+        .catch(e => Toast.show({ type: "error", text1: "Error fetching characters", text2: e.message, position: "bottom", bottomOffset: 100 }));
       autoComplete.fetchFreeformSuggestions(term)
         .then(setFreeform)
-        .catch(e => Toast.show({ type: "error", text1: "Error fetching freeforms", text2: e.message }));
+        .catch(e => Toast.show({ type: "error", text1: "Error fetching freeforms", text2: e.message, position: "bottom", bottomOffset: 100 }));
     }, 500);
 
     return () => clearTimeout(timer);
