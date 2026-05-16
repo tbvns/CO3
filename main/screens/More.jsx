@@ -19,6 +19,7 @@ import BookmarksScreen from './more/BookmarksScreen';
 import ReadLaterScreen from './more/ReadLaterScreen';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import StorageScreen from './more/StorageScreen';
+import Toast from 'react-native-toast-message';
 
 const MoreScreen = ({
   currentTheme,
@@ -148,6 +149,9 @@ const MoreScreen = ({
             kudoHistoryDAO={kudoHistoryDAO}
           />,
         ]);
+        break;
+      case "Statistics":
+        Toast.show({type: "error", text1: "Not implemented yet", text2: "Statistics are currently unavailable."})
         break;
       case 'Data and Storage':
         setScreens(prev => [
