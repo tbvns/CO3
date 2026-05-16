@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   DeviceEventEmitter,
@@ -939,16 +945,16 @@ const ChapterInfoScreen = ({
     return { length: itemHeight, offset: itemHeight * index, index };
   }, [showDate]);
 
-  const ListHeaderComponent = () => (
+  const ListHeaderComponent = useMemo(() => (
     <View style={styles.workInfo}>
       <Text style={[styles.workTitle, { color: currentTheme.textColor }]}>
-        {work.title}
+        {work?.title}
       </Text>
       <TouchableOpacity
         onPress={() => {
-          setScreens(p => {return [...p,
+          setScreens(p => [...p,
             <UserInfoScreen
-              username={work.author}
+              username={work?.author}
               currentTheme={currentTheme}
               setScreens={setScreens}
               onBack={() => setScreens(prev => prev.slice(0, -1))}
@@ -960,11 +966,11 @@ const ChapterInfoScreen = ({
               workDAO={workDAO}
               chapterDAO={chapterDAO}
             />
-          ]})
+          ])
         }}
       >
         <Text style={[styles.workAuthor, { color: currentTheme.secondaryTextColor }]}>
-          by {work.author}
+          by {work?.author}
         </Text>
       </TouchableOpacity>
 
@@ -984,7 +990,7 @@ const ChapterInfoScreen = ({
         </Text>
       </View>
     </View>
-  );
+  ), [work, currentTheme, chapters, jsonSettings, inLibrary, liked, likeLoading, setScreens]);
 
   if (loading) {
     return (
