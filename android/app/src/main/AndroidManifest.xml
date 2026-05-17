@@ -30,7 +30,8 @@
             <data android:scheme="https" android:host="archiveofourown.org" android:pathPrefix="/works/"/>
         </intent-filter>
       </activity>
-
-      <service android:name="com.asterinet.react.bgactions.RNBackgroundActionsTask" />
+      <service
+              android:name=".LibraryHeadlessService"
+              android:exported="false" />
     </application>
 </manifest>
