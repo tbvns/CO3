@@ -44,7 +44,7 @@ import SystemNavigationBar from 'react-native-system-navigation-bar';
 import { setup, setupNotificationListeners } from './web/updater';
 import { getJsonSettings } from './storage/jsonSettings';
 import { UpdateDAO } from './storage/dao/UpdateDAO';
-import notifee from '@notifee/react-native';
+import notifee from 'react-native-notify-kit';
 import { Linking } from 'react-native';
 import { ChapterDAO } from './storage/dao/ChapterDAO';
 import { exists, readFile } from 'react-native-fs';

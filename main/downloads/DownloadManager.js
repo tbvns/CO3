@@ -1,4 +1,4 @@
-import notifee, { AndroidImportance } from '@notifee/react-native';
+import notifee, { AndroidImportance } from 'react-native-notify-kit';
 import { popNextDownload, peekNextDownload, getDownloadQueue } from './DownloadQueue';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
