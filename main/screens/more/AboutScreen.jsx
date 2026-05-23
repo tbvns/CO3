@@ -52,7 +52,7 @@ export default function AboutScreen({ setScreens, currentTheme }) {
             with a mobile device a lot easier.
           </Text>
           <Text style={[{ paddingTop: 5, color: currentTheme.textColor }]}>
-            It follows the GPL V2 licence, and will be free of ads, of
+            It follows the GPL V3 licence, and will be free of ads, of
             subscription and of any paid features, forever.
           </Text>
           <LinkButton
