@@ -15,7 +15,7 @@ CO3 is a free reader app for **Archive of Our Own** (AO3). We built it because o
 The goal is to give you a better reading experience on your phone with features like native AMOLED support, local reading history, and custom categories to organize your stories.
 
 > [!TIP]
-> Looking for download links ? Go [here](#download).
+> Looking for download links? Go [here](#download).
 
 ## Features:
 - **Custom library** - Save your favorite works in one place

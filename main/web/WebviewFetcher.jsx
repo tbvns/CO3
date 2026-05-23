@@ -73,12 +73,7 @@ export default function WebviewFetcher() {
     if (currentRef.current || queue.length === 0) return;
     currentRef.current = queue.shift();
     httpErrorRef.current = null;
-
-    if (currentRef.current.cfWarning) {
-      setShowCFWarning(true); // show modal before loading
-    } else {
-      loadCurrent();
-    }
+    loadCurrent();
   };
 
   useEffect(() => {
@@ -131,7 +126,14 @@ export default function WebviewFetcher() {
   const onMessage = ({ nativeEvent }) => {
     try {
       const data = JSON.parse(nativeEvent.data);
-      if (data.type === 'challenge') { setVisible(true); return; }
+      if (data.type === 'challenge') {
+        if (currentRef.current?.cfWarning) {
+          setShowCFWarning(true);
+        } else {
+          setVisible(true);
+        }
+        return;
+      }
       if (data.type === 'success') { settle(data.body, null); return; }
       settle(null, new WebViewFetchError(0, data.error ?? 'WebView extraction failed', source?.uri));
     } catch (e) {
