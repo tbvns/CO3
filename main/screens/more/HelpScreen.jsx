@@ -48,12 +48,12 @@ export default function HelpScreen({ setScreens, currentTheme }) {
         <View style={[{ margin: 16 }]}>
           <LinkButton
             url="https://discord.gg/3wMGWu2xMF"
-            label="Ask on the discord"
+            label="Ask on the Discord"
             theme={currentTheme}
           />
           <LinkButton
             url="https://github.com/tbvns/CO3/issues"
-            label="Open an issue on github"
+            label="Open an issue on GitHub"
             theme={currentTheme}
           />
         </View>

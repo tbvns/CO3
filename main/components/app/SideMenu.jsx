@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { co3Version } from '../../constant';
 
 const SideMenu = ({
   isOpen,
@@ -368,7 +369,7 @@ const SideMenu = ({
                   { color: currentTheme.secondaryTextColor },
                 ]}
               >
-                Version 1.0
+                Version {co3Version}
               </Text>
             </View>
           </View>

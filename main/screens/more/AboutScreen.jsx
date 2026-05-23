@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { co3Version } from '../../constant';
 
 export default function AboutScreen({ setScreens, currentTheme }) {
   function onBack() {
@@ -29,7 +30,7 @@ export default function AboutScreen({ setScreens, currentTheme }) {
           About CO3
         </Text>
       </View>
-      <ScrollView>
+      <ScrollView style={{height: "100%"}}>
         <View style={styles.mainContent}>
           <Image style={styles.image} source={require('../../res/CO3.png')} />
           <View
@@ -75,6 +76,9 @@ export default function AboutScreen({ setScreens, currentTheme }) {
             theme={currentTheme}
           />
         </View>
+        <Text style={[{color: currentTheme.secondaryTextColor, width: "100%", textAlign: "center" }]}>
+          Version {co3Version}
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );

@@ -36,6 +36,11 @@ jobs:
           echo "tag=${{ github.event.inputs.version_tag }}" >> $GITHUB_OUTPUT
           echo "📦 Tag: ${{ github.event.inputs.version_tag }} | versionCode: $VERSION_CODE"
 
+      - name: Update JS version constant
+        run: |
+          sed -i "s/export const co3Version = \"[^\"]*\"/export const co3Version = \"${{ steps.version.outputs.tag }}\"/" main/constant.js
+          echo "✅ Updated JS version constant to ${{ steps.version.outputs.tag }}"
+
       - name: Update build.gradle
         run: |
           sed -i "s/versionCode [0-9]\+/versionCode ${{ steps.version.outputs.versionCode }}/" android/app/build.gradle
