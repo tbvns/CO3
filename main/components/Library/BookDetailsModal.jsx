@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dimensions,
   Modal,
@@ -24,6 +24,13 @@ const BookDetailsModal = ({
                             openTagSearch,
                           }) => {
   if (!book) return null;
+
+  const MAX_SCROLL_HEIGHT = windowHeight * 0.7;
+  const [scrollHeight, setScrollHeight] = useState(MAX_SCROLL_HEIGHT);
+
+  const handleContentSizeChange = (_w, h) => {
+    setScrollHeight(Math.min(h, MAX_SCROLL_HEIGHT));
+  };
 
   const MAX_TAGS_IN_SUMMARY_MODAL = 5;
 
@@ -74,8 +81,9 @@ const BookDetailsModal = ({
                 </View>
 
                 <ScrollView
-                  style={styles.content}
+                  style={[styles.content, { height: scrollHeight }]}
                   contentContainerStyle={styles.contentContainer}
+                  onContentSizeChange={handleContentSizeChange}
                   nestedScrollEnabled={true}
                   showsVerticalScrollIndicator={true}
                 >
@@ -338,9 +346,7 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
   modalContainer: {
-    flex: 0,
     width: '90%',
-    maxHeight: windowHeight * 0.8,
   },
   modal: {
     borderRadius: 12,
@@ -351,7 +357,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
-    maxHeight: '100%',
   },
   header: {
     flexDirection: 'row',
@@ -370,7 +375,10 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   content: {
-    padding: 20
+    padding: 20,
+  },
+  contentContainer: {
+    flexGrow: 0,
   },
   section: {
     marginBottom: 20,
