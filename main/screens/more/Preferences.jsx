@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -219,7 +219,8 @@ const PreferencesScreen = ({
 
   // --- HTML Preview ---
 
-  const sampleHtml = `
+  const sampleHtml = useMemo(() => {
+    return `
     <!DOCTYPE html>
     <html>
     <head>
@@ -231,25 +232,25 @@ const PreferencesScreen = ({
           font-family: ${useCustomFont ? fontFamily : "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"};
           line-height: 1.6;
           padding: 20px;
-          background-color: ${currentTheme.backgroundColor};
-          color: ${currentTheme.textColor};
+          background-color: ${activeTheme.backgroundColor};
+          color: ${activeTheme.textColor};
           font-size: ${useCustomSize ? fontSize + 'em' : '1em'};
         }
         h1 { 
-          color: ${currentTheme.textColor};
-          border-bottom: 2px solid ${currentTheme.primaryColor};
+          color: ${activeTheme.textColor};
+          border-bottom: 2px solid ${activeTheme.primaryColor};
           padding-bottom: 8px;
         }
         p { 
-          color: ${currentTheme.textColor};
+          color: ${activeTheme.textColor};
           margin-bottom: 12px;
         }
         a { 
-          color: ${currentTheme.primaryColor};
+          color: ${activeTheme.primaryColor};
         }
         blockquote {
-          border-left: 4px solid ${currentTheme.primaryColor};
-          background-color: ${currentTheme.inputBackground};
+          border-left: 4px solid ${activeTheme.primaryColor};
+          background-color: ${activeTheme.inputBackground};
           padding: 16px;
           margin: 16px 0;
           border-radius: 4px;
@@ -266,6 +267,7 @@ const PreferencesScreen = ({
     </body>
     </html>
   `;
+  }, [activeTheme, useCustomSize, fontSize, useCustomFont, fontFamily, font]);
 
   // --- Render Helpers ---
 
