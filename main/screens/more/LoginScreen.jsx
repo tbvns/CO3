@@ -100,9 +100,10 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
         return;
       }
 
+      const usernameValue = await getUsername();
       setSessionInfo({
         visible: true,
-        username: getUsername(),
+        username: usernameValue,
         password: '',
         hasStoredPassword: false,
       });
@@ -217,7 +218,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
             <Icon name="arrow-back" size={24} color={currentTheme.textColor} />
           </TouchableOpacity>
           <Text style={[styles.title_top, { color: currentTheme.textColor }]}>
-            Account Settings
+            Account
           </Text>
         </View>
 
@@ -375,6 +376,14 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
         { backgroundColor: currentTheme.backgroundColor },
       ]}
     >
+      <View style={styles.header}>
+        <TouchableOpacity onPress={onBack}>
+          <Icon name="arrow-back" size={24} color={currentTheme.textColor} />
+        </TouchableOpacity>
+        <Text style={[styles.title_top, { color: currentTheme.textColor }]}>
+          Account
+        </Text>
+      </View>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
           <Text style={[styles.title, { color: currentTheme.textColor }]}>
@@ -535,6 +544,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 30,
     textAlign: "center",
+  },
+  header_title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginLeft: 16,
   },
   formContainer: {
     width: "100%",
