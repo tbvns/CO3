@@ -20,6 +20,8 @@ const DEFAULT_SETTINGS = {
   allowSelectingText: false,
   downloadWhileReading: 0,
   downloadOnUpdate: false,
+
+  finishedOnboarding: false,
 };
 
 export async function getJsonSettings() {

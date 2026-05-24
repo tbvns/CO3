@@ -38,7 +38,8 @@ const MoreScreen = ({
   progressDAO,
   kudoHistoryDAO,
   databaseObj,
-  chapterDAO
+  chapterDAO,
+  setJsonSettings
 }) => {
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -76,6 +77,10 @@ const MoreScreen = ({
             toggleIncognitoMode={toggleIncognitoMode}
             settingsDAO={settingsDAO}
             setScreens={setScreens}
+            onRestartOnboarding={() => {
+              setJsonSettings(prev => ({ ...prev, finishedOnboarding: false }));
+              setScreens([]);
+            }}
           />,
         ]);
         break;

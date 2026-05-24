@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -25,13 +26,14 @@ import { loadFont, loadFontFromFile } from "@vitrion/react-native-load-fonts";
 import { readFile } from "react-native-fs"
 
 const PreferencesScreen = ({
-  currentTheme,
-  settingsDAO,
-  setScreens,
-  setTheme,
-  viewMode,
-  setViewMode,
-}) => {
+                             currentTheme,
+                             settingsDAO,
+                             setScreens,
+                             setTheme,
+                             viewMode,
+                             setViewMode,
+                             onRestartOnboarding,
+                           }) => {
   // DB Settings State
   const [fontSize, setFontSize] = useState(1.0);
   const [useCustomSize, setUseCustomSize] = useState(false);
@@ -215,6 +217,28 @@ const PreferencesScreen = ({
     const newValue = !downloadOnUpdate;
     setDownloadOnUpdate(newValue);
     saveJsonSettingsData({ downloadOnUpdate: newValue });
+  };
+
+  const handleRestartOnboarding = () => {
+    Alert.alert(
+      'Restart Onboarding',
+      'This will take you back through the setup screens. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Restart',
+          style: 'destructive',
+          onPress: async () => {
+            await saveJsonSettingsData({ finishedOnboarding: false });
+            if (onRestartOnboarding) {
+              onRestartOnboarding();
+            } else {
+              onBack();
+            }
+          },
+        },
+      ]
+    );
   };
 
   // --- HTML Preview ---
@@ -823,6 +847,33 @@ const PreferencesScreen = ({
             </CustomDropdown>
           </View>
         </View>
+
+        {/* RESTART ONBOARDING */}
+        <View style={[styles.section, { borderBottomWidth: 0, marginBottom: 8 }]}>
+          <TouchableOpacity
+            style={[
+              styles.restartButton,
+              {
+                backgroundColor: activeTheme.inputBackground,
+                borderColor: activeTheme.borderColor,
+              },
+            ]}
+            onPress={handleRestartOnboarding}
+            activeOpacity={0.7}
+          >
+            <Icon name="replay" size={20} color={activeTheme.iconColor} />
+            <View style={styles.restartButtonContent}>
+              <Text style={[{ fontSize: 16, marginBottom: 2 }, ...dynamicStyle]}>
+                Restart Onboarding
+              </Text>
+              <Text style={{ fontSize: 13, color: activeTheme.secondaryTextColor }}>
+                Go through the setup screens again
+              </Text>
+            </View>
+            <Icon name="chevron-right" size={20} color={activeTheme.placeholderColor} />
+          </TouchableOpacity>
+        </View>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -936,6 +987,18 @@ const styles = StyleSheet.create({
   viewModeButtonText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  restartButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  restartButtonContent: {
+    flex: 1,
   },
 });
 
