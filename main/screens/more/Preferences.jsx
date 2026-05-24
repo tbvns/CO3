@@ -38,7 +38,7 @@ const PreferencesScreen = ({
   const [font, setFont] = useState("");
   const [fontFamily, setFontFamily] = useState("");
   const [useCustomFont, setUseCustomFont] = useState(false);
-  const [theme, setLocalTheme] = useState('black');
+  const [theme, setLocalTheme] = useState(currentTheme.name);
   const [localViewMode, setLocalViewMode] = useState('full');
 
   // JSON Settings State
@@ -52,7 +52,7 @@ const PreferencesScreen = ({
   const [updateTime, setUpdateTime] = useState(1440);
   const [updateRestriction, setUpdateRestriction] = useState(3);
 
-  const activeTheme = themes[theme] || themes.black;
+  const activeTheme = themes[theme] || currentTheme;
 
   const dynamicStyle = [{ color: activeTheme.textColor }, useCustomFont ? { fontFamily } : {}]
 
