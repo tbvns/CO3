@@ -7,8 +7,10 @@ import SmallBookCard from '../components/common/SmallBookCard';
 import Toast from 'react-native-toast-message';
 import WorkScreen from './workScreen';
 import { searchJsonPreset } from '../storage/jsonSearches';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SECTION_META = {
+  'Categories': { icon: 'bookmark-box-multiple-outline' },
   'Library': { icon: 'bookmark-outline' },
   'Works': { icon: 'book-outline' },
   'All Tags': { icon: 'tag-outline' },
@@ -66,7 +68,7 @@ function PresetItem({ value, onPress, currentTheme }) {
       activeOpacity={0.7}
     >
       <Icon
-        name="layers-search-outline"
+        name="layers-search"
         size={13}
         color={currentTheme.primaryColor}
         style={styles.itemIcon}
@@ -85,6 +87,41 @@ function PresetItem({ value, onPress, currentTheme }) {
     </TouchableOpacity>
   );
 }
+
+function CategoryItem({ value, onPress, currentTheme }) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[
+        styles.item,
+        {
+          backgroundColor: currentTheme.inputBackground,
+          borderColor: currentTheme.borderColor,
+        },
+      ]}
+      activeOpacity={0.7}
+    >
+      <Icon
+        name="bookmark"
+        size={13}
+        color={currentTheme.primaryColor}
+        style={styles.itemIcon}
+      />
+      <Text
+        style={[styles.itemText, { color: currentTheme.textColor }]}
+        numberOfLines={1}
+      >
+        {value}
+      </Text>
+      <Icon
+        name="chevron-right"
+        size={16}
+        color={currentTheme.iconColor}
+      />
+    </TouchableOpacity>
+  );
+}
+
 
 function SectionHeader({ name, count, currentTheme }) {
   const meta = SECTION_META[name] ?? { icon: 'magnify' };
@@ -174,6 +211,34 @@ function ItemsList({ name, values, currentTheme, setScreens, openTagSearch }) {
   );
 }
 
+function CategoryList({ name, values, currentTheme, setActiveScreen, openCategory }) {
+  if (values.length === 0) return null;
+
+  return (
+    <View style={styles.section}>
+      <SectionHeader name={name} count={values.length} currentTheme={currentTheme} icon={"bookmark-box-multiple-outline"} />
+      <View style={[styles.itemsCard, { borderColor: currentTheme.borderColor }]}>
+        {values.slice(0, 5).map((v, i) => (
+          <View key={i}>
+            <CategoryItem
+              value={v}
+              currentTheme={currentTheme}
+              onPress={() => {
+                openCategory(v)
+                setActiveScreen("library")
+              }}
+            />
+            {i < Math.min(values.length, 5) - 1 && (
+              <View style={[styles.divider, { backgroundColor: currentTheme.borderColor }]} />
+            )}
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+
 function PresetList({ name, values, currentTheme, setActiveScreen, openPreset }) {
   if (values.length === 0) return null;
 
@@ -215,9 +280,10 @@ function EmptyState({ currentTheme }) {
   );
 }
 
-export default function GlobalSearchScreen({ currentTheme, searchTerm, setActiveScreen, libraryDAO, setScreens, settingsDAO, workDAO, historyDAO, progressDAO, kudoHistoryDAO, chapterDAO, openTagSearch, setSelectedPreset }) {
+export default function GlobalSearchScreen({ currentTheme, searchTerm, setActiveScreen, libraryDAO, setScreens, settingsDAO, workDAO, historyDAO, progressDAO, kudoHistoryDAO, chapterDAO, openTagSearch, setSelectedPreset, setSelectedCollection }) {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
 
+  const [categoriesResults, setCategoriesResults] = useState();
   const [presetResults, setPresetResults] = useState([]);
   const [libraryResults, setLibraryResults] = useState([]);
   const [worksResult, setWorksResultResult] = useState([]);
@@ -226,8 +292,29 @@ export default function GlobalSearchScreen({ currentTheme, searchTerm, setActive
   const [ships, setShips] = useState([]);
   const [chars, setChars] = useState([]);
   const [freeform, setFreeform] = useState([]);
+  const [categories, setCategories] = useState([]);
 
-  console.log(libraryResults);
+  async function loadCategories() {
+    try {
+      const res = await AsyncStorage.getItem('Categories');
+      if (res) {
+        setCategories(JSON.parse(res));
+      } else {
+        setCategories(['default']);
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  }
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  async function searchCategories(term) {
+    return categories.filter(s => s.toLowerCase().includes(term.toLowerCase()))
+  }
+
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -239,6 +326,8 @@ export default function GlobalSearchScreen({ currentTheme, searchTerm, setActive
         return;
       }
 
+      searchCategories(term).then(setCategoriesResults)
+      console.log(categories);
       searchJsonPreset(term).then(setPresetResults)
       libraryDAO.search(term).then(setLibraryResults)
       fetchFilteredWorks({"work_search[query]": term, "work_search[sort_column]": "hits"})
@@ -313,6 +402,7 @@ export default function GlobalSearchScreen({ currentTheme, searchTerm, setActive
         </View>
       ) : (
         <>
+          <CategoryList name="Categories" values={categoriesResults} currentTheme={currentTheme} setActiveScreen={setActiveScreen} openCategory={setSelectedCollection} />
           <PresetList name="Presets" values={presetResults} currentTheme={currentTheme} setActiveScreen={setActiveScreen} openPreset={setSelectedPreset} />
           <WorksList name="Library"
                      values={libraryResults.map(r => r.work)}

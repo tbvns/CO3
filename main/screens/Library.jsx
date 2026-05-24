@@ -72,6 +72,8 @@ const LibraryScreen = ({
                          kudoHistoryDAO,
                          openTagSearch,
                          chapterDAO,
+                         selectedCollection,
+                         setSelectedCollection
                        }) => {
   const [works, setWorks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +88,6 @@ const LibraryScreen = ({
   const [hasMore, setHasMore] = useState(false);
 
   const [sortType, setSortType] = useState('lastRead');
-  const [selectedCollection, setSelectedCollection] = useState(null);
   const [collectionsWithCounts, setCollectionsWithCounts] = useState([]);
   const [allCollections, setAllCollections] = useState([]);
   const [showSortModal, setShowSortModal] = useState(false);

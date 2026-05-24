@@ -189,6 +189,7 @@ const App = () => {
 
   const [selectedTag, setSelectedTag] = useState();
   const [selectedPreset, setSelectedPreset] = useState();
+  const [selectedCollection, setSelectedCollection] = useState();
 
   const currentTheme = useMemo(() => {
     return (themes && themes[theme]) ? themes[theme] : (themes?.light || {
@@ -556,7 +557,9 @@ const App = () => {
       databaseObj,
       chapterDAO,
       selectedPreset,
-      setSelectedPreset
+      setSelectedPreset,
+      setSelectedCollection,
+      selectedCollection
     };
 
     switch (activeScreen) {
