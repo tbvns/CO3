@@ -158,8 +158,8 @@ export default function UserWorkScreen({
       <TouchableOpacity
         style={{ marginLeft: 'auto' }}
         onPress={() =>
-        {username ? Linking.openURL(`https://archiveofourown.org/users/${username}/bookmarks`)
-          : getUsername().then(usrname => {Linking.openURL(`https://archiveofourown.org/users/${usrname}/bookmarks`)}
+        {username ? Linking.openURL(`https://archiveofourown.org/users/${username}/works`)
+          : getUsername().then(usrname => {Linking.openURL(`https://archiveofourown.org/users/${usrname}/works`)}
         )}
         }
       >
