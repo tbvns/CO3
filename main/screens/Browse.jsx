@@ -15,6 +15,8 @@ import {
   View,
 } from 'react-native';
 import { fetchFilteredWorks } from '../web/browse/fetchWorks';
+import { fetchTagWorks } from '../web/browse/fetchTagsWorks';
+import { checkTagCanonical } from '../web/other/tagUtils';
 import BookCard from '../components/Library/BookCard';
 import AdvancedSearchScreen from './advancedSearch';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -43,7 +45,7 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
   const slideAnim = useRef(new Animated.Value(Dimensions.get('window').height)).current;
 
   const openSearch = () => {
-    setSearchMounted(true); // mount on first open only
+    setSearchMounted(true);
     Animated.timing(slideAnim, {
       toValue: 0,
       duration: 260,
@@ -77,6 +79,8 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
   const [appliedFilters, setAppliedFilters] = useState({});
   const [hasFilters, setHasFilters] = useState(false);
 
+  const [tagMode, setTagMode] = useState({ active: false, tagName: null });
+
   const [jsonSettings, setJsonSettings] = useState();
 
   useEffect(() => {
@@ -90,7 +94,8 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
   }, [openSearch])
 
   const loadWorks = useCallback(async (reset = false) => {
-    if (!reset && Object.keys(appliedFilters).length === 0) return;
+    const isTagMode = tagMode.active && tagMode.tagName;
+    if (!reset && !isTagMode && Object.keys(appliedFilters).length === 0) return;
 
     if (loadingMore && !reset) return;
     if (!reset && !hasMore) return;
@@ -109,7 +114,9 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
 
       const pageToLoad = reset ? 1 : currentPage + 1;
 
-      const result = await fetchFilteredWorks(appliedFilters, pageToLoad);
+      const result = isTagMode
+        ? await fetchTagWorks(tagMode.tagName, appliedFilters, pageToLoad)
+        : await fetchFilteredWorks(appliedFilters, pageToLoad);
       const newWorks = result.works || [];
 
       const isLastPage = newWorks.length < 20;
@@ -128,7 +135,7 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
 
       setCurrentPage(pageToLoad);
 
-      if (Object.keys(appliedFilters).length === 0) {
+      if (!isTagMode && Object.keys(appliedFilters).length === 0) {
         setHasMore(false);
       } else if (isLastPage) {
         setHasMore(false);
@@ -150,11 +157,11 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
       setLoadingMore(false);
       setRefreshing(false);
     }
-  }, [appliedFilters, currentPage, hasMore, loadingMore]);
+  }, [tagMode, appliedFilters, currentPage, hasMore, loadingMore]);
 
   useEffect(() => {
     loadWorks(true);
-  }, [appliedFilters]);
+  }, [tagMode, appliedFilters]);
 
   // Handle preset selection
   useEffect(() => {
@@ -220,14 +227,33 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
   }, [selectedPreset, setSelectedPreset]);
 
   useEffect(() => {
-    if (selectedTag != null) {
-      const filters = {};
-      filters["work_search[freeform_names]"] = selectedTag;
-      setAppliedFilters(filters);
-      setHasFilters(true);
-      setSelectedTag(null)
-    }
-  }, [openTagSearch, selectedTag, setSelectedTag]);
+    if (selectedTag == null) return;
+
+    const resolveTag = async () => {
+      setLoading(true);
+      try {
+        const info = await checkTagCanonical(selectedTag);
+        if (info.isCanonical) {
+          setTagMode({ active: true, tagName: selectedTag });
+          setAppliedFilters({});
+          setHasFilters(true);
+        } else {
+          setTagMode({ active: false, tagName: null });
+          setAppliedFilters({ "work_search[freeform_names]": selectedTag });
+          setHasFilters(true);
+        }
+      } catch (err) {
+        console.warn('checkTagCanonical failed, falling back to generic search:', err);
+        setTagMode({ active: false, tagName: null });
+        setAppliedFilters({ "work_search[freeform_names]": selectedTag });
+        setHasFilters(true);
+      } finally {
+        setSelectedTag(null);
+      }
+    };
+
+    resolveTag();
+  }, [selectedTag, setSelectedTag]);
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
@@ -235,17 +261,22 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
   }, [loadWorks]);
 
   const handleLoadMore = useCallback(() => {
-    if (Object.keys(appliedFilters).length === 0) return;
+    if (!tagMode.active && Object.keys(appliedFilters).length === 0) return;
 
     if (!loading && !loadingMore && hasMore && works.length > 0) {
       loadWorks(false);
     }
-  }, [loading, loadingMore, hasMore, works.length, loadWorks, appliedFilters]);
+  }, [tagMode, loading, loadingMore, hasMore, works.length, loadWorks, appliedFilters]);
 
-  const handleSearchFilters = (filters) => {
+  const handleSearchFilters = (filters, canonicalTagName) => {
+    if (canonicalTagName) {
+      setTagMode({ active: true, tagName: canonicalTagName });
+    } else {
+      setTagMode({ active: false, tagName: null });
+    }
     setAppliedFilters(filters);
-    setHasFilters(Object.keys(filters).length > 0);
-    closeSearch()
+    setHasFilters(Object.keys(filters).length > 0 || !!canonicalTagName);
+    closeSearch();
   };
 
   const handleClearFilters = () => {
@@ -257,6 +288,7 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
         {
           text: "Clear",
           onPress: () => {
+            setTagMode({ active: false, tagName: null });
             setAppliedFilters({});
             setHasFilters(false);
           }
@@ -452,6 +484,7 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
             onClose={closeSearch}
             onSearch={handleSearchFilters}
             savedFilters={appliedFilters}
+            tagMode={tagMode}
           />
         </Animated.View>
       )}

@@ -100,7 +100,7 @@ function categorizeTagsByClass(workElement) {
     return categorized;
 }
 
-function extractPaginationInfo(doc) {
+export function extractPaginationInfo(doc) {
     const paginationElement = doc.getElementsByClassName("pagination")[0];
     if (!paginationElement) return { currentPage: 1, maxPages: 1 };
 
