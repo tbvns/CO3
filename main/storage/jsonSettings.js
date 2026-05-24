@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 class updateRestictionType {
   static None = 0;
   static Wifi = 1;
-  static Unmetered = 2;
+  // static Unmetered = 2; //Wifi and Unmetered are the same thing
   static NotRoaming = 3;
 }
 
@@ -54,12 +54,13 @@ export const UPDATE_INTERVALS = {
   EVERY_2_DAYS: { label: 'Every 2 Days', value: 2880 },
   EVERY_3_DAYS: { label: 'Every 3 Days', value: 4320 },
   WEEKLY: { label: 'Weekly', value: 10080 },
+  NEVER: { label: 'Never', value: -1 },
 };
 
 export const UPDATE_RESTRICTIONS = {
   NONE: { label: 'No Restriction', value: updateRestictionType.None },
   WIFI: { label: 'WiFi Only', value: updateRestictionType.Wifi },
-  UNMETERED: { label: 'Unmetered Only', value: updateRestictionType.Unmetered },
+  // UNMETERED: { label: 'Unmetered Only', value: updateRestictionType.Unmetered },
   NOT_ROAMING: { label: 'Not Roaming', value: updateRestictionType.NotRoaming },
 };
 

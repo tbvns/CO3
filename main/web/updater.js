@@ -84,7 +84,12 @@ export const setup = async intervalMinutes => {
     return;
   }
 
-  const settings = getJsonSettings(); // returns an object, no await needed if async, but getJsonSettings is async - see note below
+  if (intervalMinutes === -1) {
+    cancel();
+    return;
+  }
+
+  const settings = await getJsonSettings();
   const restrictionArray = settings.updateRestriction;
   let networkType = 'NONE';
 
@@ -95,11 +100,11 @@ export const setup = async intervalMinutes => {
         networkType = 'NONE';
         break;
       case 1:
-        networkType = 'WIFI';
-        break;
-      case 2:
         networkType = 'UNMETERED';
         break;
+      // case 2:
+      //   networkType = 'UNMETERED';
+      //   break;
       case 3:
         networkType = 'NOT_ROAMING';
         break;
@@ -119,7 +124,7 @@ export const cancel = () => {
 };
 
 export const run = async () => {
-  const settings = getJsonSettings();
+  const settings = await getJsonSettings();
   const useCompactNotification = settings.compactNotifications;
 
   try {
