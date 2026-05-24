@@ -219,7 +219,7 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, libraryDAO, wor
                   </TouchableOpacity>
               )}
 
-              {showDescriptionInCard && (
+              {showDescriptionInCard && book.description && (
                   jsonSettings ? (
                       jsonSettings.showFullDescription && jsonSettings.preferHtml ?
                         <HtmlTextRenderer
