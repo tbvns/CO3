@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   Dimensions,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -109,79 +110,81 @@ const CalendarModal = ({
             <TouchableWithoutFeedback onPress={handleModalOverlayPress}>
                 <View style={styles.modalOverlay}>
                     <TouchableWithoutFeedback onPress={() => {}}>
-                        <View style={[styles.modalContainer, { backgroundColor: currentTheme.backgroundColor }]}>
-                            <View style={styles.modalHeader}>
-                                <Text style={[styles.modalTitle, { color: currentTheme.textColor }]}>
-                                    Select Date Range
-                                </Text>
-                                <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                                    <Icon name="close" size={24} color={currentTheme.placeholderColor} />
-                                </TouchableOpacity>
-                            </View>
-
-                            <Text style={[styles.modalSubtitle, { color: currentTheme.placeholderColor }]}>
-                                {dateRange.start && dateRange.end
-                                    ? `Selected: ${dateRange.start} to ${dateRange.end}`
-                                    : dateRange.start
-                                        ? `Start: ${dateRange.start} (tap another date to set end)`
-                                        : 'Tap a date to start selection. Dots indicate reading activity.'
-                                }
+                      <View style={[styles.basContainer]}>
+                        <ScrollView style={[styles.modalContainer, { backgroundColor: currentTheme.backgroundColor }]}>
+                          <View style={styles.modalHeader}>
+                            <Text style={[styles.modalTitle, { color: currentTheme.textColor }]}>
+                              Select Date Range
                             </Text>
+                            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                              <Icon name="close" size={24} color={currentTheme.placeholderColor} />
+                            </TouchableOpacity>
+                          </View>
 
-                            <Calendar
-                                onDayPress={handleCalendarDayPress}
-                                markedDates={getCalendarMarkedDates()}
-                                markingType="period"
-                                theme={{
-                                    backgroundColor: currentTheme.backgroundColor,
-                                    calendarBackground: currentTheme.backgroundColor,
-                                    textSectionTitleColor: currentTheme.textColor,
-                                    selectedDayBackgroundColor: currentTheme.primaryColor,
-                                    selectedDayTextColor: 'white',
-                                    todayTextColor: currentTheme.primaryColor,
-                                    dayTextColor: currentTheme.textColor,
-                                    textDisabledColor: currentTheme.placeholderColor,
-                                    dotColor: currentTheme.primaryColor,
-                                    selectedDotColor: 'white',
-                                    arrowColor: currentTheme.primaryColor,
-                                    monthTextColor: currentTheme.textColor,
-                                    indicatorColor: currentTheme.primaryColor,
-                                    textDayFontWeight: '300',
-                                    textMonthFontWeight: 'bold',
-                                    textDayHeaderFontWeight: '300',
-                                    textDayFontSize: 16,
-                                    textMonthFontSize: 16,
-                                    textDayHeaderFontSize: 13
-                                }}
-                            />
+                          <Text style={[styles.modalSubtitle, { color: currentTheme.placeholderColor }]}>
+                            {dateRange.start && dateRange.end
+                              ? `Selected: ${dateRange.start} to ${dateRange.end}`
+                              : dateRange.start
+                                ? `Start: ${dateRange.start} (tap another date to set end)`
+                                : 'Tap a date to start selection. Dots indicate reading activity.'
+                            }
+                          </Text>
 
-                            <View style={styles.modalButtons}>
-                                <TouchableOpacity
-                                    style={[styles.modalButton, { borderColor: currentTheme.placeholderColor }]}
-                                    onPress={handleClearSelection}
-                                >
-                                    <Text style={[styles.modalButtonText, { color: currentTheme.placeholderColor }]}>
-                                        Clear Selection
-                                    </Text>
-                                </TouchableOpacity>
+                          <Calendar
+                            onDayPress={handleCalendarDayPress}
+                            markedDates={getCalendarMarkedDates()}
+                            markingType="period"
+                            theme={{
+                              backgroundColor: currentTheme.backgroundColor,
+                              calendarBackground: currentTheme.backgroundColor,
+                              textSectionTitleColor: currentTheme.textColor,
+                              selectedDayBackgroundColor: currentTheme.primaryColor,
+                              selectedDayTextColor: 'white',
+                              todayTextColor: currentTheme.primaryColor,
+                              dayTextColor: currentTheme.textColor,
+                              textDisabledColor: currentTheme.placeholderColor,
+                              dotColor: currentTheme.primaryColor,
+                              selectedDotColor: 'white',
+                              arrowColor: currentTheme.primaryColor,
+                              monthTextColor: currentTheme.textColor,
+                              indicatorColor: currentTheme.primaryColor,
+                              textDayFontWeight: '300',
+                              textMonthFontWeight: 'bold',
+                              textDayHeaderFontWeight: '300',
+                              textDayFontSize: 16,
+                              textMonthFontSize: 16,
+                              textDayHeaderFontSize: 13
+                            }}
+                          />
 
-                                <TouchableOpacity
-                                    style={[
-                                        styles.modalButton,
-                                        styles.applyButton,
-                                        {
-                                            backgroundColor: currentTheme.primaryColor,
-                                            borderColor: currentTheme.primaryColor
-                                        }
-                                    ]}
-                                    onPress={onApplyFilter}
-                                >
-                                    <Text style={[styles.modalButtonText, { color: 'white' }]}>
-                                        {dateRange.start ? 'Apply Filter' : 'Show All'}
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
+                          <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                              style={[styles.modalButton, { borderColor: currentTheme.placeholderColor }]}
+                              onPress={handleClearSelection}
+                            >
+                              <Text style={[styles.modalButtonText, { color: currentTheme.placeholderColor }]}>
+                                Clear Selection
+                              </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                              style={[
+                                styles.modalButton,
+                                styles.applyButton,
+                                {
+                                  backgroundColor: currentTheme.primaryColor,
+                                  borderColor: currentTheme.primaryColor
+                                }
+                              ]}
+                              onPress={onApplyFilter}
+                            >
+                              <Text style={[styles.modalButtonText, { color: 'white' }]}>
+                                {dateRange.start ? 'Apply Filter' : 'Show All'}
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        </ScrollView>
+                      </View>
                     </TouchableWithoutFeedback>
                 </View>
             </TouchableWithoutFeedback>
@@ -195,8 +198,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    basContainer: {
+      width: screenWidth - 32,
+    },
     modalContainer: {
         width: screenWidth - 32,
+        maxHeight: screenHeight * 0.9,
         borderRadius: 16,
         padding: 16,
         elevation: 10,
