@@ -16,6 +16,8 @@ export const themes = {
     tagTextColor: '#1e40af',
     warningBackground: '#fecaca',
     warningTextColor: '#b91c1c',
+    warningMessageBackground: '#fffbea',
+    warningMessageTextColor: '#d97706',
   },
   dark: {
     name: 'dark',
@@ -34,6 +36,8 @@ export const themes = {
     tagTextColor: '#bfdbfe',
     warningBackground: '#b91c1c',
     warningTextColor: '#fecaca',
+    warningMessageBackground: '#452400',
+    warningMessageTextColor: '#f59e0b',
   },
   black: {
     name: 'black',
@@ -52,5 +56,7 @@ export const themes = {
     tagTextColor: '#bbdefb',
     warningBackground: '#b71c1c',
     warningTextColor: '#ffcdd2',
+    warningMessageBackground: '#331a00',
+    warningMessageTextColor: '#f59e0b',
   },
 };

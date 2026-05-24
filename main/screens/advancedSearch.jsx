@@ -774,9 +774,9 @@ const AdvancedSearchScreen = ({ currentTheme, onClose, onSearch, savedFilters = 
             </TouchableOpacity>
           </View>
         ) :
-          <View style={[styles.canonicalTagBanner, { backgroundColor: currentTheme.warningBackground + '22', borderColor: currentTheme.warningBackground }]}>
-            <Icon name="local-offer" size={14} style={{ color: currentTheme.warningBackground, marginRight: 6 }} />
-            <Text style={[styles.canonicalTagBannerText, { color: currentTheme.warningBackground, flex: 1 }]}>
+          <View style={[styles.canonicalTagBanner, { backgroundColor: currentTheme.warningMessageBackground, borderColor: currentTheme.warningMessageTextColor }]}>
+            <Icon name="local-offer" size={14} style={{ color: currentTheme.warningMessageTextColor, marginRight: 6 }} />
+            <Text style={[styles.canonicalTagBannerText, { color: currentTheme.warningMessageTextColor, flex: 1 }]}>
               No canonical tag where provided. Excludes won't be available.
             </Text>
           </View>
