@@ -197,7 +197,6 @@ const styles = StyleSheet.create({
     },
     modalContainer: {
         width: screenWidth - 32,
-        maxHeight: screenHeight * 0.7,
         borderRadius: 16,
         padding: 16,
         elevation: 10,
