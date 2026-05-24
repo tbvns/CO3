@@ -66,8 +66,6 @@ export async function processQueue() {
       importance: AndroidImportance.LOW,
     });
 
-    await notifee.registerForegroundService(() => new Promise(() => {}));
-
     while (true) {
       queue = await getDownloadQueue();
       if (queue.length === 0) break;
@@ -83,7 +81,6 @@ export async function processQueue() {
         body: `Processing item ${processed + 1} of ${initialTotal}`,
         android: {
           channelId: CHANNEL_ID,
-          asForegroundService: true,
           ongoing: true,
           onlyAlertOnce: true,
           progress: {
@@ -112,7 +109,6 @@ export async function processQueue() {
   } finally {
     isProcessing = false;
 
-    await notifee.stopForegroundService();
     await notifee.cancelNotification(NOTIFICATION_ID);
 
     if (failedCount > 0 || successCount > 0) {
