@@ -73,6 +73,13 @@ export default function ReadLaterScreen({
   };
 
   const loadInitialEntries = async () => {
+    const username = await getUsername()
+    if (!username) {
+      setError({message: "Please log in to see works marked as Read Later on your account."})
+      setLoading(false)
+      return;
+    }
+
     try {
       setLoading(true);
       setCurrentPage(1);

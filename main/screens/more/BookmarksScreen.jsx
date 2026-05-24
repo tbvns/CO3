@@ -40,8 +40,8 @@ export default function BookmarksScreen({
   const PAGE_SIZE = 20;
 
   useEffect(() => {
-    loadInitialBookmarks();
-  }, []);
+    loadInitialBookmarks()
+  }, [loadInitialBookmarks]);
 
   const formatWork = work => {
     return {
@@ -72,6 +72,13 @@ export default function BookmarksScreen({
   };
 
   const loadInitialBookmarks = async () => {
+    const username = await getUsername()
+    if (!username) {
+      setError({message: "Please log in to see bookmarked works on your account."})
+      setLoading(false)
+      return;
+    }
+
     try {
       setLoading(true);
       setCurrentPage(1);
