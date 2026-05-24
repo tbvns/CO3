@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import WorkScreen from '../../screens/workScreen';
 
 const HistoryItem = ({
@@ -92,45 +92,45 @@ const HistoryItem = ({
   }
 
   return (
-    <TouchableOpacity onPress={handleClick} activeOpacity={0.7}>
-      <View
-        style={[
-          styles.historyItem,
-          { backgroundColor: currentTheme.cardBackground },
-        ]}
-      >
-        <View style={styles.itemHeader}>
-          <Text
-            style={[styles.bookTitle, { color: currentTheme.textColor }]}
-            numberOfLines={1}
-          >
-            {item.book_title || 'Unknown Book'}
-          </Text>
-          <Text
-            style={[styles.readTime, { color: currentTheme.placeholderColor }]}
-          >
-            {formatDate(item.date)}
-          </Text>
-        </View>
-
+    <Pressable
+      onPress={handleClick}
+      style={({ pressed }) => [
+        styles.historyItem,
+        { backgroundColor: currentTheme.cardBackground },
+        pressed && { opacity: 0.7 }
+      ]}
+    >
+      <View style={styles.itemHeader}>
         <Text
-          style={[styles.bookAuthor, { color: currentTheme.placeholderColor }]}
+          style={[styles.bookTitle, { color: currentTheme.textColor }]}
           numberOfLines={1}
         >
-          by {item.book_author || 'Unknown Author'}
+          {item.book_title || 'Unknown Book'}
         </Text>
-
-        {hasChapter ? (
-          <View style={styles.chapterInfo}>
-            <Text
-              style={[styles.chapterText, { color: currentTheme.primaryColor }]}
-            >
-              {formatChapterRange(item.chapter, item.chapterEnd)}
-            </Text>
-          </View>
-        ) : null}
+        <Text
+          style={[styles.readTime, { color: currentTheme.placeholderColor }]}
+        >
+          {formatDate(item.date)}
+        </Text>
       </View>
-    </TouchableOpacity>
+
+      <Text
+        style={[styles.bookAuthor, { color: currentTheme.placeholderColor }]}
+        numberOfLines={1}
+      >
+        by {item.book_author || 'Unknown Author'}
+      </Text>
+
+      {hasChapter ? (
+        <View style={styles.chapterInfo}>
+          <Text
+            style={[styles.chapterText, { color: currentTheme.primaryColor }]}
+          >
+            {formatChapterRange(item.chapter, item.chapterEnd)}
+          </Text>
+        </View>
+      ) : null}
+    </Pressable>
   );
 };
 
