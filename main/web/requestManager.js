@@ -1,6 +1,6 @@
 import ky from 'ky';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fetchViaWebView, WebViewFetchError } from './WebviewFetcher';
+import { fetchViaWebView } from './WebviewFetcher';
 
 const CF_STORAGE_KEY = 'cf_domains'; // { [domain]: expiresAt }
 const CF_MODE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
@@ -28,13 +28,14 @@ async function enableCFMode(domain) {
 }
 
 function isCFChallenge(html) {
-  return html.includes('_cf_chl_opt') || html.includes('cdn-cgi/challenge-platform');
+  return html.includes('_cf_chl_opt');
 }
 
 export default async function getUrl(url) {
   const { hostname } = new URL(url);
 
   if (await isCFMode(hostname)) {
+    console.log(`using webview to fetch ${url}`);
     return fetchViaWebView(url);
   }
 
@@ -42,10 +43,12 @@ export default async function getUrl(url) {
     const html = await ky.get(url).text();
 
     if (isCFChallenge(html)) {
+      console.log(`isCfChalenged fiered with ${html}`);
       await enableCFMode(hostname);
       return fetchViaWebView(url, { cfWarning: true });
     }
 
+    console.log(`fetched ${url} via ky.`);
     return html;
   } catch (err) {
     if (err?.response?.status === 403) {

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import WebView from 'react-native-webview';
 
 // --- Queue ---
@@ -43,16 +44,18 @@ const CF_CHALLENGE_DETECTION = `
       return;
     }
 
-    localStorage.setItem('accepted_tos', '20241119');
     window.ReactNativeWebView.postMessage(JSON.stringify({
       type: 'success',
       body: document.documentElement.outerHTML,
+      acceptedTos: localStorage.getItem('accepted_tos'),
     }));
   })();
   true;
 `;
 
 const CF_INTERIM_STATUSES = new Set([403, 503]);
+
+export const ACCEPTED_TOS_KEY = 'accepted_tos';
 
 // --- Component ---
 
@@ -134,7 +137,13 @@ export default function WebviewFetcher() {
         }
         return;
       }
-      if (data.type === 'success') { settle(data.body, null); return; }
+      if (data.type === 'success') {
+        if (data.acceptedTos) {
+          AsyncStorage.setItem(ACCEPTED_TOS_KEY, data.acceptedTos).catch(() => {});
+        }
+        settle(data.body, null);
+        return;
+      }
       settle(null, new WebViewFetchError(0, data.error ?? 'WebView extraction failed', source?.uri));
     } catch (e) {
       settle(null, e);
