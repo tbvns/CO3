@@ -20,6 +20,7 @@ import ReadLaterScreen from './more/ReadLaterScreen';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import StorageScreen from './more/StorageScreen';
 import Toast from 'react-native-toast-message';
+import StatsScreen from './more/StatsScreen';
 
 const MoreScreen = ({
   currentTheme,
@@ -39,7 +40,8 @@ const MoreScreen = ({
   kudoHistoryDAO,
   databaseObj,
   chapterDAO,
-  setJsonSettings
+  setJsonSettings,
+  openTagSearch
 }) => {
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -156,7 +158,21 @@ const MoreScreen = ({
         ]);
         break;
       case "Statistics":
-        Toast.show({type: "error", text1: "Not implemented yet", text2: "Statistics are currently unavailable."})
+        setScreens(prev => [
+          ...prev,
+          <StatsScreen
+            currentTheme={currentTheme}
+            workDAO={workDAO}
+            libraryDAO={libraryDAO}
+            setScreens={setScreens}
+            historyDAO={historyDAO}
+            settingsDAO={settingsDAO}
+            progressDAO={progressDAO}
+            kudoHistoryDAO={kudoHistoryDAO}
+            databaseObj={databaseObj}
+            openTagSearch={openTagSearch}
+          />,
+        ])
         break;
       case 'Data and Storage':
         setScreens(prev => [
