@@ -10,6 +10,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useEffect, useState } from 'react';
 import * as Stats from '../../storage/Stats';
+import UserInfoScreen from '../UserInfo';
 
 function StatCard({ icon, label, value, currentTheme, accent }) {
   const isLoading = value === undefined || value === null;
@@ -41,8 +42,16 @@ function StatCard({ icon, label, value, currentTheme, accent }) {
   );
 }
 
-function AuthorList({ authors, currentTheme, accent }) {
+function AuthorList({ authors, currentTheme, accent, setScreens, workDAO, libraryDAO, historyDAO, settingsDAO, progressDAO, kudoHistoryDAO, chapterDAO, }) {
   const isLoading = authors === undefined || authors === null;
+
+  function onBack() {
+    setScreens(prev => {
+      const newScreens = [...prev];
+      newScreens.pop();
+      return newScreens;
+    });
+  }
 
   return (
     <View
@@ -67,7 +76,7 @@ function AuthorList({ authors, currentTheme, accent }) {
         <ActivityIndicator size="small" color={accent} style={styles.spinner} />
       ) : Array.isArray(authors) && authors.length > 0 ? (
         authors.map((item, i) => (
-          <View
+          <TouchableOpacity
             key={i}
             style={[
               styles.listRow,
@@ -76,25 +85,42 @@ function AuthorList({ authors, currentTheme, accent }) {
                 borderBottomColor: currentTheme.borderColor,
               },
             ]}
+            activeOpacity={0.6}
+            onPress={() => {
+              setScreens( prev =>
+                [...prev,
+                  <UserInfoScreen
+                    currentTheme={currentTheme}
+                    username={item.author}
+                    onBack={onBack}
+                    setScreens={setScreens}
+                    workDAO={workDAO}
+                    libraryDAO={libraryDAO}
+                    historyDAO={historyDAO}
+                    settingsDAO={settingsDAO}
+                    progressDAO={progressDAO}
+                    kudoHistoryDAO={kudoHistoryDAO}
+                    chapterDAO={chapterDAO}
+                  />
+                ]
+              )
+            }}
           >
-            {/* rank number */}
             <Text style={[styles.rankText, { color: currentTheme.secondaryTextColor }]}>
               {i + 1}
             </Text>
-            {/* author name */}
             <Text
               style={[styles.listRowText, { color: currentTheme.textColor }]}
               numberOfLines={1}
             >
               {item.author}
             </Text>
-            {/* works count badge */}
             <View style={[styles.countBadge, { backgroundColor: accent + '22' }]}>
               <Text style={[styles.countText, { color: accent }]}>
                 {item.author_count} {item.author_count === 1 ? 'work' : 'works'}
               </Text>
             </View>
-          </View>
+          </TouchableOpacity>
         ))
       ) : (
         <Text style={[styles.emptyText, { color: currentTheme.secondaryTextColor }]}>
@@ -172,7 +198,7 @@ function TagList({ tags, currentTheme, accent, openTagSearch }) {
   );
 }
 
-export default function StatsScreen({ currentTheme, setScreens, databaseObj, openTagSearch }) {
+export default function StatsScreen({ currentTheme, setScreens, databaseObj, openTagSearch, workDAO, libraryDAO, historyDAO, settingsDAO, progressDAO, kudoHistoryDAO, chapterDAO }) {
   function onBack() {
     setScreens(prev => {
       const newScreens = [...prev];
@@ -234,6 +260,14 @@ export default function StatsScreen({ currentTheme, setScreens, databaseObj, ope
           authors={preferedAuthor}
           currentTheme={currentTheme}
           accent={accent}
+          setScreens={setScreens}
+          workDAO={workDAO}
+          libraryDAO={libraryDAO}
+          historyDAO={historyDAO}
+          settingsDAO={settingsDAO}
+          progressDAO={progressDAO}
+          kudoHistoryDAO={kudoHistoryDAO}
+          chapterDAO={chapterDAO}
         />
 
         <TagList

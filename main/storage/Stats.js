@@ -54,7 +54,7 @@ export async function preferredAuthor(db) {
     )
     GROUP BY w.author
     ORDER BY author_count DESC
-    LIMIT 20;
+    LIMIT 5;
   `);
   return rowsToList(result.rows);
 }

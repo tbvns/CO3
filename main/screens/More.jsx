@@ -171,6 +171,7 @@ const MoreScreen = ({
             kudoHistoryDAO={kudoHistoryDAO}
             databaseObj={databaseObj}
             openTagSearch={openTagSearch}
+            chapterDAO={chapterDAO}
           />,
         ])
         break;
