@@ -56,12 +56,14 @@ import MainOnboardScreen from './onboard/MainOnboardScreen';
 
 const AppWrapper = () => {
   return (
-    <Host>
-      <SafeAreaProvider>
-        <App />
-      </SafeAreaProvider>
-      <WebviewFetcher />
-    </Host>
+    <View style={{ flex: 1, width: '100%', height: '100%' }}>
+      <Host>
+        <SafeAreaProvider style={{ flex: 1 }}>
+          <App />
+        </SafeAreaProvider>
+        <WebviewFetcher />
+      </Host>
+    </View>
   );
 };
 

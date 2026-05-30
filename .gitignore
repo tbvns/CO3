@@ -76,3 +76,4 @@ yarn-error.log
 
 # Stakpak session files
 .stakpak/session*
+/dist/
