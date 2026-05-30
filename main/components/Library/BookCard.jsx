@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   card: {
     padding: 16,
     marginBottom: 16,
-    borderRadius: 8,
+    borderRadius: 14,
     borderWidth: 1,
     flexDirection: 'column',
   },
