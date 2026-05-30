@@ -17,6 +17,7 @@ import EmptyState from '../components/History/Empty';
 import LoadingSpinner from '../components/History/Spinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import KudoHistoryScreen from './more/KudoHistory';
+import WorkScreen from './workScreen';
 
 const HistoryScreen = ({
   currentTheme,
@@ -55,25 +56,13 @@ const HistoryScreen = ({
 
   useEffect(() => {
     const subscription = DeviceEventEmitter.addListener('doubleTap', (id) => {
-      setScreens(prev => [...prev,
-        <KudoHistoryScreen
-          currentTheme={currentTheme}
-          workDAO={workDAO}
-          libraryDAO={libraryDAO}
-          setScreens={setScreens}
-          historyDAO={historyDAO}
-          settingsDAO={settingsDAO}
-          progressDAO={progressDAO}
-          kudoHistoryDAO={kudoHistoryDAO}
-          chapterDAO={chapterDAO}
-        />
-      ])
+      handleClick(history[0])
     })
 
     return () => {
       subscription.remove()
     }
-  }, [])
+  }, [history])
 
   const loadReadingDates = async () => {
     try {
@@ -275,6 +264,27 @@ const HistoryScreen = ({
       setLoading(false);
     }
   };
+
+  function handleClick(item) {
+    setScreens(prevScreens => [
+      ...prevScreens,
+      <WorkScreen
+        workId={item.workId}
+        currentTheme={currentTheme}
+        settingsDAO={settingsDAO}
+        workDAO={workDAO}
+        libraryDAO={libraryDAO}
+        setScreens={setScreens}
+        historyDAO={historyDAO}
+        progressDAO={progressDAO}
+        loadChapter={item.chapterEnd || item.chapter || 0}
+        kudoHistoryDAO={kudoHistoryDAO}
+        chapterDAO={chapterDAO}
+
+      />,
+    ]);
+  }
+
 
   const clearDateFilter = async () => {
     setDateRange({ start: null, end: null });

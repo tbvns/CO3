@@ -67,7 +67,7 @@ const HistoryItem = ({
           setScreens={setScreens}
           historyDAO={historyDAO}
           progressDAO={progressDAO}
-          loadChapter={item.chapter || item.chapterEnd || 0}
+          loadChapter={item.chapterEnd || item.chapter || 0}
           kudoHistoryDAO={kudoHistoryDAO}
           chapterDAO={chapterDAO}
         />,

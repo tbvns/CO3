@@ -279,8 +279,12 @@ const ReaderWrapper = ({
         settingsDAO
       });
 
-      if (jsonSettings.downloadWhileReading && await libraryDAO.isInLibrary(chapterData.workId)) {
-        for (let i = 0; i < jsonSettings.downloadWhileReading; i++) {
+      if (!jsonSettings) {
+        jsonSettings = await getJsonSettings(chapterData);
+      }
+
+      if (jsonSettings?.downloadWhileReading && await libraryDAO.isInLibrary(chapterData.workId)) {
+        for (let i = 0; i < jsonSettings?.downloadWhileReading; i++) {
           const index = chapterData.chapterIndex + 2 + i;
           if (chapterList.length <= index) break;
           await addToDownloadQueue({ workId: chapterData.workId, chapterId: chapterList[index].id });
