@@ -416,6 +416,7 @@ const ChapterReader = ({
 
     // Handle tap events and send to RN
     document.addEventListener('click', (e) => {
+      if (e.target.closest('summary')) return;
       if (!['A', 'BUTTON', 'INPUT'].includes(e.target.tagName)) {
         e.preventDefault();
         if (window.ReactNativeWebView) {
