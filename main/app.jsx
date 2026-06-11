@@ -53,6 +53,8 @@ import GlobalSearchScreen from './screens/GlobalSearchScreen';
 import { Host } from 'react-native-portalize';
 import WebviewFetcher from './web/WebviewFetcher';
 import MainOnboardScreen from './onboard/MainOnboardScreen';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { runOnJS, useSharedValue } from 'react-native-reanimated';
 
 const AppWrapper = () => {
   const wrapperStyle = Platform.OS === 'web'
@@ -62,9 +64,11 @@ const AppWrapper = () => {
   return (
     <View style={wrapperStyle}>
       <Host>
-        <SafeAreaProvider style={{ flex: 1 }}>
-          <App />
-        </SafeAreaProvider>
+        <GestureHandlerRootView>
+          <SafeAreaProvider style={{ flex: 1 }}>
+            <App />
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
         <WebviewFetcher />
       </Host>
     </View>
@@ -194,6 +198,8 @@ const App = () => {
   const [jsonSettings, setJsonSettings] = useState();
 
   const [screens, setScreens] = useState([]);
+  const screensCount = useSharedValue(0);
+  const activeScreenShared = useSharedValue('library');
 
   const [selectedTag, setSelectedTag] = useState();
   const [selectedPreset, setSelectedPreset] = useState();
@@ -261,6 +267,14 @@ const App = () => {
 
     return () => subscription.remove();
   }, [loading, libraryDAO, progressDAO, settingsDAO, workDAO]);
+
+  useEffect(() => {
+    screensCount.value = screens.length;
+  }, [screens]);
+
+  useEffect(() => {
+    activeScreenShared.value = activeScreen;
+  }, [activeScreen]);
 
   useEffect(() => {
     contextRef.current = {
@@ -385,6 +399,27 @@ const App = () => {
 
     return () => backHandler.remove();
   }, [screens]);
+
+  const exitApp = () => BackHandler.exitApp();
+
+  const popScreen = () => setScreens(prev => prev.slice(0, -1));
+
+  const swipeBack = Gesture.Pan()
+    .enabled(Platform.OS === 'ios')
+    .activeOffsetX([-20, 20])
+    .failOffsetY([-10, 10])
+    .onEnd((e) => {
+      'worklet';
+      if (Math.abs(e.translationX) > 50 && e.velocityX > 200) {
+        if (screensCount.value > 0) {
+          runOnJS(popScreen)();
+        } else if (activeScreenShared.value === 'search') {
+          runOnJS(setActiveScreen)('library');
+        } else {
+          runOnJS(exitApp)();
+        }
+      }
+    });
 
   const initializeApp = async () => {
     const jsonSettings = await getJsonSettings();
@@ -629,78 +664,82 @@ const App = () => {
   if (screens.length !== 0) {
     return (
       <>
-        <StatusBar
-          barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
-          backgroundColor={currentTheme.backgroundColor}
-        />
-        <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
-          <View style={[
-            styles.screenWrapper,
-            {
-              flex: 1,
-              paddingTop: insets.top,
-              paddingBottom: insets.bottom,
-            }
-          ]}>
-            {screens[screens.length - 1]}
+        <GestureDetector gesture={swipeBack}>
+          <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+            <StatusBar
+              barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
+              backgroundColor={currentTheme.backgroundColor}
+            />
+            <View style={[
+              styles.screenWrapper,
+              {
+                flex: 1,
+                paddingTop: insets.top,
+                paddingBottom: insets.bottom,
+              }
+            ]}>
+              {screens[screens.length - 1]}
+            </View>
           </View>
-        </View>
+        </GestureDetector>
         <CustomToast currentTheme={currentTheme} />
       </>
     )
   }
 
   return (
-    <>
-      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
-        <StatusBar
-          barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
-          backgroundColor={currentTheme.headerBackground}
-        />
+    <GestureDetector gesture={swipeBack}>
+      <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+          <StatusBar
+            barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
+            backgroundColor={currentTheme.headerBackground}
+          />
 
-        <TopBar
-          currentTheme={currentTheme}
-          activeScreen={activeScreen}
-          setIsSideMenuOpen={setIsSideMenuOpen}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          setActiveScreen={setActiveScreen}
-        />
+          <TopBar
+            currentTheme={currentTheme}
+            activeScreen={activeScreen}
+            setIsSideMenuOpen={setIsSideMenuOpen}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            setActiveScreen={setActiveScreen}
+          />
 
-        {renderScreen()}
+          {renderScreen()}
 
-        <BottomNavigation
-          activeScreen={activeScreen}
-          setActiveScreen={setActiveScreen}
-          currentTheme={currentTheme}
-          onDoubleTap={handleDoubleTap}
-        />
+          <BottomNavigation
+            activeScreen={activeScreen}
+            setActiveScreen={setActiveScreen}
+            currentTheme={currentTheme}
+            onDoubleTap={handleDoubleTap}
+          />
 
-        <SideMenu
-          isOpen={isSideMenuOpen}
-          onClose={() => setIsSideMenuOpen(false)}
-          theme={theme}
-          setTheme={saveTheme}
-          isIncognitoMode={isIncognitoMode}
-          toggleIncognitoMode={() => saveIncognitoMode(!isIncognitoMode)}
-          viewMode={viewMode}
-          setViewMode={saveViewMode}
-          currentTheme={currentTheme}
-          historyDAO={historyDAO}
-          workDAO={workDAO}
-          settingsDAO={settingsDAO}
-        />
+          <SideMenu
+            isOpen={isSideMenuOpen}
+            onClose={() => setIsSideMenuOpen(false)}
+            theme={theme}
+            setTheme={saveTheme}
+            isIncognitoMode={isIncognitoMode}
+            toggleIncognitoMode={() => saveIncognitoMode(!isIncognitoMode)}
+            viewMode={viewMode}
+            setViewMode={saveViewMode}
+            currentTheme={currentTheme}
+            historyDAO={historyDAO}
+            workDAO={workDAO}
+            settingsDAO={settingsDAO}
+          />
 
-        <AddWorkModal
-          isOpen={isAddWorkModalOpen}
-          onClose={() => setIsAddWorkModalOpen(false)}
-          onAdd={handleAddWork}
-          theme={currentTheme}
-        />
-      </SafeAreaView>
+          <AddWorkModal
+            isOpen={isAddWorkModalOpen}
+            onClose={() => setIsAddWorkModalOpen(false)}
+            onAdd={handleAddWork}
+            theme={currentTheme}
+          />
+        </SafeAreaView>
 
-      <CustomToast currentTheme={currentTheme} />
-    </>
+        <CustomToast currentTheme={currentTheme} />
+      </View>
+    </GestureDetector>
   );
 };
 
