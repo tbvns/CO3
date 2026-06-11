@@ -72,8 +72,15 @@ export default function BookmarksScreen({
   };
 
   const loadInitialBookmarks = async () => {
-    const username = await getUsername()
-    if (!username) {
+    let usrname = username;
+
+    if (!username)
+      usrname = await getUsername()
+
+    console.log(usrname);
+    console.log(username);
+
+    if (!usrname) {
       setError({message: "Please log in to see bookmarked works on your account."})
       setLoading(false)
       return;
