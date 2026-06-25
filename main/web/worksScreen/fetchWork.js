@@ -315,7 +315,7 @@ export async function fetchWorkFromWorkID(workId, workDAO, chapterDAO, force = f
       descriptionHTML: content.summaryHTML || '',
       chapters: cleanChapters,
       currentChapter: chapterInfo.current,
-      chapterCount: chapterInfo.total || cleanChapters.length,
+      chapterCount: chapterInfo.total || "?",
       rating: metadata.rating || 'Not Rated',
       category: metadata.category || 'None',
       warningStatus: warningStatus,

@@ -203,6 +203,7 @@ const MoreScreen = ({
             settingsDAO={settingsDAO}
             progressDAO={progressDAO}
             kudoHistoryDAO={kudoHistoryDAO}
+            db={databaseObj}
           />,
         ]);
         break;

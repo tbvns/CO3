@@ -1,11 +1,11 @@
 import SQLite from 'react-native-sqlite-storage';
 import RNFS from 'react-native-fs';
 import { Platform } from 'react-native';
-import { from1to2, from2to3, from3to4 } from './dbMigration';
+import { from1to2, from2to3, from3to4, from4to5 } from './dbMigration';
 
 SQLite.enablePromise(true);
 
-const TARGET_VERSION = 4;
+const TARGET_VERSION = 5;
 
 let instance = null;
 
@@ -201,6 +201,10 @@ class Database {
 
     if (currentVersion < 4) {
       await from3to4(this.db);
+    }
+
+    if (currentVersion < 5) {
+      await from4to5(this.db);
     }
 
     await this.setDatabaseVersion(TARGET_VERSION);

@@ -87,3 +87,14 @@ export async function from3to4(db) {
     throw error;
   }
 }
+
+export async function from4to5(db) {
+  console.log("Migrating database from version 4 to 5...");
+  try {
+    await db.executeSql("UPDATE works SET chapterCount = '?';");
+    console.log("Migration to version 5 complete.");
+  } catch (error) {
+    console.error("Migration from4to5 failed:", error);
+    throw error;
+  }
+}

@@ -10,8 +10,9 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { co3Version } from '../../constant';
+import DebugScreen from './DebugScreen';
 
-export default function AboutScreen({ setScreens, currentTheme }) {
+export default function AboutScreen({ setScreens, currentTheme, db }) {
   function onBack() {
     setScreens(prev => {
       const newScreens = [...prev];
@@ -32,7 +33,9 @@ export default function AboutScreen({ setScreens, currentTheme }) {
       </View>
       <ScrollView style={{height: "100%"}}>
         <View style={styles.mainContent}>
-          <Image style={styles.image} source={require('../../res/CO3.png')} />
+          <TouchableOpacity onPress={() => setScreens(p => [...p, <DebugScreen setScreens={setScreens} db={db} />])}>
+            <Image style={styles.image} source={require('../../res/CO3.png')} />
+          </TouchableOpacity>
           <View
             style={[
               styles.separator,
