@@ -5,13 +5,14 @@ import getUrl from '../requestManager';
 
 let DomParser = require('react-native-html-parser').DOMParser;
 
-export async function fetchUserWorks(page, username) {
+export async function fetchUserWorks(page, username, pseud) {
   let url;
   try {
-    if (username) {
-      url = `https://archiveofourown.org/users/${username}/works?page=${page}`;
+    const resolvedUsername = username || await getUsername();
+    if (pseud) {
+      url = `https://archiveofourown.org/users/${resolvedUsername}/pseuds/${encodeURIComponent(pseud)}/works?page=${page}`;
     } else {
-      url = `https://archiveofourown.org/users/${await getUsername()}/works?page=${page}`;
+      url = `https://archiveofourown.org/users/${resolvedUsername}/works?page=${page}`;
     }
 
     console.log(`Fetching works from: ${url}`);
@@ -39,7 +40,7 @@ export async function fetchUserWorks(page, username) {
         .filter(li => li.getAttribute("class")?.includes("work blurb"));
     }
 
-    return parseWorkElements(workElements)
+    return parseWorkElements(workElements);
 
   } catch (error) {
     console.error(error);

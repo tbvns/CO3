@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { getUserInfo } from '../web/user/getUserInfo';
+import { getUserInfo, getUserInfoByPseud } from '../web/user/getUserInfo';
 import { useEffect, useState } from 'react';
 
 import RenderHtml from 'react-native-render-html';
@@ -33,17 +33,34 @@ export default function UserInfoScreen({
                                        }) {
   const [userInfo, setUserInfo] = useState();
   const [error, setError] = useState(false);
+  const [properUsername, setProperUsername] = useState();
+  const [properPseud, setProperPseud] = useState();
 
   useEffect(() => {
-    loadUserInfo()
+    let parsedUsername = username;
+    let parsedPseud = null;
+
+    if (username.includes('(')) {
+      const match = username.match(/^([^(]+?)\s*\(([^)]*)\)$/);
+      if (match) {
+        parsedPseud = match[1].trim();
+        parsedUsername = match[2];
+      }
+    }
+
+    setProperUsername(parsedUsername);
+    setProperPseud(parsedPseud);
+    loadUserInfo(parsedUsername, parsedPseud);
   }, [username]);
 
-  const loadUserInfo = async () => {
+  const loadUserInfo = async (parsedUsername, parsedPseud) => {
     console.log('loadUserInfo');
     setError(false);
     setUserInfo(undefined);
-
-    getUserInfo(username)
+    const fetch = parsedPseud
+      ? getUserInfoByPseud(parsedUsername, parsedPseud)
+      : getUserInfo(parsedUsername);
+    fetch
       .then((data) => {
         const bioHtml = data.bio ? data.bio.toString() : undefined;
         setUserInfo({ ...data, bio: bioHtml });
@@ -114,11 +131,33 @@ export default function UserInfoScreen({
                   />
                   <View style={styles.userDetails}>
                     <Text style={[styles.username, { color: currentTheme.textColor }]}>
-                      {username}
+                      {properPseud ? properPseud : properUsername}
                     </Text>
-                    <Text style={[styles.joinDate, { color: currentTheme.secondaryTextColor }]}>
-                      Joined: {userInfo.joinDate}
-                    </Text>
+                    {userInfo.joinDate &&
+                      <Text style={[styles.joinDate, { color: currentTheme.secondaryTextColor }]}>
+                        Joined: {userInfo.joinDate}
+                      </Text>
+                    }
+                    {properPseud &&
+                      <TouchableOpacity onPress={() => {
+                        setScreens(p => [...p, <UserInfoScreen
+                          username={properUsername}
+                          currentTheme={currentTheme}
+                          onBack={onBack}
+                          setScreens={setScreens}
+                          workDAO={workDAO}
+                          libraryDAO={libraryDAO}
+                          historyDAO={historyDAO}
+                          chapterDAO={chapterDAO}
+                          progressDAO={progressDAO}
+                          kudoHistoryDAO={kudoHistoryDAO}
+                        />])
+                      }}>
+                        <Text style={[styles.joinDate, { color: currentTheme.secondaryTextColor }]}>
+                          Pseud of {properUsername}
+                        </Text>
+                      </TouchableOpacity>
+                    }
                   </View>
                 </View>
 
@@ -146,8 +185,9 @@ export default function UserInfoScreen({
                                       libraryDAO={libraryDAO}
                                       kudoHistoryDAO={kudoHistoryDAO}
                                       currentTheme={currentTheme}
-                                      username={username}
+                                      username={properUsername}
                                       chapterDAO={chapterDAO}
+                                      pseud={properPseud}
                                   />])
                                 }}>
                 <Text style={[styles.bookMarkButtonText, { color: currentTheme.textColor, }]}>
@@ -166,8 +206,9 @@ export default function UserInfoScreen({
                                     libraryDAO={libraryDAO}
                                     kudoHistoryDAO={kudoHistoryDAO}
                                     currentTheme={currentTheme}
-                                    username={username}
+                                    username={properUsername}
                                     chapterDAO={chapterDAO}
+                                    pseud={properPseud}
                                   />])
                                 }}>
                 <Text style={[styles.bookMarkButtonText, { color: currentTheme.textColor, }]}>

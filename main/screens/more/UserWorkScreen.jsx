@@ -27,6 +27,7 @@ export default function UserWorkScreen({
   kudoHistoryDAO,
   username,
   chapterDAO,
+  pseud
 }) {
   const [bookmarks, setBookmarks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +75,7 @@ export default function UserWorkScreen({
     try {
       setLoading(true);
       setCurrentPage(1);
-      const res = username ? await fetchUserWorks(1, username) : await fetchUserWorks(1);
+      const res = pseud ? await fetchUserWorks(1, username, pseud) : (username ? await fetchUserWorks(1, username) : await fetchUserWorks(1));
       setBookmarks(res || []);
       setHasMore((res?.length || 0) === PAGE_SIZE);
     } catch (error) {
@@ -91,7 +92,7 @@ export default function UserWorkScreen({
     try {
       setLoadingMore(true);
       const nextPage = currentPage + 1;
-      const res = username ? await fetchUserWorks(nextPage, username) : await fetchUserWorks(nextPage);
+      const res = pseud ? await fetchUserWorks(nextPage, username, pseud) : (username ? await fetchUserWorks(nextPage, username) : await fetchUserWorks(nextPage));
       const moreData = res || [];
 
       if (moreData.length > 0) {

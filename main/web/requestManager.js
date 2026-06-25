@@ -51,6 +51,8 @@ export default async function getUrl(url) {
   try {
     const html = await ky.get(url).text();
 
+    console.log(html);
+
     if (isCFChallenge(html)) {
       console.log(`isCfChalenged fiered with ${html}`);
       await enableCFMode(hostname);

@@ -27,6 +27,7 @@ export default function BookmarksScreen({
   kudoHistoryDAO,
   username,
   chapterDAO,
+  pseud
 }) {
   const [bookmarks, setBookmarks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -77,9 +78,6 @@ export default function BookmarksScreen({
     if (!username)
       usrname = await getUsername()
 
-    console.log(usrname);
-    console.log(username);
-
     if (!usrname) {
       setError({message: "Please log in to see bookmarked works on your account."})
       setLoading(false)
@@ -89,7 +87,7 @@ export default function BookmarksScreen({
     try {
       setLoading(true);
       setCurrentPage(1);
-      const res = username ? await fetchBookmarks(1, username) : await fetchBookmarks(1);
+      const res = pseud ? (await fetchBookmarks(1, username, pseud)) : (username ? await fetchBookmarks(1, username) : await fetchBookmarks(1));
       setBookmarks(res || []);
       setHasMore((res?.length || 0) === PAGE_SIZE);
     } catch (error) {
@@ -107,7 +105,7 @@ export default function BookmarksScreen({
     try {
       setLoadingMore(true);
       const nextPage = currentPage + 1;
-      const res = username ? await fetchBookmarks(nextPage, username) : await fetchBookmarks(nextPage);
+      const res = pseud ? (await fetchBookmarks(nextPage, username, pseud)) : (username ? await fetchBookmarks(nextPage, username) : await fetchBookmarks(nextPage));
       const moreData = res || [];
 
       if (moreData.length > 0) {

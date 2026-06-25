@@ -5,16 +5,17 @@ import getUrl from '../requestManager';
 
 let DomParser = require('react-native-html-parser').DOMParser;
 
-export async function fetchBookmarks(page, username) {
+export async function fetchBookmarks(page, username, pseud) {
   let url;
   try {
-    if (username) {
-      url = `https://archiveofourown.org/users/${username}/bookmarks?page=${page}`;
+    const resolvedUsername = username || await getUsername();
+    if (pseud) {
+      url = `https://archiveofourown.org/users/${resolvedUsername}/pseuds/${encodeURIComponent(pseud)}/bookmarks?page=${page}`;
     } else {
-      url = `https://archiveofourown.org/users/${await getUsername()}/bookmarks?page=${page}`;
+      url = `https://archiveofourown.org/users/${resolvedUsername}/bookmarks?page=${page}`;
     }
 
-    console.log(`Fetching works from: ${url}`);
+    console.log(`Fetching bookmarks from: ${url}`);
     const response = await getUrl(url);
     const doc = new DomParser().parseFromString(response, "text/html");
 
@@ -39,7 +40,7 @@ export async function fetchBookmarks(page, username) {
         .filter(li => li.getAttribute("class")?.includes("bookmark blurb"));
     }
 
-    return parseWorkElements(workElements)
+    return parseWorkElements(workElements);
 
   } catch (error) {
     throw error;
