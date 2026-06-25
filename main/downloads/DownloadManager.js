@@ -2,7 +2,7 @@ import notifee, { AndroidImportance } from 'react-native-notify-kit';
 import { popNextDownload, peekNextDownload, getDownloadQueue } from './DownloadQueue';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
-import { downloadChapter } from './Downloader';
+import { downloadChapter, isDownloaded } from './Downloader';
 
 const FAILED_LIST_KEY = 'failedDownloads';
 const CHANNEL_ID = 'download_channel';
@@ -18,6 +18,11 @@ async function downloadTask(item) {
     const minDelay = 1500;
     const maxDelay = 4000;
     const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1) + minDelay);
+
+    if (await isDownloaded(item.workId, item.chapterId)) {
+      console.log(`Chapter ${item.chapterId} from work ${item.workId} is already downloaded. Skipping...`);
+      return;
+    }
 
     console.log(`Waiting ${randomDelay}ms before downloading: ${item.chapterId}`);
 
