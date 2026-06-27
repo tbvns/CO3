@@ -12,6 +12,7 @@ import {
   Linking,
   Modal,
   Pressable,
+  RefreshControl,
   SafeAreaView,
   StatusBar,
   StyleSheet,
@@ -829,6 +830,16 @@ const ChapterInfoScreen = ({
             <Icon name="watch-later" size={20} color={currentTheme.textColor} />
             <Text style={[styles.menuItemText, { color: currentTheme.textColor }]}>Mark for later</Text>
           </TouchableOpacity>
+
+          <View style={[styles.menuDivider, { backgroundColor: currentTheme.borderColor }]} />
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={handleRefresh}
+          >
+            <Icon name="refresh" size={20} color={currentTheme.textColor} />
+            <Text style={[styles.menuItemText, { color: currentTheme.textColor }]}>Refresh</Text>
+          </TouchableOpacity>
         </View>
       </Pressable>
     </Modal>
@@ -1133,6 +1144,36 @@ const ChapterInfoScreen = ({
     setIsLoadingContinue(false);
   };
 
+  const handleRefresh = async () => {
+      try {
+        setLoading(true);
+        const newWork = await fetchWorkFromWorkID(workId, workDAO, chapterDAO, true);
+        if (!newWork) {
+          Toast.show(
+            {
+              type: 'error',
+              text1: "Error reloading work.",
+              text2: "Something went wrong while loading the work.",
+            })
+          setLoading(false);
+          setMenuVisible(false);
+          return;
+        }
+        setWork(newWork);
+        setChapters(newWork.chapters);
+        setLoading(false);
+      } catch (err) {
+        Toast.show(
+          {
+            type: 'error',
+            text1: "Error reloading work.",
+            text2: "Something went wrong while loading the work.",
+          })
+        setLoading(false);
+        setMenuVisible(false);
+      }
+  }
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
       <StatusBar
@@ -1167,6 +1208,9 @@ const ChapterInfoScreen = ({
         getItemLayout={getItemLayout}
         contentContainerStyle={styles.chaptersListContentContainer}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={() => handleRefresh()} />
+        }
       />
 
       <BookDetailsModal
