@@ -98,3 +98,26 @@ export async function from4to5(db) {
     throw error;
   }
 }
+
+export async function from5to6(db) {
+  console.log("Migrating database from version 5 to 6...");
+  try {
+    const [tableInfo] = await db.executeSql("PRAGMA table_info(works);");
+    let columnExists = false;
+    for (let i = 0; i < tableInfo.rows.length; i++) {
+      if (tableInfo.rows.item(i).name === 'words') {
+        columnExists = true;
+        break;
+      }
+    }
+
+    if (!columnExists) {
+      await db.executeSql("ALTER TABLE works ADD COLUMN words INTEGER;");
+    }
+
+    console.log("Migration to version 6 complete.");
+  } catch (error) {
+    console.error("Migration from5to6 failed:", error);
+    throw error;
+  }
+}

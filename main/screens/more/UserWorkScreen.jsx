@@ -60,6 +60,7 @@ export default function UserWorkScreen({
         : 'Unknown',
       likes: work.kudos,
       bookmarks: work.bookmarks,
+      words: work.words,
       views: work.hits,
       language: work.language,
       currentChapter: work.currentChapter,

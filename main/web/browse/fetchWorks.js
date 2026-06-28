@@ -191,6 +191,7 @@ export function parseWorkElements(workElements) {
       language: stats.language || 'Unknown',
       updated: parseDate(dateText),
       bookmarks: parseNumber(stats.bookmarks) || "?",
+      words: stats.words || "?",
       tags: allTags,
       warnings: categorizedTags.warnings,
       description: fullDescriptionText,

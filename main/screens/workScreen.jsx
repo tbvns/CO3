@@ -766,6 +766,7 @@ const ChapterInfoScreen = ({
     lastUpdated: work.updated ? new Date(work.updated).toLocaleDateString() : 'Unknown',
     likes: work.kudos,
     bookmarks: work.bookmarks,
+    words: work.words,
     views: work.hits,
     language: work.language,
   }), []);

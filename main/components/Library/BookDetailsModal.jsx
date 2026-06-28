@@ -245,74 +245,46 @@ const BookDetailsModal = ({
 
                     {showMetadataSection && (
                       <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                          <Icon name="info" size={18} color={theme.iconColor} />
-                          <Text
-                            style={[
-                              styles.sectionTitle,
-                              { color: theme.textColor },
-                            ]}
-                          >
-                            Details:
-                          </Text>
-                        </View>
-                        <View style={styles.metadataContainer}>
+                        <View style={styles.metadata}>
                           <View style={styles.metadataRow}>
-                            <Icon
-                              name="schedule"
-                              size={14}
-                              color={theme.iconColor}
-                            />
-                            <Text
-                              style={[
-                                styles.metadataText,
-                                { color: theme.secondaryTextColor },
-                              ]}
-                            >
+                            <Icon name="schedule" size={14} color={theme.iconColor} />
+                            <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
                               Updated: {book.lastUpdated}
                             </Text>
                           </View>
                           <View style={styles.metadataRow}>
                             <Icon name="favorite" size={14} color="#ef4444" />
-                            <Text
-                              style={[
-                                styles.metadataText,
-                                { color: theme.secondaryTextColor },
-                              ]}
-                            >
-                              {book.likes?.toLocaleString() || 0} Likes
+                            <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                              {book.likes?.toLocaleString() || "?"} Likes
+                            </Text>
+                          </View>
+                          <View style={styles.metadataRow}>
+                            <Icon name="book" size={14} color="#f97316" />
+                            <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                              {book.currentChapter + "/" + (book.chapterCount || "?")} Chapters
                             </Text>
                           </View>
                           <View style={styles.metadataRow}>
                             <Icon name="bookmark" size={14} color="#eab308" />
-                            <Text
-                              style={[
-                                styles.metadataText,
-                                { color: theme.secondaryTextColor },
-                              ]}
-                            >
+                            <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
                               {book.bookmarks?.toLocaleString() || 0} Bookmarks
                             </Text>
                           </View>
                           <View style={styles.metadataRow}>
                             <Icon name="visibility" size={14} color="#8b5cf6" />
-                            <Text
-                              style={[
-                                styles.metadataText,
-                                { color: theme.secondaryTextColor },
-                              ]}
-                            >
+                            <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
                               {book.views?.toLocaleString() || 0} Views
                             </Text>
                           </View>
                           <View style={styles.metadataRow}>
+                            <Icon name="text-snippet" size={14} color="#6e6e6e" />
+                            <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                              {book.words?.toLocaleString() || 0} Words
+                            </Text>
+                          </View>
+                          <View style={styles.metadataRow}>
                             <Icon name="language" size={14} color="#22c55e" />
-                            <Text
-                              style={[
-                                styles.metadataText,
-                                { color: theme.secondaryTextColor },
-                              ]}
-                            >
+                            <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
                               {book.language || 'English'}
                             </Text>
                           </View>
@@ -433,6 +405,10 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   metadataContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  metadata: {
     flexDirection: 'row',
     flexWrap: 'wrap',
   },

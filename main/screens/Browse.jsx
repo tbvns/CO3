@@ -119,6 +119,8 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
         : await fetchFilteredWorks(appliedFilters, pageToLoad);
       const newWorks = result.works || [];
 
+      console.log(result);
+
       const isLastPage = newWorks.length < 20;
 
       setJsonSettings(await getJsonSettings());
@@ -313,6 +315,7 @@ const BrowseScreen = ({ currentTheme, viewMode = 'med', setScreens, screens, lib
       lastUpdated: work.updated ? new Date(work.updated).toLocaleDateString() : 'Unknown',
       likes: work.kudos,
       bookmarks: work.bookmarks,
+      words: work.words,
       views: work.hits,
       language: work.language,
       currentChapter: work.currentChapter,

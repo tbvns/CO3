@@ -309,6 +309,7 @@ export async function fetchWorkFromWorkID(workId, workDAO, chapterDAO, force = f
       language: metadata.language || 'English',
       updated: metadata.published || Date.now(),
       bookmarks: metadata.bookmarks || 0,
+      words: metadata.words || "?",
       tags: metadata.tags || [],
       warnings: metadata.warnings || [],
       description: content.summary || '',

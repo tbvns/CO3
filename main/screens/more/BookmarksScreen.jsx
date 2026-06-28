@@ -61,6 +61,7 @@ export default function BookmarksScreen({
         : 'Unknown',
       likes: work.kudos,
       bookmarks: work.bookmarks,
+      words: work.words,
       views: work.hits,
       language: work.language,
       currentChapter: work.currentChapter,

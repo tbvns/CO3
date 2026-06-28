@@ -289,6 +289,12 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, libraryDAO, wor
                       </Text>
                     </View>
                     <View style={styles.metadataRow}>
+                      <Icon name="text-snippet" size={14} color="#6e6e6e" />
+                      <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
+                        {book.words?.toLocaleString() || 0} Words
+                      </Text>
+                    </View>
+                    <View style={styles.metadataRow}>
                       <Icon name="language" size={14} color="#22c55e" />
                       <Text style={[styles.metadataText, { color: theme.secondaryTextColor }]}>
                         {book.language || 'English'}

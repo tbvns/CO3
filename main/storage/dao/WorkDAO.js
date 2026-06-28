@@ -23,6 +23,7 @@ export class WorkDAO {
       category,
       warningStatus,
       isCompleted,
+      words,
       tags = [],
       warnings = [],
     } = work;
@@ -35,8 +36,8 @@ export class WorkDAO {
       `INSERT OR REPLACE INTO works (
         id, title, author, kudos, hits, language, updated, bookmarks,
         description, descriptionHTML, currentChapter, chapterCount, rating, category,
-        warningStatus, isCompleted
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        warningStatus, isCompleted, words
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         title,
@@ -54,6 +55,7 @@ export class WorkDAO {
         category,
         warningStatus,
         isCompleted,
+        words,
       ],
     );
 
@@ -119,6 +121,7 @@ export class WorkDAO {
       category,
       warningStatus,
       isCompleted,
+      words,
       tags,
       warnings,
     } = work;
@@ -132,7 +135,7 @@ export class WorkDAO {
                       title = ?, author = ?, kudos = ?, hits = ?, language = ?,
                       updated = ?, bookmarks = ?, description = ?, descriptionHTML = ?,
                       currentChapter = ?, chapterCount = ?, rating = ?, category = ?,
-                      warningStatus = ?, isCompleted = ?
+                      warningStatus = ?, isCompleted = ?, words = ?
        WHERE id = ?`,
       [
         title,
@@ -143,13 +146,14 @@ export class WorkDAO {
         updated,
         bookmarks,
         description,
-        descriptionHTML, // Added
+        descriptionHTML,
         currentChapter,
         chapterCount,
         rating,
         category,
         warningStatus,
         isCompleted,
+        words,
         id,
       ],
     );

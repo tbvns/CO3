@@ -8,6 +8,7 @@ export class Work {
                     language = 'English',
                     updated,
                     bookmarks = 0,
+                    words = 0,
                     tags = [],
                     warnings = [],
                     description = '',
@@ -28,6 +29,7 @@ export class Work {
     this.language = language;
     this.updated = updated || Date.now();
     this.bookmarks = bookmarks;
+    this.words = words;
     this.tags = tags;
     this.warnings = warnings;
     this.description = description;

@@ -1,11 +1,11 @@
 import SQLite from 'react-native-sqlite-storage';
 import RNFS from 'react-native-fs';
 import { Platform } from 'react-native';
-import { from1to2, from2to3, from3to4, from4to5 } from './dbMigration';
+import { from1to2, from2to3, from3to4, from4to5, from5to6 } from './dbMigration';
 
 SQLite.enablePromise(true);
 
-const TARGET_VERSION = 5;
+const TARGET_VERSION = 6;
 
 let instance = null;
 
@@ -62,101 +62,102 @@ class Database {
   async initializeSchema() {
     const queries = [
       `CREATE TABLE IF NOT EXISTS works (
-        id TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
-        author TEXT NOT NULL,
-        kudos INTEGER DEFAULT 0,
-        hits INTEGER DEFAULT 0,
-        language TEXT,
-        updated INTEGER,
-        bookmarks INTEGER DEFAULT 0,
-        description TEXT,
-        descriptionHTML TEXT,
-        currentChapter INTEGER DEFAULT 1,
-        chapterCount INTEGER,
-        rating TEXT DEFAULT 'Not Rated',
-        category TEXT DEFAULT 'None',
-        warningStatus TEXT DEFAULT 'NoWarningsApply',
-        isCompleted INTEGER
-      );`,
+                                          id TEXT PRIMARY KEY,
+                                          title TEXT NOT NULL,
+                                          author TEXT NOT NULL,
+                                          kudos INTEGER DEFAULT 0,
+                                          hits INTEGER DEFAULT 0,
+                                          language TEXT,
+                                          updated INTEGER,
+                                          bookmarks INTEGER DEFAULT 0,
+                                          description TEXT,
+                                          descriptionHTML TEXT,
+                                          currentChapter INTEGER DEFAULT 1,
+                                          chapterCount INTEGER,
+                                          rating TEXT DEFAULT 'Not Rated',
+                                          category TEXT DEFAULT 'None',
+                                          warningStatus TEXT DEFAULT 'NoWarningsApply',
+                                          isCompleted INTEGER,
+                                          words INTEGER
+       );`,
       `CREATE TABLE IF NOT EXISTS chapters (
-        id INTEGER PRIMARY KEY,
-        workId TEXT NOT NULL,
-        number INTEGER NOT NULL,
-        name TEXT,
-        date INTEGER,
-        FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
+                                             id INTEGER PRIMARY KEY,
+                                             workId TEXT NOT NULL,
+                                             number INTEGER NOT NULL,
+                                             name TEXT,
+                                             date INTEGER,
+                                             FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
         );`,
       `CREATE TABLE IF NOT EXISTS progress_entries (
-        workId TEXT NOT NULL,
-        chapterID INTEGER NOT NULL,
-        progress REAL DEFAULT 0.0,
-        PRIMARY KEY (workId, chapterID),
+                                                     workId TEXT NOT NULL,
+                                                     chapterID INTEGER NOT NULL,
+                                                     progress REAL DEFAULT 0.0,
+                                                     PRIMARY KEY (workId, chapterID),
         FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE,
         FOREIGN KEY (chapterID) REFERENCES chapters (id) ON DELETE CASCADE
-      );`,
+        );`,
       `CREATE TABLE IF NOT EXISTS tags (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT UNIQUE NOT NULL
-      );`,
+                                         id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                         name TEXT UNIQUE NOT NULL
+       );`,
       `CREATE TABLE IF NOT EXISTS work_tags (
-        workId TEXT NOT NULL,
-        tagId INTEGER NOT NULL,
-        FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE,
+                                              workId TEXT NOT NULL,
+                                              tagId INTEGER NOT NULL,
+                                              FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE,
         FOREIGN KEY (tagId) REFERENCES tags (id) ON DELETE CASCADE,
         PRIMARY KEY (workId, tagId)
-      );`,
+        );`,
       `CREATE TABLE IF NOT EXISTS warnings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT UNIQUE NOT NULL
-      );`,
+                                             id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                             name TEXT UNIQUE NOT NULL
+       );`,
       `CREATE TABLE IF NOT EXISTS work_warnings (
-        workId TEXT NOT NULL,
-        warningId INTEGER NOT NULL,
-        FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE,
+                                                  workId TEXT NOT NULL,
+                                                  warningId INTEGER NOT NULL,
+                                                  FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE,
         FOREIGN KEY (warningId) REFERENCES warnings (id) ON DELETE CASCADE,
         PRIMARY KEY (workId, warningId)
-      );`,
+        );`,
       `CREATE TABLE IF NOT EXISTS history (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        workId TEXT NOT NULL,
-        date INTEGER NOT NULL,
-        chapter INTEGER NOT NULL,
-        chapterEnd INTEGER,
-        FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
-      );`,
+                                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                            workId TEXT NOT NULL,
+                                            date INTEGER NOT NULL,
+                                            chapter INTEGER NOT NULL,
+                                            chapterEnd INTEGER,
+                                            FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
+        );`,
       `CREATE TABLE IF NOT EXISTS kudo_history (
-        workId TEXT PRIMARY KEY,
-        date INTEGER NOT NULL,
-        FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
-      );`,
+                                                 workId TEXT PRIMARY KEY,
+                                                 date INTEGER NOT NULL,
+                                                 FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
+        );`,
       `CREATE TABLE IF NOT EXISTS settings (
-        id INTEGER PRIMARY KEY,
-        theme TEXT DEFAULT 'light',
-        isIncognitoMode INTEGER DEFAULT 0,
-        viewMode TEXT DEFAULT 'full',
-        fontSize REAL DEFAULT 1.0,
-        useCustomSize INTEGER DEFAULT 0,
-        font TEXT DEFAULT '',
-        fontFamily TEXT DEFAULT 'Helvetica',
-        useCustomFont INTEGER DEFAULT 0
-      );`,
+                                             id INTEGER PRIMARY KEY,
+                                             theme TEXT DEFAULT 'light',
+                                             isIncognitoMode INTEGER DEFAULT 0,
+                                             viewMode TEXT DEFAULT 'full',
+                                             fontSize REAL DEFAULT 1.0,
+                                             useCustomSize INTEGER DEFAULT 0,
+                                             font TEXT DEFAULT '',
+                                             fontFamily TEXT DEFAULT 'Helvetica',
+                                             useCustomFont INTEGER DEFAULT 0
+       );`,
       `CREATE TABLE IF NOT EXISTS library (
-        workId TEXT PRIMARY KEY,
-        dateAdded INTEGER NOT NULL,
-        collection TEXT DEFAULT 'default',
-        readIndex INTEGER DEFAULT 0,
-        FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
-      );`,
+                                            workId TEXT PRIMARY KEY,
+                                            dateAdded INTEGER NOT NULL,
+                                            collection TEXT DEFAULT 'default',
+                                            readIndex INTEGER DEFAULT 0,
+                                            FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
+        );`,
       `CREATE TABLE IF NOT EXISTS updates (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        workId TEXT NOT NULL,
-        chapterNumber INTEGER NOT NULL,
-        chapterID INTEGER NOT NULL,
-        date INTEGER NOT NULL,
-        FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE,
+                                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                            workId TEXT NOT NULL,
+                                            chapterNumber INTEGER NOT NULL,
+                                            chapterID INTEGER NOT NULL,
+                                            date INTEGER NOT NULL,
+                                            FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE,
         FOREIGN KEY (chapterID) REFERENCES chapters (id) ON DELETE CASCADE
-      );`,
+        );`,
       `CREATE INDEX IF NOT EXISTS idx_updates_workId ON updates (workId);`,
       `CREATE INDEX IF NOT EXISTS idx_updates_date ON updates (date);`,
       `CREATE INDEX IF NOT EXISTS idx_chapters_workId ON chapters (workId);`,
@@ -205,6 +206,10 @@ class Database {
 
     if (currentVersion < 5) {
       await from4to5(this.db);
+    }
+
+    if (currentVersion < 6) {
+      await from5to6(this.db);
     }
 
     await this.setDatabaseVersion(TARGET_VERSION);
