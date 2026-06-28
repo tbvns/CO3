@@ -49,6 +49,9 @@ import {
   isDownloaded,
 } from '../downloads/Downloader';
 import { WorkDescription } from '../components/WorkScreen/DescriptionComponent';
+import RNFS from 'react-native-fs';
+
+const NATIVE_DOWNLOAD_FORMATS = ['azw3', 'epub', 'mobi', 'pdf', 'html'];
 
 const ITEM_HEIGHT_COMPACT = 56;
 const ITEM_HEIGHT_EXPANDED = 72;
@@ -407,6 +410,8 @@ const ChapterInfoScreen = ({
   const [categoryAction, setCategoryAction] = useState(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const [downloadMenuVisible, setDownloadMenuVisible] = useState(false);
+  const [nativeDownloadModalVisible, setNativeDownloadModalVisible] = useState(false);
+  const [nativeDownloadingFormat, setNativeDownloadingFormat] = useState(null);
   const [showDate, setShowDate] = useState(false);
   const [loadChapterRef, setLoadChapterRef] = useState(loadChapter);
 
@@ -870,12 +875,86 @@ const ChapterInfoScreen = ({
 
           <TouchableOpacity
             style={styles.menuItem}
+            onPress={() => {
+              setDownloadMenuVisible(false);
+              setNativeDownloadModalVisible(true);
+            }}
+          >
+            <Icon name="download" size={20} color={currentTheme.primaryColor} />
+            <Text style={[styles.menuItemText, { color: currentTheme.primaryColor }]}>Native Download</Text>
+          </TouchableOpacity>
+
+          <View style={[styles.menuDivider, { backgroundColor: currentTheme.borderColor }]} />
+
+          <TouchableOpacity
+            style={styles.menuItem}
             onPress={deleteAllChapters}
           >
             <Icon name="delete" size={20} color={currentTheme.textColor} />
             <Text style={[styles.menuItemText, { color: currentTheme.textColor }]}>Delete all</Text>
           </TouchableOpacity>
         </View>
+      </Pressable>
+    </Modal>
+  );
+
+  const renderNativeDownloadModal = () => (
+    <Modal
+      transparent={true}
+      visible={nativeDownloadModalVisible}
+      onRequestClose={() => !nativeDownloadingFormat && setNativeDownloadModalVisible(false)}
+      animationType="fade"
+    >
+      <Pressable
+        style={styles.nativeModalOverlay}
+        onPress={() => !nativeDownloadingFormat && setNativeDownloadModalVisible(false)}
+      >
+        <Pressable style={[styles.nativeModalCard, { backgroundColor: currentTheme.headerBackground, borderColor: currentTheme.borderColor }]}>
+          <Text style={[styles.nativeModalTitle, { color: currentTheme.textColor }]}>
+            Save as file
+          </Text>
+          <Text style={[styles.nativeModalSubtitle, { color: currentTheme.secondaryTextColor }]}>
+            Choose a format to download to your device
+          </Text>
+
+          {NATIVE_DOWNLOAD_FORMATS.map((format) => {
+            const isDownloading = nativeDownloadingFormat === format;
+            return (
+              <TouchableOpacity
+                key={format}
+                style={[
+                  styles.nativeFormatRow,
+                  { borderColor: currentTheme.borderColor },
+                  isDownloading && { opacity: 0.7 },
+                ]}
+                onPress={() => handleNativeDownload(format)}
+                disabled={!!nativeDownloadingFormat}
+              >
+                <Icon
+                  name={format === 'pdf' ? 'picture-as-pdf' : format === 'html' ? 'code' : 'menu-book'}
+                  size={22}
+                  color={currentTheme.primaryColor}
+                  style={styles.nativeFormatIcon}
+                />
+                <Text style={[styles.nativeFormatLabel, { color: currentTheme.textColor }]}>
+                  {format.toUpperCase()}
+                </Text>
+                {isDownloading && (
+                  <ActivityIndicator size="small" color={currentTheme.primaryColor} style={styles.nativeFormatSpinner} />
+                )}
+              </TouchableOpacity>
+            );
+          })}
+
+          {!nativeDownloadingFormat && (
+            <TouchableOpacity
+              style={[styles.nativeCancelButton, { borderColor: currentTheme.borderColor }]}
+              onPress={() => setNativeDownloadModalVisible(false)}
+            >
+              <Text style={[styles.nativeCancelText, { color: currentTheme.secondaryTextColor }]}>Cancel</Text>
+            </TouchableOpacity>
+          )}
+        </Pressable>
       </Pressable>
     </Modal>
   );
@@ -1128,6 +1207,28 @@ const ChapterInfoScreen = ({
     }
   }
 
+  const handleNativeDownload = async (format) => {
+    const url = `https://archiveofourown.org/downloads/${workId}/work.${format}`;
+    const safeName = (work?.title || `work_${workId}`).replace(/[/\\?%*:|"<>]/g, '_');
+    const filename = `${safeName}.${format}`;
+    const destPath = `${RNFS.DownloadDirectoryPath}/${filename}`;
+
+    setNativeDownloadingFormat(format);
+    try {
+      const result = await RNFS.downloadFile({ fromUrl: url, toFile: destPath }).promise;
+      if (result.statusCode === 200) {
+        Toast.show({ type: 'success', text1: 'Download complete', text2: `${filename} saved to Downloads`});
+      } else {
+        Toast.show({ type: 'error', text1: 'Download failed', text2: `Server returned ${result.statusCode}`});
+      }
+    } catch (err) {
+      Toast.show({ type: 'error', text1: 'Download failed', text2: err.message});
+    } finally {
+      setNativeDownloadingFormat(null);
+      setNativeDownloadModalVisible(false);
+    }
+  };
+
   const continueReading = async function()  {
     setIsLoadingContinue(true);
 
@@ -1146,24 +1247,10 @@ const ChapterInfoScreen = ({
   };
 
   const handleRefresh = async () => {
-      try {
-        setLoading(true);
-        const newWork = await fetchWorkFromWorkID(workId, workDAO, chapterDAO, true);
-        if (!newWork) {
-          Toast.show(
-            {
-              type: 'error',
-              text1: "Error reloading work.",
-              text2: "Something went wrong while loading the work.",
-            })
-          setLoading(false);
-          setMenuVisible(false);
-          return;
-        }
-        setWork(newWork);
-        setChapters(newWork.chapters);
-        setLoading(false);
-      } catch (err) {
+    try {
+      setLoading(true);
+      const newWork = await fetchWorkFromWorkID(workId, workDAO, chapterDAO, true);
+      if (!newWork) {
         Toast.show(
           {
             type: 'error',
@@ -1172,7 +1259,21 @@ const ChapterInfoScreen = ({
           })
         setLoading(false);
         setMenuVisible(false);
+        return;
       }
+      setWork(newWork);
+      setChapters(newWork.chapters);
+      setLoading(false);
+    } catch (err) {
+      Toast.show(
+        {
+          type: 'error',
+          text1: "Error reloading work.",
+          text2: "Something went wrong while loading the work.",
+        })
+      setLoading(false);
+      setMenuVisible(false);
+    }
   }
 
   return (
@@ -1197,6 +1298,7 @@ const ChapterInfoScreen = ({
 
       {renderHeaderMenu()}
       {renderDownloadHeaderMenu()}
+      {renderNativeDownloadModal()}
 
       <FlatList
         data={[...chapters].map((chapter, originalIndex) => ({ ...chapter, originalIndex })).reverse()}
@@ -1535,6 +1637,61 @@ const styles = StyleSheet.create({
   },
   chevron: {
     marginLeft: 4,
+  },
+  nativeModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  nativeModalCard: {
+    width: '100%',
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 20,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  nativeModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  nativeModalSubtitle: {
+    fontSize: 13,
+    marginBottom: 16,
+  },
+  nativeFormatRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+  },
+  nativeFormatIcon: {
+    marginRight: 14,
+  },
+  nativeFormatLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    flex: 1,
+  },
+  nativeFormatSpinner: {
+    marginLeft: 8,
+  },
+  nativeCancelButton: {
+    marginTop: 14,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  nativeCancelText: {
+    fontSize: 15,
+    fontWeight: '500',
   },
 });
 
