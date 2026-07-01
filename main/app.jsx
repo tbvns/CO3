@@ -640,7 +640,7 @@ const App = () => {
           <View style={styles.loadingContainer}>
             <Image style={{ width: 200, height: 200, marginBottom: 50, }} source={require('./res/CO3.png')} />
             <ActivityIndicator size="50" color={currentTheme.primaryColor} />
-            <Text>Loading...</Text>
+            <Text style={{ color: currentTheme.textColor }} >Loading...</Text>
           </View>
         </SafeAreaView>
         <CustomToast currentTheme={currentTheme} />
