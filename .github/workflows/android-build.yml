@@ -43,6 +43,9 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Generate codegen artifacts
+        run: npx react-native codegen
+
       - name: Build Release APK
         run: |
           cd android
