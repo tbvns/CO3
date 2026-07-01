@@ -24,7 +24,6 @@
     "@react-native-picker/picker": "^2.11.1",
     "@react-navigation/bottom-tabs": "^6.5.10",
     "@react-navigation/native": "^6.1.8",
-    "@vitrion/react-native-load-fonts": "^0.3.1",
     "babel": "^6.23.0",
     "buffer": "^6.0.3",
     "domhandler": "^5.0.3",

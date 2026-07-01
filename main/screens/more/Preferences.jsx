@@ -22,7 +22,6 @@ import {
 import { themes } from '../../utils/themes';
 import CustomDropdown from '../../components/common/CustomDropdown';
 import { pick, keepLocalCopy } from '@react-native-documents/picker';
-import { loadFont, loadFontFromFile } from "@vitrion/react-native-load-fonts";
 import { readFile } from "react-native-fs"
 
 const PreferencesScreen = ({
@@ -55,9 +54,7 @@ const PreferencesScreen = ({
   const [updateRestriction, setUpdateRestriction] = useState(3);
 
   const activeTheme = themes[theme] || currentTheme;
-
-  const dynamicStyle = [{ color: activeTheme.textColor }, useCustomFont ? { fontFamily } : {}]
-
+  
   useEffect(() => {
     loadSettings();
   }, []);
@@ -140,13 +137,15 @@ const PreferencesScreen = ({
     const [picked] = await pick({ type: ['font/ttf', 'font/otf'] });
     if (!picked || !picked.name) return;
 
-    keepLocalCopy({ destination: 'cachesDirectory', files: [{ uri: picked.uri, fileName: picked.name }] }).then(async ([dest]) => {
-      const fontContent = await readFile(dest.localUri, 'base64');
+    keepLocalCopy({ destination: 'cachesDirectory', files: [{ uri: picked.uri, fileName: picked.name }] }).then(([dest]) => {
+      const tempFontFamily = picked.name
+        .replace(/\.(?=.*\.)/g, '')
+        .split('.')[0]
+        .replace(/[^a-zA-Z0-9_-]/g, '');
 
-      const ff = await loadFont(picked.name.replace(/\.(?=.*\.)/g, '').split('.')[0], fontContent, picked.type.split('/')[1]).catch(e => console.error(e));
       setFont(dest.localUri);
-      setFontFamily(ff);
-      saveDbSettings({ fontFamily: ff, font: dest.localUri });
+      setFontFamily(tempFontFamily);
+      saveDbSettings({ tempFontFamily, font: dest.localUri });
     });
   };
 
@@ -303,7 +302,6 @@ const PreferencesScreen = ({
     const textStyle = [
       styles.themeButtonText,
       { color: isActive ? '#ffffff' : activeTheme.textColor },
-      dynamicStyle[1]
     ];
 
     return (
@@ -325,7 +323,6 @@ const PreferencesScreen = ({
     const textStyle = [
       styles.viewModeButtonText,
       { color: isActive ? '#ffffff' : activeTheme.textColor },
-      dynamicStyle[1]
     ];
 
     return (
@@ -382,7 +379,7 @@ const PreferencesScreen = ({
           <View style={styles.sectionHeader}>
             <Icon name="menu-book" size={20} color={activeTheme.iconColor} />
             <Text
-              style={[styles.sectionTitle, ...dynamicStyle]}
+              style={[styles.sectionTitle]}
             >
               Reader
             </Text>
@@ -416,7 +413,7 @@ const PreferencesScreen = ({
           >
             <View style={styles.switchContainer}>
               <Text
-                style={[styles.settingText, ...dynamicStyle]}
+                style={[styles.settingText]}
               >
                 Use Custom Size
               </Text>
@@ -442,7 +439,7 @@ const PreferencesScreen = ({
               ]}
             >
               <Text
-                style={[styles.settingText, ...dynamicStyle]}
+                style={[styles.settingText]}
               >
                 Font Size: {fontSize.toFixed(1)}
               </Text>
@@ -459,7 +456,7 @@ const PreferencesScreen = ({
                   thumbStyle={{ backgroundColor: activeTheme.primaryColor }}
                 />
                 <Text
-                  style={[styles.sizeInput, ...dynamicStyle]}
+                  style={[styles.sizeInput]}
                 >
                   {fontSize.toFixed(1)}
                 </Text>
@@ -475,7 +472,7 @@ const PreferencesScreen = ({
           >
             <View style={styles.switchContainer}>
               <Text
-                style={[styles.settingText, ...dynamicStyle]}
+                style={[styles.settingText]}
               >
                 Use Custom Font
               </Text>
@@ -501,7 +498,7 @@ const PreferencesScreen = ({
               ]}
             >
               <TouchableOpacity style={[styles.viewModeSelectButton, { backgroundColor: activeTheme.buttonBackground, paddingBottom: 0, marginHorizontal: 0, borderColor: activeTheme.borderColor, alignContent: "center" }]} activeOpacity={0.3} onPress={handleFontChange}>
-                <Text style={[styles.settingText, ...dynamicStyle]}>
+                <Text style={[styles.settingText]}>
                   {fontFamily}
                 </Text>
                 <Icon
@@ -519,7 +516,7 @@ const PreferencesScreen = ({
           ]}>
             <View style={styles.switchContainer}>
               <Text
-                style={[styles.settingText, ...dynamicStyle]}
+                style={[styles.settingText]}
               >
                 Show Chapter Date
               </Text>
@@ -545,7 +542,7 @@ const PreferencesScreen = ({
           >
             <View style={[styles.switchContainer]}>
               <Text
-                style={[styles.settingText, ...dynamicStyle]}
+                style={[styles.settingText]}
               >
                 Allow selecting text
               </Text>
@@ -574,7 +571,7 @@ const PreferencesScreen = ({
           <View style={styles.sectionHeader}>
             <Icon name="palette" size={20} color={activeTheme.iconColor} />
             <Text
-              style={[styles.sectionTitle, ...dynamicStyle]}
+              style={[styles.sectionTitle]}
             >
               Appearance
             </Text>
@@ -582,7 +579,7 @@ const PreferencesScreen = ({
 
           <View style={styles.settingItem}>
             <Text
-              style={[styles.settingText, ...dynamicStyle]}
+              style={[styles.settingText]}
             >
               Theme
             </Text>
@@ -615,7 +612,7 @@ const PreferencesScreen = ({
 
           <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
             <Text
-              style={[styles.settingText, ...dynamicStyle]}
+              style={[styles.settingText]}
             >
               View Mode
             </Text>
@@ -654,7 +651,7 @@ const PreferencesScreen = ({
           >
             <View style={styles.switchContainer}>
               <Text
-                style={[styles.settingText, ...dynamicStyle]}
+                style={[styles.settingText]}
               >
                 Prefer Full Descriptions
               </Text>
@@ -681,7 +678,7 @@ const PreferencesScreen = ({
           >
             <View style={styles.switchContainer}>
               <Text
-                style={[styles.settingText, ...dynamicStyle]}
+                style={[styles.settingText]}
               >
                 Prefer HTML Styling
               </Text>
@@ -707,7 +704,7 @@ const PreferencesScreen = ({
           <View style={styles.sectionHeader}>
             <Icon name="update" size={20} color={activeTheme.iconColor} />
             <Text
-              style={[styles.sectionTitle, ...dynamicStyle]}
+              style={[styles.sectionTitle]}
             >
               Updates
             </Text>
@@ -721,7 +718,7 @@ const PreferencesScreen = ({
           >
             <View style={styles.switchContainer}>
               <Text
-                style={[styles.settingText, ...dynamicStyle]}
+                style={[styles.settingText]}
               >
                 Compact Notifications
               </Text>
@@ -746,7 +743,7 @@ const PreferencesScreen = ({
             ]}
           >
             <Text
-              style={[styles.settingText, ...dynamicStyle]}
+              style={[styles.settingText]}
             >
               Check Frequency
             </Text>
@@ -768,7 +765,7 @@ const PreferencesScreen = ({
 
           <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
             <Text
-              style={[styles.settingText, ...dynamicStyle]}
+              style={[styles.settingText]}
             >
               Network Restriction
             </Text>
@@ -793,7 +790,7 @@ const PreferencesScreen = ({
           <View style={styles.sectionHeader}>
             <Icon name="download" size={20} color={activeTheme.iconColor} />
             <Text
-              style={[styles.sectionTitle, ...dynamicStyle]}
+              style={[styles.sectionTitle]}
             >
               Download
             </Text>
@@ -808,7 +805,7 @@ const PreferencesScreen = ({
           >
             <View style={styles.switchContainer}>
               <Text
-                style={[styles.settingText, ...dynamicStyle]}
+                style={[styles.settingText]}
               >
                 Download on Update
               </Text>
@@ -827,7 +824,7 @@ const PreferencesScreen = ({
           </View>
           <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
             <Text
-              style={[styles.settingText, ...dynamicStyle]}
+              style={[styles.settingText]}
             >
               Download while reading
             </Text>
@@ -863,7 +860,7 @@ const PreferencesScreen = ({
           >
             <Icon name="replay" size={20} color={activeTheme.iconColor} />
             <View style={styles.restartButtonContent}>
-              <Text style={[{ fontSize: 16, marginBottom: 2 }, ...dynamicStyle]}>
+              <Text style={[{ fontSize: 16, marginBottom: 2 }]}>
                 Restart Onboarding
               </Text>
               <Text style={{ fontSize: 13, color: activeTheme.secondaryTextColor }}>

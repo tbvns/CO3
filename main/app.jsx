@@ -472,11 +472,6 @@ const App = () => {
 
       const booksData = await newWorkDAO.getAll();
       setBooks(booksData);
-
-      if (loadedSettings.useCustomFont && (await exists(loadedSettings.font))) {
-        const fontContent = await readFile(loadedSettings.font, 'base64');
-        await loadFont(loadedSettings.fontFamily, fontContent, loadedSettings.font.split('.')[-1]).catch(e => console.error(e));
-      }
     } catch (error) {
       console.error('Error initializing app:', error);
       Alert.alert('Error', 'Failed to initialize app');
