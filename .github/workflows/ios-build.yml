@@ -34,7 +34,7 @@ jobs:
         run: npm ci
 
       - name: Generate codegen artifacts
-        run: npx react-native codegen --platform ios
+        run: npx react-native codegen --platform ios --outputPath .
 
       - name: Setup Ruby (for CocoaPods)
         uses: ruby/setup-ruby@v1
