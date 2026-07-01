@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   BackHandler,
-  DeviceEventEmitter, Dimensions,
+  DeviceEventEmitter,
+  Dimensions,
+  Image,
   PermissionsAndroid,
   Platform,
   SafeAreaView,
@@ -55,6 +58,7 @@ import WebviewFetcher from './web/WebviewFetcher';
 import MainOnboardScreen from './onboard/MainOnboardScreen';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { runOnJS, useSharedValue } from 'react-native-reanimated';
+import Spinner from './components/History/Spinner';
 
 const AppWrapper = () => {
   const wrapperStyle = Platform.OS === 'web'
@@ -634,7 +638,9 @@ const App = () => {
       <>
         <SafeAreaView style={[styles.container, { backgroundColor: currentTheme?.backgroundColor || 'white' }]}>
           <View style={styles.loadingContainer}>
-            <Text style={[styles.loadingText, { color: currentTheme?.textColor || 'black' }]}>Loading...</Text>
+            <Image style={{ width: 200, height: 200, marginBottom: 50, }} source={require('./res/CO3.png')} />
+            <ActivityIndicator size="50" color={currentTheme.primaryColor} />
+            <Text>Loading...</Text>
           </View>
         </SafeAreaView>
         <CustomToast currentTheme={currentTheme} />
