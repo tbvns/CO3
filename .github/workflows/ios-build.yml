@@ -33,6 +33,9 @@ jobs:
       - name: Install NPM dependencies
         run: npm ci
 
+      - name: Generate codegen artifacts
+        run: npx react-native codegen
+
       - name: Setup Ruby (for CocoaPods)
         uses: ruby/setup-ruby@v1
         with:
