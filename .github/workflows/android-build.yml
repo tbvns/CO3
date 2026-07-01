@@ -44,7 +44,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Generate codegen artifacts
-        run: npx react-native codegen
+        run: npx react-native codegen --platform android
 
       - name: Build Release APK
         run: |
