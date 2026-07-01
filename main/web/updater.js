@@ -1,6 +1,6 @@
 import { NativeModules, AppRegistry, Platform } from 'react-native';
 import { fetchWorkFromWorkID } from './worksScreen/fetchWork';
-import { database } from '../storage/Database';
+import { database } from '../storage/DatabaseManager';
 import { WorkDAO } from '../storage/dao/WorkDAO';
 import { UpdateDAO } from '../storage/dao/UpdateDAO';
 import { Update } from '../storage/models/update';

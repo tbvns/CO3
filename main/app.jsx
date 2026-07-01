@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   BackHandler,
-  DeviceEventEmitter,
+  DeviceEventEmitter, Dimensions,
   PermissionsAndroid,
   Platform,
   SafeAreaView,
@@ -18,7 +18,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import SideMenu from './components/app/SideMenu';
 import AddWorkModal from './components/Library/AddWorkModal';
-import { database } from './storage/Database';
+import { database } from './storage/DatabaseManager';
 import { HistoryDAO } from './storage/dao/HistoryDAO';
 import { WorkDAO } from './storage/dao/WorkDAO';
 import { SettingsDAO } from './storage/dao/SettingsDAO';
@@ -232,6 +232,10 @@ const App = () => {
       return;
     }
 
+    if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
+      return;
+    }
+
     const handleUrl = async (url) => {
       hasAddedInitialScreen.current = true;
       const workId = url.split('/')[4];
@@ -404,7 +408,7 @@ const App = () => {
 
   const popScreen = () => setScreens(prev => prev.slice(0, -1));
 
-  const swipeBack = Gesture.Pan()
+  const swipeBack = Platform.OS === 'ios' || Platform.OS === 'android' ? ( Gesture.Pan()
     .enabled(Platform.OS === 'ios')
     .activeOffsetX([-20, 20])
     .failOffsetY([-10, 10])
@@ -419,7 +423,7 @@ const App = () => {
           runOnJS(exitApp)();
         }
       }
-    });
+    }) ) : () => console.log("gesture is ignored in windows");
 
   const initializeApp = async () => {
     const jsonSettings = await getJsonSettings();
@@ -688,7 +692,7 @@ const App = () => {
   }
 
   return (
-    <GestureDetector gesture={swipeBack}>
+    <GestureDetector gesture={swipeBack} >
       <View style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
         <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
           <StatusBar

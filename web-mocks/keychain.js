@@ -1,6 +1,3 @@
-// react-native-keychain mock for Electron/web
-// Uses localStorage as a simple credential store (Electron only — not secure for production)
-
 const PREFIX = '__keychain__';
 
 export const setGenericPassword = async (username, password, options) => {

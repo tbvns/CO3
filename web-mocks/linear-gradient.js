@@ -12,12 +12,10 @@ const LinearGradient = ({
   children,
   ...rest
 }) => {
-  // Convert {x, y} vectors to a CSS angle in degrees
   const dx = end.x - start.x;
   const dy = end.y - start.y;
   const angleDeg = Math.round(Math.atan2(dy, dx) * (180 / Math.PI)) + 90;
 
-  // Build the colour-stop string, respecting optional locations array
   const stops = colors
     .map((color, i) => {
       if (locations && locations[i] != null) {

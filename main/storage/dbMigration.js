@@ -35,18 +35,18 @@ export async function from2to3(db) {
     await db.executeSql("DROP INDEX IF EXISTS idx_chapters_workId;");
 
     await db.executeSql(`
-      CREATE TABLE chapters (
-                              id INTEGER PRIMARY KEY,
-                              workId TEXT NOT NULL,
-                              number INTEGER NOT NULL,
-                              name TEXT,
-                              date INTEGER,
-                              FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
+      CREATE TABLE IF NOT EXISTS chapters (
+                                            id INTEGER PRIMARY KEY,
+                                            workId TEXT NOT NULL,
+                                            number INTEGER NOT NULL,
+                                            name TEXT,
+                                            date INTEGER,
+                                            FOREIGN KEY (workId) REFERENCES works (id) ON DELETE CASCADE
       );
     `);
 
     await db.executeSql(
-      "CREATE INDEX idx_chapters_workId ON chapters (workId);"
+      "CREATE INDEX IF NOT EXISTS idx_chapters_workId ON chapters (workId);"
     );
 
     await db.executeSql("PRAGMA foreign_keys = ON;");
@@ -70,10 +70,10 @@ export async function from3to4(db) {
     let fcExists = false, ffcExists = false, ucfcExists = false;
     for (let i = 0; i < tableInfo.rows.length; i++) {
       switch (tableInfo.rows.item(i).name) {
-        case 'font': fcExists = true;
-        case 'fontFamily': ffcExists = true;
-        case 'useCustomFont': ucfcExists = true;
-        default: continue
+        case 'font': fcExists = true; break;
+        case 'fontFamily': ffcExists = true; break;
+        case 'useCustomFont': ucfcExists = true; break;
+        default: continue;
       }
     }
 

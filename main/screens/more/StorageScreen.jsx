@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Toast from 'react-native-toast-message';
-import { exportDb } from '../../storage/Database';
+import { exportDb } from '../../storage/DatabaseManager';
 
 export default function StorageScreen({ setScreens, currentTheme, databaseObj }) {
   function onBack() {

@@ -21,6 +21,10 @@ module.exports = {
   },
   target: 'electron-renderer',
 
+  externals: {
+    electron: 'require("electron")',
+  },
+
   entry: path.resolve(__dirname, 'index.web.js'),
   output: {
     path: path.resolve(__dirname, 'dist'),

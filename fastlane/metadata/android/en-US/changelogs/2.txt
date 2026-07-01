@@ -20,7 +20,7 @@ Internal changes
 - Added caching for workscreen, making it twice as fast as the website on certain occasion
 - Improved Browse screen's rendering time
 - Added full download infrastructure
-- Database update scripts (now db is at version 2)
+- DatabaseManager update scripts (now db is at version 2)
 - The app now supports opening /works/* links
 
 I probably forgot something.

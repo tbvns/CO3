@@ -1,8 +1,9 @@
 import ky from 'ky';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchViaWebView } from './WebviewFetcher';
+import { Platform } from 'react-native';
 
-const CF_STORAGE_KEY = 'cf_domains'; // { [domain]: expiresAt }
+const CF_STORAGE_KEY = 'cf_domains';
 const CF_MODE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 async function getCFMap() {
@@ -43,7 +44,12 @@ const cloudflareErrorCodes = [
 export default async function getUrl(url) {
   const { hostname } = new URL(url);
 
-  if (await isCFMode(hostname)) {
+  let noWebview = false;
+  if (!(Platform.OS === 'ios' || Platform.OS === 'android')) {
+    noWebview = true;
+  }
+
+  if (!noWebview && await isCFMode(hostname)) {
     console.log(`using webview to fetch ${url}`);
     return fetchViaWebView(url);
   }

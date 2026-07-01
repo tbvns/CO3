@@ -1,23 +1,13 @@
-// @react-native-cookies/cookies mock for Electron/web
-
 const CookieManager = {
   set: async (url, cookie) => {
-    document.cookie = `${cookie.name}=${cookie.value}; path=/`;
-    return true;
+    return window.electronCookies.set(url, cookie.name, cookie.value);
   },
   get: async (url) => {
-    return document.cookie.split(';').reduce((acc, pair) => {
-      const [name, value] = pair.trim().split('=');
-      if (name) acc[name] = { name, value: value ?? '' };
-      return acc;
-    }, {});
+    return window.electronCookies.get(url);
   },
   getAll: async () => ({}),
   clearAll: async () => {
-    document.cookie.split(';').forEach(c => {
-      document.cookie = c.replace(/=.*/, '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/');
-    });
-    return true;
+    return window.electronCookies.clearAll();
   },
   clearByName: async () => true,
   flush: async () => {},

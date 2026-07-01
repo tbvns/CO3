@@ -3,13 +3,34 @@ import RNFS from 'react-native-fs';
 import { Platform } from 'react-native';
 import { from1to2, from2to3, from3to4, from4to5, from5to6 } from './dbMigration';
 
-SQLite.enablePromise(true);
-
 const TARGET_VERSION = 6;
+
+function toResultSet(raw) {
+  if (Array.isArray(raw)) {
+    return {
+      rows: {
+        length: raw.length,
+        item: (i) => raw[i],
+      },
+      rowsAffected: 0,
+      insertId: undefined,
+    };
+  }
+  return {
+    rows: {
+      length: 0,
+      item: () => undefined,
+    },
+    rowsAffected: raw?.changes ?? 0,
+    insertId: raw?.lastInsertRowid,
+  };
+}
+
+SQLite.enablePromise(true);
 
 let instance = null;
 
-class Database {
+class DatabaseManager {
   constructor() {
     if (!instance) {
       this.db = null;
@@ -26,10 +47,43 @@ class Database {
     if (this.db) {
       return this.db;
     }
-    this.db = await SQLite.openDatabase({
-      name: 'library.db',
-      location: 'default',
-    });
+    if (this._openPromise) {
+      return this._openPromise;
+    }
+    this._openPromise = this._doOpen();
+    try {
+      return await this._openPromise;
+    } finally {
+      this._openPromise = null;
+    }
+  }
+
+  async _doOpen() {
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      this.db = await SQLite.openDatabase({
+        name: 'library.db',
+        location: 'default',
+      });
+    } else {
+      const { ipcRenderer } = window.require('electron');
+
+      this.db = {
+        executeSql: async (sql, params = []) => {
+          const raw = await ipcRenderer.invoke('db:exec', sql, params);
+          return [toResultSet(raw)];
+        },
+        transaction: async (fn) => {
+          const ops = [];
+          const tx = {
+            executeSql: (sql, params = []) => {
+              ops.push({ sql, params });
+            },
+          };
+          fn(tx);
+          await ipcRenderer.invoke('db:transaction', ops);
+        },
+      };
+    }
 
     await this.initializeSchema();
     await this.runMigrations();
@@ -39,7 +93,9 @@ class Database {
 
   async close() {
     if (this.db) {
-      await this.db.close();
+      if (this.db.close) {
+        await this.db.close();
+      }
       this.db = null;
     }
   }
@@ -180,7 +236,7 @@ class Database {
       if (settingsCheck.rows.item(0).count === 0) {
         await this.db.executeSql(
           `INSERT INTO settings (id, theme, isIncognitoMode, viewMode, fontSize, useCustomSize, font, fontFamily, useCustomFont) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [1, 'light', 0, 'full', 1.0, 0, 'Helvetica', 0]
+          [1, 'light', 0, 'full', 1.0, 0, '', 'Helvetica', 0]
         );
       }
     } catch (error) {
@@ -225,34 +281,38 @@ export async function exportDb(db) {
       await db.close();
     }
 
-    const dbFileName = 'library.db';
-    const exportFileName = 'CO3-Database-Export.db';
+    if (Platform.OS === 'ios' || Platform.OS === 'android') {
+      const dbFileName = 'library.db';
+      const exportFileName = 'CO3-DatabaseManager-Export.db';
 
-    const dbPath = Platform.select({
-      android: `/data/data/com.co3/databases/${dbFileName}`,
-      ios: `${RNFS.LibraryDirectoryPath}/LocalDatabase/${dbFileName}`,
-    });
+      const dbPath = Platform.select({
+        android: `/data/data/com.co3/databases/${dbFileName}`,
+        ios: `${RNFS.LibraryDirectoryPath}/LocalDatabase/${dbFileName}`,
+      });
 
-    const exportPath = Platform.select({
-      android: `${RNFS.DownloadDirectoryPath}/${exportFileName}`,
-      ios: `${RNFS.DocumentDirectoryPath}/${exportFileName}`,
-    });
+      const exportPath = Platform.select({
+        android: `${RNFS.DownloadDirectoryPath}/${exportFileName}`,
+        ios: `${RNFS.DocumentDirectoryPath}/${exportFileName}`,
+      });
 
-    const exportDir = Platform.select({
-      android: RNFS.DownloadDirectoryPath,
-      ios: RNFS.DocumentDirectoryPath,
-    });
+      const exportDir = Platform.select({
+        android: RNFS.DownloadDirectoryPath,
+        ios: RNFS.DocumentDirectoryPath,
+      });
 
-    await RNFS.mkdir(exportDir, { NSURLIsExcludedFromBackupKey: false });
-    await RNFS.copyFile(dbPath, exportPath);
+      await RNFS.mkdir(exportDir, { NSURLIsExcludedFromBackupKey: false });
+      await RNFS.copyFile(dbPath, exportPath);
 
-    if (dbWasOpen) {
-      await db.open();
+      if (dbWasOpen) {
+        await db.open();
+      }
+
+      return exportPath;
+    } else {
+      throw new Error('Desktop export not implemented yet');
     }
-
-    return exportPath;
   } catch (error) {
-    console.error('Database export failed:', error);
+    console.error('DatabaseManager export failed:', error);
     if (dbWasOpen) {
       try {
         await db.open();
@@ -264,4 +324,4 @@ export async function exportDb(db) {
   }
 }
 
-export const database = new Database();
+export const database = new DatabaseManager();
