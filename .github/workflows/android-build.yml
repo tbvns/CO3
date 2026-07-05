@@ -28,11 +28,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install NPM dependencies
-        run: npm install && npm ci
+        run: npm ci --production
 
       - name: Setup Java
         uses: actions/setup-java@v4
