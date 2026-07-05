@@ -32,7 +32,7 @@
     "fast-html-parser": "^1.0.1",
     "htmlparser2": "^10.0.0",
     "ky": "^1.8.1",
-    "react": "^19.2.3",
+    "react": "19.2.3",
     "react-dom": "^19.1.0",
     "react-i18next": "^17.0.8",
     "react-native": "^0.85.3",
