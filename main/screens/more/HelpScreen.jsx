@@ -10,15 +10,13 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 
 export default function HelpScreen({ route }) {
   const {setScreens, currentTheme} = route.params;
+  const navigation = useNavigation();
   function onBack() {
-    setScreens(prev => {
-      const newScreens = [...prev];
-      newScreens.pop();
-      return newScreens;
-    });
+    navigation.goBack();
   }
 
   const { t } = useTranslation();

@@ -257,10 +257,6 @@ export const ReaderWrapper = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(undefined);
 
-  const handleBack = () => {
-    setScreens(prev => prev.slice(0, -1));
-  };
-
   const handleChapterChange = (newChapterData) => {
     setError(false)
     if (newChapterData) {
@@ -1044,11 +1040,11 @@ const ChapterInfoScreen = ({ route }) => {
       </Text>
       <TouchableOpacity
         onPress={() => {
-          nacigation.push("Work", {
+          navigation.push("Work", {
             username: work?.author,
             currentTheme: currentTheme,
             setScreens: setScreens,
-            onBack: () => setScreens(prev => prev.slice(0, -1)),
+            onBack: () => navigation.goBack(),
             settingsDAO: settingsDAO,
             historyDAO: historyDAO,
             progressDAO: progressDAO,
@@ -1271,7 +1267,7 @@ const ChapterInfoScreen = ({ route }) => {
         backgroundColor={currentTheme.headerBackground}
       />
       <View style={[styles.header, { backgroundColor: currentTheme.headerBackground, borderBottomColor: currentTheme.borderColor }]}>
-        <TouchableOpacity onPress={() => setScreens(prev => prev.slice(0, -1))} style={styles.backButton}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color={currentTheme.iconColor} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: currentTheme.textColor }]} numberOfLines={1}>

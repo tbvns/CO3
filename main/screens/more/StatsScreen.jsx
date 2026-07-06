@@ -60,11 +60,7 @@ function AuthorList({ authors, currentTheme, accent, setScreens, workDAO, librar
   const { t } = useTranslation();
 
   function onBack() {
-    setScreens(prev => {
-      const newScreens = [...prev];
-      newScreens.pop();
-      return newScreens;
-    });
+    navigation.goBack();
   }
 
   return (
@@ -214,12 +210,10 @@ export default function StatsScreen({ route }) {
 
   const { currentTheme, setScreens, databaseObj, openTagSearch, workDAO, libraryDAO, historyDAO, settingsDAO, progressDAO, kudoHistoryDAO, chapterDAO } = route.params;
 
+  const navigation = useNavigation();
+
   function onBack() {
-    setScreens(prev => {
-      const newScreens = [...prev];
-      newScreens.pop();
-      return newScreens;
-    });
+    navigation.goBack();
   }
 
   const [totalChapterRead, setTotalChapterRead] = useState();

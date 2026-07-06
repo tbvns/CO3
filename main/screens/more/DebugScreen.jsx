@@ -6,6 +6,7 @@ import {
   View,
 } from 'react-native';
 import { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 
 export default function DebugScreen({ route }) {
   const {db, setScreens} = route.params;
@@ -19,13 +20,15 @@ export default function DebugScreen({ route }) {
     ]);
   };
 
+  const navigation = useNavigation();
+
   return (
     <ScrollView style={{ flex: 1, padding: 12, backgroundColor: '#fff' }}>
       <Text style={{ fontSize: 25 }}>Debug Screen</Text>
       <Text>
         If you don't know what you are doing here, press the red text below.
       </Text>
-      <TouchableOpacity onPress={() => setScreens(p => p.slice(0, -1))}>
+      <TouchableOpacity onPress={() => navigation.goBack()}>
         <Text style={{ color: '#ff0000' }}>Close debug menu</Text>
       </TouchableOpacity>
 

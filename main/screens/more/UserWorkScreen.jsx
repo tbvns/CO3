@@ -15,6 +15,7 @@ import LoadingSpinner from '../../components/History/Spinner';
 import { getUsername } from '../../storage/Credentials';
 import { fetchUserWorks } from '../../web/user/userWorks';
 import EmptyState from '../../components/History/Empty';
+import { useNavigation } from '@react-navigation/native';
 
 export default function UserWorkScreen({
   setScreens,
@@ -124,12 +125,10 @@ export default function UserWorkScreen({
     setRefreshing(false);
   }, []);
 
+  const navigation = useNavigation();
+
   const onBack = () => {
-    setScreens(prev => {
-      const newScreens = [...prev];
-      newScreens.pop();
-      return newScreens;
-    });
+    navigation.goBack();
   };
 
   const openTagSearch = tag => {

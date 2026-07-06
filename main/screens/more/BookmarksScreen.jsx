@@ -16,6 +16,7 @@ import LoadingSpinner from '../../components/History/Spinner';
 import { getUsername } from '../../storage/Credentials';
 import EmptyState from '../../components/History/Empty';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 
 export default function BookmarksScreen({
   route
@@ -143,12 +144,10 @@ export default function BookmarksScreen({
     setRefreshing(false);
   }, []);
 
+  const navigation = useNavigation();
+
   const onBack = () => {
-    setScreens(prev => {
-      const newScreens = [...prev];
-      newScreens.pop();
-      return newScreens;
-    });
+    navigation.goBack();
   };
 
   const openTagSearch = tag => {

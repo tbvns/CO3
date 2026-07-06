@@ -19,11 +19,7 @@ export default function AboutScreen({ route }) {
   const navigation = useNavigation();
 
   function onBack() {
-    setScreens(prev => {
-      const newScreens = [...prev];
-      newScreens.pop();
-      return newScreens;
-    });
+    navigation.goBack();
   }
 
   const { t } = useTranslation();

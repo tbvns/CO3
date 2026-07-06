@@ -10,6 +10,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import Toast from 'react-native-toast-message';
 import { exportDb } from '../../storage/DatabaseManager';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 
 export default function StorageScreen({
   route
@@ -20,12 +21,10 @@ export default function StorageScreen({
     databaseObj,
   } = route.params;
 
+  const navigation = useNavigation();
+
   function onBack() {
-    setScreens(prev => {
-      const newScreens = [...prev];
-      newScreens.pop();
-      return newScreens;
-    });
+    navigation.goBack();
   }
 
   const { t } = useTranslation();

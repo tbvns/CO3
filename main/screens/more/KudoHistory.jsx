@@ -16,6 +16,7 @@ import EmptyState from '../../components/History/Empty';
 import LoadingSpinner from '../../components/History/Spinner';
 import KudoHistoryList from '../../components/History/KudoList';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 
 const KudoHistoryScreen = ({
   route
@@ -297,6 +298,8 @@ const KudoHistoryScreen = ({
     }
   };
 
+  const navigation = useNavigation();
+
   if (loading) {
     return (
       <LoadingSpinner
@@ -307,11 +310,7 @@ const KudoHistoryScreen = ({
   }
 
   function onBack() {
-    setScreens(prev => {
-      const newScreens = [...prev];
-      newScreens.pop();
-      return newScreens;
-    });
+    navigation.goBack();
   }
 
   return (

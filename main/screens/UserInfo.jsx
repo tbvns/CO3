@@ -220,22 +220,19 @@ export default function UserInfoScreen({
                   { borderColor: currentTheme.borderColor },
                 ]}
                 onPress={() => {
-                  setScreens(p => [
-                    ...p,
-                    <BookmarksScreen
-                      setScreens={setScreens}
-                      historyDAO={historyDAO}
-                      settingsDAO={settingsDAO}
-                      progressDAO={progressDAO}
-                      workDAO={workDAO}
-                      libraryDAO={libraryDAO}
-                      kudoHistoryDAO={kudoHistoryDAO}
-                      currentTheme={currentTheme}
-                      username={properUsername}
-                      chapterDAO={chapterDAO}
-                      pseud={properPseud}
-                    />,
-                  ]);
+                  navigation.push("Bookmarks", {
+                    setScreens: setScreens,
+                    historyDAO: historyDAO,
+                    settingsDAO: settingsDAO,
+                    progressDAO: progressDAO,
+                    workDAO: workDAO,
+                    libraryDAO: libraryDAO,
+                    kudoHistoryDAO: kudoHistoryDAO,
+                    currentTheme: currentTheme,
+                    username: properUsername,
+                    chapterDAO: chapterDAO,
+                    pseud: properPseud,
+                  });
                 }}
               >
                 <Text

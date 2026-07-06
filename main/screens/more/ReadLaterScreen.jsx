@@ -16,6 +16,7 @@ import { getUsername } from '../../storage/Credentials';
 import { fetchMarkedLater } from '../../web/other/markedLater';
 import EmptyState from '../../components/History/Empty';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 
 export default function ReadLaterScreen({
   route
@@ -32,6 +33,8 @@ export default function ReadLaterScreen({
     screens,
     chapterDAO,
   } = route.params;
+
+  const navigation = useNavigation();
 
   const [entries, setentries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -136,11 +139,7 @@ export default function ReadLaterScreen({
   }, []);
 
   const onBack = () => {
-    setScreens(prev => {
-      const newScreens = [...prev];
-      newScreens.pop();
-      return newScreens;
-    });
+    navigation.goBack();
   };
 
   const openTagSearch = tag => {

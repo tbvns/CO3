@@ -27,6 +27,7 @@ import {
   availableLanguages,
   changeLanguage,
 } from '../../storage/LanguageManager';
+import { useNavigation } from '@react-navigation/native';
 
 const PreferencesScreen = ({
   route
@@ -40,6 +41,7 @@ const PreferencesScreen = ({
     setViewMode,
     onRestartOnboarding,
   } = route.params;
+  const navigation = useNavigation();
 
   // DB Settings State
   const [fontSize, setFontSize] = useState(1.0);
@@ -362,11 +364,7 @@ const PreferencesScreen = ({
   };
 
   function onBack() {
-    setScreens(prev => {
-      const newScreens = [...prev];
-      newScreens.pop();
-      return newScreens;
-    });
+    navigation.goBack();
   }
 
   return (

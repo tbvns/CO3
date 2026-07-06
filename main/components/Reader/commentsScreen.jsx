@@ -154,7 +154,7 @@ export const CommentsScreen = ({
                         username: comment.username,
                         currentTheme: currentTheme,
                         setScreens: setScreens,
-                        onBack: () => setScreens(prev => prev.slice(0, -1)),
+                        onBack: () => navigation.goBack(),
                         settingsDAO: settingsDAO,
                         historyDAO: historyDAO,
                         progressDAO: progressDAO,

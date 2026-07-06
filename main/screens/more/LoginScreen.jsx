@@ -25,9 +25,11 @@ import {
 } from '../../storage/Credentials';
 import CustomAlert from '../../components/CustomAlert';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 
 const LoginScreen = ({ route }) => {
   const { currentTheme, setScreens } = route.params;
+  const navigation = useNavigation();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -368,11 +370,7 @@ const LoginScreen = ({ route }) => {
   }
 
   function onBack() {
-    setScreens(prev => {
-      const newScreens = [...prev];
-      newScreens.pop();
-      return newScreens;
-    });
+    navigation.goBack();
   }
 
   return (

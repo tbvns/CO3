@@ -439,11 +439,6 @@ const App = () => {
     const backAction = () => {
       console.log(screens);
       if (screens.length > 0) {
-        setScreens(prev => {
-          const newScreens = [...prev];
-          newScreens.pop();
-          return newScreens;
-        });
         return true;
       } else if (activeScreen === "search") {
         setActiveScreen("library")
@@ -463,7 +458,7 @@ const App = () => {
 
   const exitApp = () => BackHandler.exitApp();
 
-  const popScreen = () => setScreens(prev => prev.slice(0, -1));
+  const popScreen = () => navigation.goBack();
 
   const swipeBack = Platform.OS === 'ios' || Platform.OS === 'android' ? ( Gesture.Pan()
     .enabled(Platform.OS === 'ios')
@@ -611,7 +606,7 @@ const App = () => {
   const openTagSearch = (tag) => {
     setSelectedTag(tag);
     setActiveScreen("browse")
-    setScreens([])
+    navigation.reset()
   }
 
   const renderScreen = () => {

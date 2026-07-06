@@ -185,7 +185,7 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, libraryDAO, wor
               navigation.push('User', {
                 currentTheme: theme,
                 username: book.author,
-                onBack: () => setScreens(prev => prev.slice(0, -1)),
+                onBack: () => navigation.goBack(),
                 setScreens: setScreens,
                 workDAO: workDAO,
                 libraryDAO: libraryDAO,
