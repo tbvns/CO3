@@ -15,7 +15,7 @@ const KudoHistoryList = ({
   historyDAO,
   progressDAO,
   kudoHistoryDAO,
-  chapterDAO
+  chapterDAO,
 }) => {
   const groupHistoryByDate = historyItems => {
     if (!historyItems || historyItems.length === 0) {
@@ -78,7 +78,7 @@ const KudoHistoryList = ({
               { color: currentTheme.placeholderColor },
             ]}
           >
-            {t("component_kudo_list_loading_more")}
+            {t('component_kudo_list_loading_more')}
           </Text>
         </View>
       )}
@@ -91,7 +91,7 @@ const KudoHistoryList = ({
               { color: currentTheme.placeholderColor },
             ]}
           >
-            {t("component_kudo_list_end")}
+            {t('component_kudo_list_end')}
           </Text>
         </View>
       )}

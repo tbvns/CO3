@@ -17,6 +17,7 @@ import CategorySelectionModal from '../components/WorkScreen/CategorySelectionMo
 import { getJsonSettings } from '../storage/jsonSettings';
 import ReadLaterScreen from './more/ReadLaterScreen';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 
 const SortIcon = ({ color, size }) => (
   <View
@@ -100,22 +101,22 @@ const LibraryScreen = ({
 
   const { t } = useTranslation();
 
+  const navigation = useNavigation();
+
   useEffect(() => {
     const subscription = DeviceEventEmitter.addListener('doubleTap', (id) => {
-      setScreens(prev => [...prev,
-        <ReadLaterScreen
-          setScreens={setScreens}
-          currentTheme={currentTheme}
-          workDAO={workDAO}
-          libraryDAO={libraryDAO}
-          historyDAO={historyDAO}
-          settingsDAO={settingsDAO}
-          progressDAO={progressDAO}
-          kudoHistoryDAO={kudoHistoryDAO}
-          screens={screens}
-          chapterDAO={chapterDAO}
-        />
-      ])
+      navigation.push("ReadLaterScreen", {
+        setScreens: setScreens,
+        currentTheme: currentTheme,
+        workDAO: workDAO,
+        libraryDAO: libraryDAO,
+        historyDAO: historyDAO,
+        settingsDAO: settingsDAO,
+        progressDAO: progressDAO,
+        kudoHistoryDAO: kudoHistoryDAO,
+        screens: screens,
+        chapterDAO: chapterDAO,
+      });
     })
 
     return () => {

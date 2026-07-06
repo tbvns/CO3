@@ -1,4 +1,4 @@
-import { NativeModules, AppRegistry, Platform } from 'react-native';
+import { AppRegistry, NativeModules, Platform } from 'react-native';
 import { fetchWorkFromWorkID } from './worksScreen/fetchWork';
 import { database } from '../storage/DatabaseManager';
 import { WorkDAO } from '../storage/dao/WorkDAO';

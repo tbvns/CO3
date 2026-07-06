@@ -21,7 +21,6 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { LinearGradient } from 'react-native-linear-gradient';
 import BookDetailsModal from '../components/Library/BookDetailsModal';
 import { fetchWorkFromWorkID } from '../web/worksScreen/fetchWork';
 import { fetchChapterWithTheme } from '../web/worksScreen/fetchChapter';
@@ -44,13 +43,11 @@ import {
   addToDownloadQueue,
   getDownloadQueue,
 } from '../downloads/DownloadQueue';
-import {
-  deleteDownloaded,
-  isDownloaded,
-} from '../downloads/Downloader';
+import { deleteDownloaded, isDownloaded } from '../downloads/Downloader';
 import { WorkDescription } from '../components/WorkScreen/DescriptionComponent';
 import RNFS from 'react-native-fs';
 import { useTranslation } from 'react-i18next';
+import { StackActions, useNavigation } from '@react-navigation/native';
 
 const NATIVE_DOWNLOAD_FORMATS = ['azw3', 'epub', 'mobi', 'pdf', 'html'];
 
@@ -236,21 +233,25 @@ const ChapterItem = React.memo(({ chapter, index, currentTheme, onPress, showDat
 });
 
 
-const ReaderWrapper = ({
-                         initialChapterData,
-                         currentTheme,
-                         setScreens,
-                         screens,
-                         chapterList,
-                         historyDAO,
-                         progressDAO,
-                         settingsDAO,
-                         jsonSettings,
-                         libraryDAO,
-                         chapterDAO,
-                         kudoHistoryDAO,
-                         workDAO,
+export const ReaderWrapper = ({
+                         route
                        }) => {
+  const {
+    initialChapterData,
+    currentTheme,
+    setScreens,
+    screens,
+    chapterList,
+    historyDAO,
+    progressDAO,
+    settingsDAO,
+    jsonSettings,
+    libraryDAO,
+    chapterDAO,
+    kudoHistoryDAO,
+    workDAO,
+  } = route.params;
+
   const { t } = useTranslation();
   const [chapterData, setChapterData] = useState(initialChapterData);
   const [loading, setLoading] = useState(false);
@@ -378,21 +379,25 @@ const ReaderWrapper = ({
   );
 };
 
-const ChapterInfoScreen = ({
-                             workId,
-                             currentTheme,
-                             libraryDAO,
-                             workDAO,
-                             setScreens,
-                             settingsDAO,
-                             historyDAO,
-                             progressDAO,
-                             loadChapter,
-                             kudoHistoryDAO,
-                             openTagSearch,
-                             url,
-                             chapterDAO
-                           }) => {
+const ChapterInfoScreen = ({ route }) => {
+  const {
+    workId,
+    currentTheme,
+    libraryDAO,
+    workDAO,
+    setScreens,
+    settingsDAO,
+    historyDAO,
+    progressDAO,
+    loadChapter,
+    kudoHistoryDAO,
+    openTagSearch,
+    url,
+    chapterDAO
+  } = route.params;
+
+  const navigation = useNavigation();
+
   const { t } = useTranslation();
   const [work, setWork] = useState(null);
   const [chapters, setChapters] = useState([]);
@@ -531,22 +536,18 @@ const ChapterInfoScreen = ({
       setChapterProgress(progressMap);
 
       const hasLoadChapterIndex = typeof loadChapter === 'number';
-
       const chapterUrlMatch = url ? url.match(/\/chapters\/(\d+)/) : null;
       const hasUrlTrigger = !!chapterUrlMatch;
 
       if ((hasLoadChapterIndex && workData.chapters && workData.chapters[loadChapter]) || hasUrlTrigger) {
-
         let chapterToLoad;
         let actualIndex = -1;
 
         if (hasLoadChapterIndex) {
           chapterToLoad = workData.chapters[loadChapter];
           actualIndex = loadChapter;
-        }
-        else if (hasUrlTrigger) {
+        } else if (hasUrlTrigger) {
           const chapterId = chapterUrlMatch[1];
-
           chapterToLoad = workData.chapters.find((ch) => String(ch.id) === String(chapterId));
           actualIndex = workData.chapters.findIndex((ch) => String(ch.id) === String(chapterId));
 
@@ -570,48 +571,38 @@ const ChapterInfoScreen = ({
 
             const chapterListForNav = workData.chapters.map((c) => ({ id: c.id, title: c.name }));
 
-            setScreens((prevScreens) => {
-              const stackWithoutCurrent = prevScreens.slice(0, -1);
+            navigation.dispatch(
+              StackActions.replace('Work', {
+                workId,
+                currentTheme,
+                libraryDAO,
+                workDAO,
+                settingsDAO,
+                historyDAO,
+                progressDAO,
+                kudoHistoryDAO,
+                openTagSearch,
+                chapterDAO,
+                loadChapter: null,
+                url: null,
+              })
+            );
 
-              const cleanHistoryScreen = (
-                <ChapterInfoScreen
-                  key={`${workId}_clean`}
-                  workId={workId}
-                  currentTheme={currentTheme}
-                  libraryDAO={libraryDAO}
-                  workDAO={workDAO}
-                  setScreens={setScreens}
-                  settingsDAO={settingsDAO}
-                  historyDAO={historyDAO}
-                  progressDAO={progressDAO}
-                  kudoHistoryDAO={kudoHistoryDAO}
-                  openTagSearch={openTagSearch}
-                  loadChapter={null}
-                  url={null}
-                  chapterDAO={chapterDAO}
-                />
-              );
-
-              const readerScreen = (
-                <ReaderWrapper
-                  key={`reader_${chapterToLoad.id}`}
-                  initialChapterData={initialChapterData}
-                  currentTheme={currentTheme}
-                  setScreens={setScreens}
-                  chapterList={chapterListForNav}
-                  settingsDAO={settingsDAO}
-                  historyDAO={historyDAO}
-                  progressDAO={progressDAO}
-                  jsonSettings={jsonSettings}
-                  libraryDAO={libraryDAO}
-                  chapterDAO={chapterDAO}
-                  kudoHistoryDAO={kudoHistoryDAO}
-                  workDAO={workDAO}
-                />
-              );
-
-              return [...stackWithoutCurrent, cleanHistoryScreen, readerScreen];
-            });
+            navigation.dispatch(
+              StackActions.push('Reader', {
+                initialChapterData,
+                currentTheme,
+                chapterList: chapterListForNav,
+                settingsDAO,
+                historyDAO,
+                progressDAO,
+                jsonSettings,
+                libraryDAO,
+                chapterDAO,
+                kudoHistoryDAO,
+                workDAO,
+              })
+            );
 
             return;
           }
@@ -619,7 +610,6 @@ const ChapterInfoScreen = ({
           console.log("Could not find chapter from URL. Staying on Info Screen.");
         }
       }
-
     } catch (err) {
       console.error('Error loading work data:', err);
       setError(err.message || 'Failed to load work data');
@@ -736,24 +726,21 @@ const ChapterInfoScreen = ({
 
       const chapterListForNav = chapters.map(c => ({ id: c.id, title: c.name }));
 
-      setScreens(prevScreens => [
-        ...prevScreens,
-        <ReaderWrapper
-          key={chapter.id}
-          initialChapterData={initialChapterData}
-          currentTheme={currentTheme}
-          setScreens={setScreens}
-          chapterList={chapterListForNav}
-          settingsDAO={settingsDAO}
-          historyDAO={historyDAO}
-          progressDAO={progressDAO}
-          jsonSettings={jsonSettings}
-          libraryDAO={libraryDAO}
-          chapterDAO={chapterDAO}
-          kudoHistoryDAO={kudoHistoryDAO}
-          workDAO={workDAO}
-        />
-      ]);
+      navigation.push("Reader", {
+        key: chapter.id,
+        initialChapterData: initialChapterData,
+        currentTheme: currentTheme,
+        setScreens: setScreens,
+        chapterList: chapterListForNav,
+        settingsDAO: settingsDAO,
+        historyDAO: historyDAO,
+        progressDAO: progressDAO,
+        jsonSettings: jsonSettings,
+        libraryDAO: libraryDAO,
+        chapterDAO: chapterDAO,
+        kudoHistoryDAO: kudoHistoryDAO,
+        workDAO: workDAO,
+      })
 
     } catch (error) {
       console.error('Error opening chapter reader:', error);
@@ -1057,21 +1044,19 @@ const ChapterInfoScreen = ({
       </Text>
       <TouchableOpacity
         onPress={() => {
-          setScreens(p => [...p,
-            <UserInfoScreen
-              username={work?.author}
-              currentTheme={currentTheme}
-              setScreens={setScreens}
-              onBack={() => setScreens(prev => prev.slice(0, -1))}
-              settingsDAO={settingsDAO}
-              historyDAO={historyDAO}
-              progressDAO={progressDAO}
-              kudoHistoryDAO={kudoHistoryDAO}
-              libraryDAO={libraryDAO}
-              workDAO={workDAO}
-              chapterDAO={chapterDAO}
-            />
-          ])
+          nacigation.push("Work", {
+            username: work?.author,
+            currentTheme: currentTheme,
+            setScreens: setScreens,
+            onBack: () => setScreens(prev => prev.slice(0, -1)),
+            settingsDAO: settingsDAO,
+            historyDAO: historyDAO,
+            progressDAO: progressDAO,
+            kudoHistoryDAO: kudoHistoryDAO,
+            libraryDAO: libraryDAO,
+            workDAO: workDAO,
+            chapterDAO: chapterDAO,
+          })
         }}
       >
         <Text style={[styles.workAuthor, { color: currentTheme.secondaryTextColor }]}>

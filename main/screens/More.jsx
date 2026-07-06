@@ -18,10 +18,9 @@ import HelpScreen from './more/HelpScreen';
 import BookmarksScreen from './more/BookmarksScreen';
 import ReadLaterScreen from './more/ReadLaterScreen';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import StorageScreen from './more/StorageScreen';
-import Toast from 'react-native-toast-message';
 import StatsScreen from './more/StatsScreen';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 
 const MoreScreen = ({
   currentTheme,
@@ -42,8 +41,11 @@ const MoreScreen = ({
   databaseObj,
   chapterDAO,
   setJsonSettings,
-  openTagSearch
+  openTagSearch,
 }) => {
+
+  const navigation = useNavigation();
+
   const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -58,172 +60,142 @@ const MoreScreen = ({
   }, [fadeAnim]);
 
   useEffect(() => {
-    const subscription = DeviceEventEmitter.addListener('doubleTap', (id) => {
+    const subscription = DeviceEventEmitter.addListener('doubleTap', id => {
       handlePress('Preferences');
-    })
+    });
 
     return () => {
-      subscription.remove()
-    }
-  }, [])
+      subscription.remove();
+    };
+  }, []);
 
   const handlePress = screenName => {
     switch (screenName) {
       case 'Preferences':
-        setScreens(prev => [
-          ...prev,
-          <PreferencesScreen
-            currentTheme={currentTheme}
-            theme={theme}
-            setTheme={setTheme}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-            isIncognitoMode={isIncognitoMode}
-            toggleIncognitoMode={toggleIncognitoMode}
-            settingsDAO={settingsDAO}
-            setScreens={setScreens}
-            onRestartOnboarding={() => {
-              setJsonSettings(prev => ({ ...prev, finishedOnboarding: false }));
-              setScreens([]);
-            }}
-          />,
-        ]);
+        navigation.push("Preferences", {
+          currentTheme: currentTheme,
+          theme: theme,
+          setTheme: setTheme,
+          viewMode: viewMode,
+          setViewMode: setViewMode,
+          isIncognitoMode: isIncognitoMode,
+          toggleIncognitoMode: toggleIncognitoMode,
+          settingsDAO: settingsDAO,
+          setScreens: setScreens,
+          onRestartOnboarding: () => {setJsonSettings(prev => ({ ...prev, finishedOnboarding: false }));},
+        });
         break;
       case 'Account':
-        setScreens(prev => [
-          ...prev,
-          <LoginScreen currentTheme={currentTheme} setScreens={setScreens} />,
-        ]);
+        navigation.push("Account", {
+          currentTheme: currentTheme,
+          setScreens: setScreens,
+        });
         break;
       case 'KudosHistory':
-        setScreens(prev => [
-          ...prev,
-          <KudoHistoryScreen
-            currentTheme={currentTheme}
-            workDAO={workDAO}
-            libraryDAO={libraryDAO}
-            setScreens={setScreens}
-            historyDAO={historyDAO}
-            settingsDAO={settingsDAO}
-            progressDAO={progressDAO}
-            kudoHistoryDAO={kudoHistoryDAO}
-            chapterDAO={chapterDAO}
-          />,
-        ]);
+        navigation.push("KudosHistory", {
+          currentTheme: currentTheme,
+          workDAO: workDAO,
+          libraryDAO: libraryDAO,
+          setScreens: setScreens,
+          historyDAO: historyDAO,
+          settingsDAO: settingsDAO,
+          progressDAO: progressDAO,
+          kudoHistoryDAO: kudoHistoryDAO,
+          chapterDAO: chapterDAO,
+        })
         break;
       case 'Bookmarks':
-        setScreens(prev => [
-          ...prev,
-          <BookmarksScreen
-            currentTheme={currentTheme}
-            workDAO={workDAO}
-            libraryDAO={libraryDAO}
-            setScreens={setScreens}
-            screens={screens}
-            historyDAO={historyDAO}
-            settingsDAO={settingsDAO}
-            progressDAO={progressDAO}
-            kudoHistoryDAO={kudoHistoryDAO}
-            chapterDAO={chapterDAO}
-          />,
-        ]);
+        navigation.push("Bookmarks", {
+          currentTheme: currentTheme,
+          workDAO: workDAO,
+          libraryDAO: libraryDAO,
+          setScreens: setScreens,
+          screens: screens,
+          historyDAO: historyDAO,
+          settingsDAO: settingsDAO,
+          progressDAO: progressDAO,
+          kudoHistoryDAO: kudoHistoryDAO,
+          chapterDAO: chapterDAO,
+        })
         break;
       case 'ReadLater':
-        setScreens(prev => [
-          ...prev,
-          <ReadLaterScreen
-            currentTheme={currentTheme}
-            workDAO={workDAO}
-            libraryDAO={libraryDAO}
-            setScreens={setScreens}
-            screens={screens}
-            historyDAO={historyDAO}
-            settingsDAO={settingsDAO}
-            progressDAO={progressDAO}
-            kudoHistoryDAO={kudoHistoryDAO}
-            chapterDAO={chapterDAO}
-          />,
-        ]);
+        navigation.push("ReadLater", {
+          currentTheme: currentTheme,
+          workDAO: workDAO,
+          libraryDAO: libraryDAO,
+          setScreens: setScreens,
+          screens: screens,
+          historyDAO: historyDAO,
+          settingsDAO: settingsDAO,
+          progressDAO: progressDAO,
+          kudoHistoryDAO: kudoHistoryDAO,
+          chapterDAO: chapterDAO,
+        });
         break;
       case 'Categories':
-        setScreens(prev => [
-          ...prev,
-          <CategoryScreen
-            currentTheme={currentTheme}
-            workDAO={workDAO}
-            libraryDAO={libraryDAO}
-            setScreens={setScreens}
-            historyDAO={historyDAO}
-            settingsDAO={settingsDAO}
-            progressDAO={progressDAO}
-            kudoHistoryDAO={kudoHistoryDAO}
-          />,
-        ]);
+        navigation.push("Categories", {
+          currentTheme: currentTheme,
+          workDAO: workDAO,
+          libraryDAO: libraryDAO,
+          setScreens: setScreens,
+          historyDAO: historyDAO,
+          settingsDAO: settingsDAO,
+          progressDAO: progressDAO,
+          kudoHistoryDAO: kudoHistoryDAO,
+        })
         break;
-      case "Statistics":
-        setScreens(prev => [
-          ...prev,
-          <StatsScreen
-            currentTheme={currentTheme}
-            workDAO={workDAO}
-            libraryDAO={libraryDAO}
-            setScreens={setScreens}
-            historyDAO={historyDAO}
-            settingsDAO={settingsDAO}
-            progressDAO={progressDAO}
-            kudoHistoryDAO={kudoHistoryDAO}
-            databaseObj={databaseObj}
-            openTagSearch={openTagSearch}
-            chapterDAO={chapterDAO}
-          />,
-        ])
+      case 'Statistics':
+        navigation.push('Statistics', {
+          currentTheme: currentTheme,
+          workDAO: workDAO,
+          libraryDAO: libraryDAO,
+          setScreens: setScreens,
+          historyDAO: historyDAO,
+          settingsDAO: settingsDAO,
+          progressDAO: progressDAO,
+          kudoHistoryDAO: kudoHistoryDAO,
+          databaseObj: databaseObj,
+          openTagSearch: openTagSearch,
+          chapterDAO: chapterDAO,
+        });
         break;
       case 'Data and Storage':
-        setScreens(prev => [
-          ...prev,
-          <StorageScreen
-            currentTheme={currentTheme}
-            workDAO={workDAO}
-            libraryDAO={libraryDAO}
-            setScreens={setScreens}
-            historyDAO={historyDAO}
-            settingsDAO={settingsDAO}
-            progressDAO={progressDAO}
-            kudoHistoryDAO={kudoHistoryDAO}
-            databaseObj={databaseObj}
-          />,
-        ]);
+        navigation.push("Storage", {
+          currentTheme: currentTheme,
+          workDAO: workDAO,
+          libraryDAO: libraryDAO,
+          setScreens: setScreens,
+          historyDAO: historyDAO,
+          settingsDAO: settingsDAO,
+          progressDAO: progressDAO,
+          kudoHistoryDAO: kudoHistoryDAO,
+          databaseObj: databaseObj
+        })
         break;
       case 'About':
-        setScreens(prev => [
-          ...prev,
-          <AboutScreen
-            currentTheme={currentTheme}
-            workDAO={workDAO}
-            libraryDAO={libraryDAO}
-            setScreens={setScreens}
-            historyDAO={historyDAO}
-            settingsDAO={settingsDAO}
-            progressDAO={progressDAO}
-            kudoHistoryDAO={kudoHistoryDAO}
-            db={databaseObj}
-          />,
-        ]);
+        navigation.push("About", {
+          currentTheme: currentTheme,
+          workDAO: workDAO,
+          libraryDAO: libraryDAO,
+          setScreens: setScreens,
+          historyDAO: historyDAO,
+          settingsDAO: settingsDAO,
+          progressDAO: progressDAO,
+          kudoHistoryDAO: kudoHistoryDAO,
+          db: databaseObj,
+        })
         break;
       case 'Help':
-        setScreens(prev => [
-          ...prev,
-          <HelpScreen
-            currentTheme={currentTheme}
-            workDAO={workDAO}
-            libraryDAO={libraryDAO}
-            setScreens={setScreens}
-            historyDAO={historyDAO}
-            settingsDAO={settingsDAO}
-            progressDAO={progressDAO}
-            kudoHistoryDAO={kudoHistoryDAO}
-          />,
-        ]);
+        navigation.push("Help", {
+          currentTheme: currentTheme,
+          workDAO: workDAO,
+          libraryDAO: libraryDAO,
+          setScreens: setScreens,
+          historyDAO: historyDAO,
+          settingsDAO: settingsDAO,
+          progressDAO: progressDAO,
+          kudoHistoryDAO: kudoHistoryDAO,
+        })
         break;
     }
     console.log(`${screenName} pressed`);
@@ -231,52 +203,52 @@ const MoreScreen = ({
 
   const menuItems = [
     {
-      name: t("screen_more_nav_preference"),
+      name: t('screen_more_nav_preference'),
       icon: 'settings',
       handler: () => handlePress('Preferences'),
     },
     {
-      name: t("screen_more_nav_account"),
+      name: t('screen_more_nav_account'),
       icon: 'account-circle',
       handler: () => handlePress('Account'),
     },
     {
-      name: t("screen_more_nav_kudos"),
+      name: t('screen_more_nav_kudos'),
       icon: 'favorite',
       handler: () => handlePress('KudosHistory'),
     },
     {
-      name: t("screen_more_nav_bookmarks"),
+      name: t('screen_more_nav_bookmarks'),
       icon: 'bookmarks',
       handler: () => handlePress('Bookmarks'),
     },
     {
-      name: t("screen_more_nav_later"),
+      name: t('screen_more_nav_later'),
       icon: 'watch-later',
       handler: () => handlePress('ReadLater'),
     },
     {
-      name: t("screen_more_nav_categories"),
+      name: t('screen_more_nav_categories'),
       icon: 'category',
       handler: () => handlePress('Categories'),
     },
     {
-      name: t("screen_more_nav_stats"),
+      name: t('screen_more_nav_stats'),
       icon: 'bar-chart',
       handler: () => handlePress('Statistics'),
     },
     {
-      name: t("screen_more_nav_data"),
+      name: t('screen_more_nav_data'),
       icon: 'storage',
       handler: () => handlePress('Data and Storage'),
     },
     {
-      name: t("screen_more_nav_about"),
+      name: t('screen_more_nav_about'),
       icon: 'info',
       handler: () => handlePress('About'),
     },
     {
-      name: t("screen_more_nav_help"),
+      name: t('screen_more_nav_help'),
       icon: 'help',
       handler: () => handlePress('Help'),
     },
@@ -294,12 +266,12 @@ const MoreScreen = ({
     >
       <View style={styles.contentContainer}>
         <Text style={[styles.title, { color: currentTheme.textColor }]}>
-          {t("screen_more_title")}
+          {t('screen_more_title')}
         </Text>
         <Text
           style={[styles.subtitle, { color: currentTheme.placeholderColor }]}
         >
-          {t("Additional settings and features")}
+          {t('Additional settings and features')}
         </Text>
 
         <View style={styles.menuContainer}>

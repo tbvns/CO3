@@ -7,7 +7,6 @@ import {
   DeviceEventEmitter,
   Dimensions,
   FlatList,
-  Modal,
   RefreshControl,
   StyleSheet,
   Text,
@@ -26,7 +25,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
 
 const FilterIcon = ({ color, size }) => (
-  <Icon name={"filter-list"} style={{color: color}} size={size} />
+  <Icon name={'filter-list'} style={{ color: color }} size={size} />
 );
 
 const ClearIcon = ({ color, size }) => (

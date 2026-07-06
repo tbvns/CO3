@@ -4,8 +4,8 @@ import {
   Alert,
   BackHandler,
   DeviceEventEmitter,
-  Dimensions,
   Image,
+  Linking,
   PermissionsAndroid,
   Platform,
   SafeAreaView,
@@ -33,7 +33,7 @@ import UpdateScreen from './screens/Update';
 import BrowseScreen from './screens/Browse';
 import HistoryScreen from './screens/History';
 import MoreScreen from './screens/More';
-import ChapterInfoScreen from './screens/workScreen';
+import ChapterInfoScreen, { ReaderWrapper } from './screens/workScreen';
 import { LibraryDAO } from './storage/dao/LibraryDAO';
 import { ProgressDAO } from './storage/dao/ProgressDAO';
 import { KudoHistoryDAO } from './storage/dao/KudosHistoryDAO';
@@ -47,19 +47,36 @@ import { setup, setupNotificationListeners } from './web/updater';
 import { getJsonSettings, saveJsonSettings } from './storage/jsonSettings';
 import { UpdateDAO } from './storage/dao/UpdateDAO';
 import notifee from 'react-native-notify-kit';
-import { Linking } from 'react-native';
 import { ChapterDAO } from './storage/dao/ChapterDAO';
-import { exists, readFile } from 'react-native-fs';
-import { loadFont } from '@vitrion/react-native-load-fonts';
 import GlobalSearchScreen from './screens/GlobalSearchScreen';
 import { Host } from 'react-native-portalize';
 import WebviewFetcher from './web/WebviewFetcher';
 import MainOnboardScreen from './onboard/MainOnboardScreen';
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
 import { runOnJS, useSharedValue } from 'react-native-reanimated';
-import Spinner from './components/History/Spinner';
-import "./storage/LanguageManager";
+import './storage/LanguageManager';
 import { useTranslation } from 'react-i18next';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import UserInfoScreen from './screens/UserInfo';
+import UserWorkScreen from './screens/more/UserWorkScreen';
+import StorageScreen from './screens/more/StorageScreen';
+import StatsScreen from './screens/more/StatsScreen';
+import ReadLaterScreen from './screens/more/ReadLaterScreen';
+import PreferencesScreen from './screens/more/Preferences';
+import LoginScreen from './screens/more/LoginScreen';
+import KudoHistoryScreen from './screens/more/KudoHistory';
+import HelpScreen from './screens/more/HelpScreen';
+import DebugScreen from './screens/more/DebugScreen';
+import CategoryScreen from './screens/more/CategoryScreen';
+import BookmarksScreen from './screens/more/BookmarksScreen';
+import AboutScreen from './screens/more/AboutScreen';
+
+const Stack = createNativeStackNavigator();
 
 const AppWrapper = () => {
   const wrapperStyle = Platform.OS === 'web'
@@ -71,7 +88,29 @@ const AppWrapper = () => {
       <Host>
         <GestureHandlerRootView>
           <SafeAreaProvider style={{ flex: 1 }}>
-            <App />
+            <NavigationContainer>
+              <Stack.Navigator
+                screenOptions={{ headerShown: false }}
+                initialRouteName={'Home'}
+              >
+                <Stack.Screen name={'Home'} component={App} />
+                <Stack.Screen name={'Work'} component={ChapterInfoScreen} />
+                <Stack.Screen name={'Reader'} component={ReaderWrapper} />
+                <Stack.Screen name={'User'} component={UserInfoScreen} />
+                <Stack.Screen name={'UserWork'} component={UserWorkScreen} />
+                <Stack.Screen name={'Storage'} component={StorageScreen} />
+                <Stack.Screen name={'Statistics'} component={StatsScreen} />
+                <Stack.Screen name={'ReadLater'} component={ReadLaterScreen} />
+                <Stack.Screen name={'Preferences'} component={PreferencesScreen} />
+                <Stack.Screen name={'Account'} component={LoginScreen} />
+                <Stack.Screen name={'KudosHistory'} component={KudoHistoryScreen} />
+                <Stack.Screen name={'Help'} component={HelpScreen} />
+                <Stack.Screen name={'Debug'} component={DebugScreen} />
+                <Stack.Screen name={'Categories'} component={CategoryScreen} />
+                <Stack.Screen name={'Bookmarks'} component={BookmarksScreen} />
+                <Stack.Screen name={'About'} component={AboutScreen} />
+              </Stack.Navigator>
+            </NavigationContainer>
           </SafeAreaProvider>
         </GestureHandlerRootView>
         <WebviewFetcher />
@@ -248,6 +287,8 @@ const App = () => {
 
   const hasAddedInitialScreen = useRef(false);
 
+  const navigation = useNavigation();
+
   useEffect(() => {
     if (loading || !libraryDAO || !progressDAO || !settingsDAO || !workDAO || hasAddedInitialScreen.current) {
       return;
@@ -261,23 +302,21 @@ const App = () => {
       hasAddedInitialScreen.current = true;
       const workId = url.split('/')[4];
 
-      setScreens(prev => [...prev,
-        <ChapterInfoScreen
-          key={`url_work_${workId}`}
-          workId={workId}
-          currentTheme={currentTheme}
-          libraryDAO={libraryDAO}
-          workDAO={workDAO}
-          setScreens={setScreens}
-          settingsDAO={settingsDAO}
-          historyDAO={historyDAO}
-          progressDAO={progressDAO}
-          kudoHistoryDAO={kudoHistoryDAO}
-          openTagSearch={openTagSearch}
-          url={url}
-          chapterDAO={chapterDAO}
-        />
-      ]);
+      navigation.push("Work", {
+        key: `url_work_${workId}`,
+        workId: workId,
+        currentTheme: currentTheme,
+        libraryDAO: libraryDAO,
+        workDAO: workDAO,
+        setScreens: setScreens,
+        settingsDAO: settingsDAO,
+        historyDAO: historyDAO,
+        progressDAO: progressDAO,
+        kudoHistoryDAO: kudoHistoryDAO,
+        openTagSearch: openTagSearch,
+        url: url,
+        chapterDAO: chapterDAO
+      })
     };
 
     Linking.getInitialURL().then((url) => {
@@ -373,24 +412,21 @@ const App = () => {
       }
 
       console.log(`[Notification] Opening Work: ${work.title}, Index: ${loadChapterIndex}`);
-
-      setScreens(prev => [...prev,
-        <ChapterInfoScreen
-          key={`notif_${workId}_${Date.now()}`}
-          workId={workId}
-          currentTheme={ctx.currentTheme}
-          libraryDAO={ctx.libraryDAO}
-          workDAO={ctx.workDAO}
-          setScreens={setScreens}
-          settingsDAO={ctx.settingsDAO}
-          historyDAO={ctx.historyDAO}
-          progressDAO={ctx.progressDAO}
-          kudoHistoryDAO={ctx.kudoHistoryDAO}
-          openTagSearch={openTagSearch}
-          loadChapter={loadChapterIndex}
-          chapterDAO={ctx.chapterDAO}
-        />
-      ]);
+      navigation.push("Work", {
+        key: `notif_${workId}_${Date.now()}`,
+        workId: workId,
+        currentTheme: ctx.currentTheme,
+        libraryDAO: ctx.libraryDAO,
+        workDAO: ctx.workDAO,
+        setScreens: setScreens,
+        settingsDAO: ctx.settingsDAO,
+        historyDAO: ctx.historyDAO,
+        progressDAO: ctx.progressDAO,
+        kudoHistoryDAO: ctx.kudoHistoryDAO,
+        openTagSearch: openTagSearch,
+        loadChapter: loadChapterIndex,
+        chapterDAO: ctx.chapterDAO,
+      })
 
       setActiveScreen('update');
 

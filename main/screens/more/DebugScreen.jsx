@@ -6,9 +6,9 @@ import {
   View,
 } from 'react-native';
 import { useState } from 'react';
-import Toast from 'react-native-toast-message';
 
-export default function DebugScreen({ db, setScreens }) {
+export default function DebugScreen({ route }) {
+  const {db, setScreens} = route.params;
   const [sqlCmd, setSqlCmd] = useState('');
   const [logs, setLogs] = useState([]);
 
@@ -20,16 +20,18 @@ export default function DebugScreen({ db, setScreens }) {
   };
 
   return (
-    <ScrollView style={{ flex: 1, padding: 12 }}>
+    <ScrollView style={{ flex: 1, padding: 12, backgroundColor: '#fff' }}>
       <Text style={{ fontSize: 25 }}>Debug Screen</Text>
-      <Text>If you don't know what you are doing here, press the red text below.</Text>
+      <Text>
+        If you don't know what you are doing here, press the red text below.
+      </Text>
       <TouchableOpacity onPress={() => setScreens(p => p.slice(0, -1))}>
         <Text style={{ color: '#ff0000' }}>Close debug menu</Text>
       </TouchableOpacity>
 
       <Text style={{ marginTop: 16 }}>Run SQL cmd</Text>
       <TextInput
-        style={{ borderColor: '#fff', borderWidth: 1 }}
+        style={{ borderColor: '#fff', backgroundColor: "#000", color: "#fff", borderWidth: 1, }}
         placeholder="UPDATE works SET..."
         onChangeText={setSqlCmd}
         value={sqlCmd}
@@ -63,7 +65,13 @@ export default function DebugScreen({ db, setScreens }) {
       </TouchableOpacity>
 
       <View style={{ marginTop: 20 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
           <Text style={{ fontSize: 16, fontWeight: '600' }}>Log</Text>
           {logs.length > 0 && (
             <TouchableOpacity onPress={() => setLogs([])}>
@@ -85,13 +93,19 @@ export default function DebugScreen({ db, setScreens }) {
           ) : (
             logs.map(log => (
               <View key={log.id} style={{ marginBottom: 6 }}>
-                <Text style={{
-                  fontSize: 12,
-                  color: log.type === 'error' ? '#ff6b6b'
-                    : log.type === 'success' ? '#69db7c'
-                      : log.type === 'cmd' ? '#74c0fc'
-                        : '#ccc',
-                }}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color:
+                      log.type === 'error'
+                        ? '#ff6b6b'
+                        : log.type === 'success'
+                        ? '#69db7c'
+                        : log.type === 'cmd'
+                        ? '#74c0fc'
+                        : '#86911e',
+                  }}
+                >
                   <Text style={{ color: '#555' }}>[{log.time}] </Text>
                   {log.message}
                 </Text>

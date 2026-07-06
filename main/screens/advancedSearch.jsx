@@ -12,12 +12,12 @@ import {
 } from 'react-native';
 import CustomDropdown from '../components/common/CustomDropdown';
 import {
-  pushJsonPreset,
-  getAllPresets,
-  removePreset,
   containsPreset,
-  setTempPreset,
+  getAllPresets,
   getTempPreset,
+  pushJsonPreset,
+  removePreset,
+  setTempPreset,
 } from '../storage/jsonSearches';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';

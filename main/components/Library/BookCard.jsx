@@ -4,10 +4,10 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import BookDetailsModal from './BookDetailsModal';
 import ChapterInfoScreen from '../../screens/workScreen';
 import QuickActionsModal from './QuickActionsModal';
-import { getJsonSettings } from '../../storage/jsonSettings';
 import HtmlTextRenderer from '../common/HtmlTextRenderer';
 import UserInfoScreen from '../../screens/UserInfo';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 
 const imageMappings = {
   rating: {
@@ -44,6 +44,8 @@ const imageMappings = {
 };
 
 const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, libraryDAO, workDAO, settingsDAO, historyDAO, progressDAO, kudoHistoryDAO, openTagSearch, showDate = true, jsonSettings, chapterDAO }) => {
+  const navigation = useNavigation();
+
   const [isMainModalOpen, setIsMainModalOpen] = useState(false);
   const [isAllTagsModalOpen, setIsAllTagsModalOpen] = useState(false);
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
@@ -91,22 +93,19 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, libraryDAO, wor
 
   return (
       <TouchableOpacity
-          onPress={() => {setScreens(p => [...p,
-            <ChapterInfoScreen
-              workId={book.id}
-              currentTheme={theme}
-              libraryDAO={libraryDAO}
-              workDAO={workDAO}
-              setScreens={setScreens}
-              settingsDAO={settingsDAO}
-              historyDAO={historyDAO}
-              progressDAO={progressDAO}
-              kudoHistoryDAO={kudoHistoryDAO}
-              openTagSearch={openTagSearch}
-              chapterDAO={chapterDAO}
-            />
-          ])}}
-          onLongPress={() => {
+        onPress={() => navigation.push('Work', {
+          workId: book.id,
+          currentTheme: theme,
+          libraryDAO,
+          workDAO,
+          settingsDAO,
+          historyDAO,
+          progressDAO,
+          kudoHistoryDAO,
+          openTagSearch,
+          chapterDAO,
+        })}
+        onLongPress={() => {
             setIsQuickActionsOpen(!isQuickActionsOpen);
           }}
           activeOpacity={0.7}
@@ -183,19 +182,19 @@ const BookCard = ({ book, viewMode, theme, onUpdate, setScreens, libraryDAO, wor
               {book.title}
             </Text>
             <TouchableOpacity onPress={() => {
-              setScreens(p => [...p, <UserInfoScreen
-                currentTheme={theme}
-                username={book.author}
-                onBack={() => setScreens(prev => prev.slice(0, -1))}
-                setScreens={setScreens}
-                workDAO={workDAO}
-                libraryDAO={libraryDAO}
-                historyDAO={historyDAO}
-                settingsDAO={settingsDAO}
-                progressDAO={progressDAO}
-                kudoHistoryDAO={kudoHistoryDAO}
-                chapterDAO={chapterDAO}
-              />])
+              navigation.push('User', {
+                currentTheme: theme,
+                username: book.author,
+                onBack: () => setScreens(prev => prev.slice(0, -1)),
+                setScreens: setScreens,
+                workDAO: workDAO,
+                libraryDAO: libraryDAO,
+                historyDAO: historyDAO,
+                settingsDAO: settingsDAO,
+                progressDAO: progressDAO,
+                kudoHistoryDAO: kudoHistoryDAO,
+                chapterDAO: chapterDAO,
+              })
             }}>
                 <Text style={[
                     styles.author,

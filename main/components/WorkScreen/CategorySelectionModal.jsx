@@ -18,7 +18,7 @@ const CategorySelectionModal = ({
   theme,
   title,
 }) => {
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
   return (
     <Modal
@@ -80,7 +80,7 @@ const CategorySelectionModal = ({
               <Text
                 style={[styles.cancelButtonText, { color: theme.textColor }]}
               >
-                {t("general_cancel")}
+                {t('general_cancel')}
               </Text>
             </TouchableOpacity>
           </View>

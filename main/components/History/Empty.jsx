@@ -2,7 +2,12 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-const EmptyState = ({ currentTheme, isFilterActive, textLine1 = "No reading history yet", textLine2 = "Start reading to see your progress here"}) => {
+const EmptyState = ({
+  currentTheme,
+  isFilterActive,
+  textLine1 = 'No reading history yet',
+  textLine2 = 'Start reading to see your progress here',
+}) => {
   const { t } = useTranslation();
 
   return (
@@ -13,9 +18,7 @@ const EmptyState = ({ currentTheme, isFilterActive, textLine1 = "No reading hist
           { color: currentTheme.placeholderColor },
         ]}
       >
-        {isFilterActive
-          ? t("component_empty_title")
-          : textLine1}
+        {isFilterActive ? t('component_empty_title') : textLine1}
       </Text>
       <Text
         style={[
@@ -23,9 +26,7 @@ const EmptyState = ({ currentTheme, isFilterActive, textLine1 = "No reading hist
           { color: currentTheme.placeholderColor },
         ]}
       >
-        {isFilterActive
-          ? t("component_empty_sub")
-          : textLine2}
+        {isFilterActive ? t('component_empty_sub') : textLine2}
       </Text>
     </View>
   );

@@ -1,4 +1,3 @@
-import ky from 'ky';
 import { Work } from '../../storage/models/work';
 import getUrl from '../requestManager';
 

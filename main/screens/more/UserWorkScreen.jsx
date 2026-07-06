@@ -27,7 +27,7 @@ export default function UserWorkScreen({
   kudoHistoryDAO,
   username,
   chapterDAO,
-  pseud
+  pseud,
 }) {
   const [bookmarks, setBookmarks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -76,7 +76,11 @@ export default function UserWorkScreen({
     try {
       setLoading(true);
       setCurrentPage(1);
-      const res = pseud ? await fetchUserWorks(1, username, pseud) : (username ? await fetchUserWorks(1, username) : await fetchUserWorks(1));
+      const res = pseud
+        ? await fetchUserWorks(1, username, pseud)
+        : username
+        ? await fetchUserWorks(1, username)
+        : await fetchUserWorks(1);
       setBookmarks(res || []);
       setHasMore((res?.length || 0) === PAGE_SIZE);
     } catch (error) {
@@ -93,7 +97,11 @@ export default function UserWorkScreen({
     try {
       setLoadingMore(true);
       const nextPage = currentPage + 1;
-      const res = pseud ? await fetchUserWorks(nextPage, username, pseud) : (username ? await fetchUserWorks(nextPage, username) : await fetchUserWorks(nextPage));
+      const res = pseud
+        ? await fetchUserWorks(nextPage, username, pseud)
+        : username
+        ? await fetchUserWorks(nextPage, username)
+        : await fetchUserWorks(nextPage);
       const moreData = res || [];
 
       if (moreData.length > 0) {
@@ -154,16 +162,22 @@ export default function UserWorkScreen({
         <Icon name="arrow-back" size={24} color={currentTheme.textColor} />
       </TouchableOpacity>
       <Text style={[styles.title, { color: currentTheme.textColor }]}>
-        {username ? username + "'s " : ""}Works
+        {username ? username + "'s " : ''}Works
       </Text>
 
       <TouchableOpacity
         style={{ marginLeft: 'auto' }}
-        onPress={() =>
-        {username ? Linking.openURL(`https://archiveofourown.org/users/${username}/works`)
-          : getUsername().then(usrname => {Linking.openURL(`https://archiveofourown.org/users/${usrname}/works`)}
-        )}
-        }
+        onPress={() => {
+          username
+            ? Linking.openURL(
+                `https://archiveofourown.org/users/${username}/works`,
+              )
+            : getUsername().then(usrname => {
+                Linking.openURL(
+                  `https://archiveofourown.org/users/${usrname}/works`,
+                );
+              });
+        }}
       >
         <Icon name="link" size={24} color={currentTheme.textColor} />
       </TouchableOpacity>
@@ -189,10 +203,7 @@ export default function UserWorkScreen({
 
   if (loading) {
     return (
-      <LoadingSpinner
-        currentTheme={currentTheme}
-        message="Loading works..."
-      />
+      <LoadingSpinner currentTheme={currentTheme} message="Loading works..." />
     );
   }
 
@@ -205,37 +216,35 @@ export default function UserWorkScreen({
     >
       {renderHeader()}
 
-      {
-        bookmarks.length === 0 ? (
-          <EmptyState currentTheme={currentTheme}
-                      textLine1={"No works."}
-                      textLine2={"It seems like this user doesn't have any works."}
-          />
-        ) : (
-          <FlatList
-            data={bookmarks}
-            renderItem={renderWork}
-            keyExtractor={(item, index) => `${item.id || index}`}
-            onEndReached={loadMoreWorks}
-            onEndReachedThreshold={0.1}
-            ListFooterComponent={renderFooter}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={[currentTheme.primaryColor]}
-                tintColor={currentTheme.primaryColor}
-              />
-            }
-            contentContainerStyle={styles.contentContainer}
-            scrollEventThrottle={16}
-            removeClippedSubviews={true}
-            maxToRenderPerBatch={10}
-            updateCellsBatchingPeriod={50}
-          />
-
-        )
-      }
+      {bookmarks.length === 0 ? (
+        <EmptyState
+          currentTheme={currentTheme}
+          textLine1={'No works.'}
+          textLine2={"It seems like this user doesn't have any works."}
+        />
+      ) : (
+        <FlatList
+          data={bookmarks}
+          renderItem={renderWork}
+          keyExtractor={(item, index) => `${item.id || index}`}
+          onEndReached={loadMoreWorks}
+          onEndReachedThreshold={0.1}
+          ListFooterComponent={renderFooter}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[currentTheme.primaryColor]}
+              tintColor={currentTheme.primaryColor}
+            />
+          }
+          contentContainerStyle={styles.contentContainer}
+          scrollEventThrottle={16}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={50}
+        />
+      )}
     </View>
   );
 }

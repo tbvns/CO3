@@ -1,5 +1,12 @@
 // Step4Screen.jsx – Support (was Step3)
-import { View, Text, StyleSheet, TouchableOpacity, Linking, ScrollView } from 'react-native';
+import {
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
 

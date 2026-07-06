@@ -1,4 +1,3 @@
-import ky from 'ky';
 import { Work } from '../../storage/models/work';
 import { getJsonSettings } from '../../storage/jsonSettings';
 import { fetchChapters } from './fetchChapters';

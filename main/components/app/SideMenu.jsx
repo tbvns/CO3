@@ -184,7 +184,7 @@ const SideMenu = ({
               ]}
             >
               <Text style={[styles.title, { color: currentTheme.textColor }]}>
-                {t("component_side_menu_title")}
+                {t('component_side_menu_title')}
               </Text>
               <TouchableOpacity onPress={onClose}>
                 <Icon name="close" size={24} color={currentTheme.iconColor} />
@@ -214,7 +214,7 @@ const SideMenu = ({
                       { color: currentTheme.textColor },
                     ]}
                   >
-                    {t("screen_preferences_label_theme")}
+                    {t('screen_preferences_label_theme')}
                   </Text>
                 </View>
                 <View
@@ -225,19 +225,19 @@ const SideMenu = ({
                 >
                   <ThemeButton
                     themeKey="light"
-                    label={t("screen_preferences_label_theme_light")}
+                    label={t('screen_preferences_label_theme_light')}
                     isActive={localTheme === 'light'}
                     onPress={() => handleThemeChange('light')}
                   />
                   <ThemeButton
                     themeKey="dark"
-                    label={t("screen_preferences_label_theme_dark")}
+                    label={t('screen_preferences_label_theme_dark')}
                     isActive={localTheme === 'dark'}
                     onPress={() => handleThemeChange('dark')}
                   />
                   <ThemeButton
                     themeKey="black"
-                    label={t("screen_preferences_label_theme_black")}
+                    label={t('screen_preferences_label_theme_black')}
                     isActive={localTheme === 'black'}
                     onPress={() => handleThemeChange('black')}
                   />
@@ -262,7 +262,7 @@ const SideMenu = ({
                       { color: currentTheme.textColor },
                     ]}
                   >
-                    {t("screen_preferences_label_view_mode")}
+                    {t('screen_preferences_label_view_mode')}
                   </Text>
                 </View>
                 <View
@@ -273,19 +273,19 @@ const SideMenu = ({
                 >
                   <ViewModeButton
                     mode="full"
-                    label={t("screen_preferences_label_view_mode_full")}
+                    label={t('screen_preferences_label_view_mode_full')}
                     isActive={localViewMode === 'full'}
                     onPress={() => handleViewModeChange('full')}
                   />
                   <ViewModeButton
                     mode="med"
-                    label={t("screen_preferences_label_view_mode_med")}
+                    label={t('screen_preferences_label_view_mode_med')}
                     isActive={localViewMode === 'med'}
                     onPress={() => handleViewModeChange('med')}
                   />
                   <ViewModeButton
                     mode="small"
-                    label={t("screen_preferences_label_view_mode_small")}
+                    label={t('screen_preferences_label_view_mode_small')}
                     isActive={localViewMode === 'small'}
                     onPress={() => handleViewModeChange('small')}
                   />
@@ -314,7 +314,7 @@ const SideMenu = ({
                         { color: currentTheme.textColor },
                       ]}
                     >
-                      {t("component_side_menu_incognito_switch")}
+                      {t('component_side_menu_incognito_switch')}
                     </Text>
                   </View>
                   <Switch
@@ -341,7 +341,7 @@ const SideMenu = ({
                     { color: currentTheme.textColor },
                   ]}
                 >
-                  {t("component_side_menu_support")}
+                  {t('component_side_menu_support')}
                 </Text>
                 <View style={styles.supportContainer}>
                   <TouchableOpacity
@@ -372,7 +372,7 @@ const SideMenu = ({
                   { color: currentTheme.secondaryTextColor },
                 ]}
               >
-                {t("screen_about_version", { co3Version: co3Version })}
+                {t('screen_about_version', { co3Version: co3Version })}
               </Text>
             </View>
           </View>

@@ -1,7 +1,13 @@
 import SQLite from 'react-native-sqlite-storage';
 import RNFS from 'react-native-fs';
 import { Platform } from 'react-native';
-import { from1to2, from2to3, from3to4, from4to5, from5to6 } from './dbMigration';
+import {
+  from1to2,
+  from2to3,
+  from3to4,
+  from4to5,
+  from5to6,
+} from './dbMigration';
 
 SQLite.enablePromise(true);
 

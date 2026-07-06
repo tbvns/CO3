@@ -1,17 +1,18 @@
 import {
-  StyleSheet,
-  View,
-  Text,
-  SafeAreaView,
-  TouchableOpacity,
   ActivityIndicator,
+  SafeAreaView,
   ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useEffect, useState } from 'react';
 import * as Stats from '../../storage/Stats';
 import UserInfoScreen from '../UserInfo';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 
 function StatCard({ icon, label, value, currentTheme, accent }) {
   const isLoading = value === undefined || value === null;
@@ -26,10 +27,18 @@ function StatCard({ icon, label, value, currentTheme, accent }) {
         },
       ]}
     >
-      <View style={[styles.iconBadge, styles.iconBadgeMargin, { backgroundColor: accent + '22' }]}>
+      <View
+        style={[
+          styles.iconBadge,
+          styles.iconBadgeMargin,
+          { backgroundColor: accent + '22' },
+        ]}
+      >
         <Icon name={icon} size={22} color={accent} />
       </View>
-      <Text style={[styles.statLabel, { color: currentTheme.secondaryTextColor }]}>
+      <Text
+        style={[styles.statLabel, { color: currentTheme.secondaryTextColor }]}
+      >
         {label}
       </Text>
       {isLoading ? (
@@ -45,6 +54,8 @@ function StatCard({ icon, label, value, currentTheme, accent }) {
 
 function AuthorList({ authors, currentTheme, accent, setScreens, workDAO, libraryDAO, historyDAO, settingsDAO, progressDAO, kudoHistoryDAO, chapterDAO, }) {
   const isLoading = authors === undefined || authors === null;
+
+  const navigation = useNavigation();
 
   const { t } = useTranslation();
 
@@ -90,23 +101,19 @@ function AuthorList({ authors, currentTheme, accent, setScreens, workDAO, librar
             ]}
             activeOpacity={0.6}
             onPress={() => {
-              setScreens( prev =>
-                [...prev,
-                  <UserInfoScreen
-                    currentTheme={currentTheme}
-                    username={item.author}
-                    onBack={onBack}
-                    setScreens={setScreens}
-                    workDAO={workDAO}
-                    libraryDAO={libraryDAO}
-                    historyDAO={historyDAO}
-                    settingsDAO={settingsDAO}
-                    progressDAO={progressDAO}
-                    kudoHistoryDAO={kudoHistoryDAO}
-                    chapterDAO={chapterDAO}
-                  />
-                ]
-              )
+              navigation.push("User", {
+                currentTheme: currentTheme,
+                username: item.author,
+                onBack: onBack,
+                setScreens: setScreens,
+                workDAO: workDAO,
+                libraryDAO: libraryDAO,
+                historyDAO: historyDAO,
+                settingsDAO: settingsDAO,
+                progressDAO: progressDAO,
+                kudoHistoryDAO: kudoHistoryDAO,
+                chapterDAO: chapterDAO,
+              })
             }}
           >
             <Text style={[styles.rankText, { color: currentTheme.secondaryTextColor }]}>
@@ -120,7 +127,7 @@ function AuthorList({ authors, currentTheme, accent, setScreens, workDAO, librar
             </Text>
             <View style={[styles.countBadge, { backgroundColor: accent + '22' }]}>
               <Text style={[styles.countText, { color: accent }]}>
-                {item.author_count === 1 ? t("screen_stats_work_count", { count: author_count }) : t("screen_stats_work_count_plural", { count: author_count })}
+                {(item.author_count && item.author_count === 1) ? t("screen_stats_work_count", { count: item.author_count }) : t("screen_stats_work_count_plural", { count: item.author_count })}
               </Text>
             </View>
           </TouchableOpacity>
@@ -203,7 +210,10 @@ function TagList({ tags, currentTheme, accent, openTagSearch }) {
   );
 }
 
-export default function StatsScreen({ currentTheme, setScreens, databaseObj, openTagSearch, workDAO, libraryDAO, historyDAO, settingsDAO, progressDAO, kudoHistoryDAO, chapterDAO }) {
+export default function StatsScreen({ route }) {
+
+  const { currentTheme, setScreens, databaseObj, openTagSearch, workDAO, libraryDAO, historyDAO, settingsDAO, progressDAO, kudoHistoryDAO, chapterDAO } = route.params;
+
   function onBack() {
     setScreens(prev => {
       const newScreens = [...prev];

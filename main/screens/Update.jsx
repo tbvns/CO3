@@ -14,6 +14,7 @@ import ChapterInfoScreen from './workScreen';
 import { run } from '../web/updater';
 import Toast from 'react-native-toast-message';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 
 const UpdateScreen = ({
   currentTheme,
@@ -35,6 +36,8 @@ const UpdateScreen = ({
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(null);
 
+  const navigation = useNavigation();
+
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -42,19 +45,21 @@ const UpdateScreen = ({
   }, [updateDAO]);
 
   useEffect(() => {
-    const subscription = DeviceEventEmitter.addListener('doubleTap', (id) => {
-      console.log("Should open the download manager screen but not implemented rn");
+    const subscription = DeviceEventEmitter.addListener('doubleTap', id => {
+      console.log(
+        'Should open the download manager screen but not implemented rn',
+      );
       Toast.show({
         type: 'error',
-        text1: "Not implemented yet !",
-        text2: "Future download manager screen will be here.",
+        text1: 'Not implemented yet !',
+        text2: 'Future download manager screen will be here.',
       });
-    })
+    });
 
     return () => {
-      subscription.remove()
-    }
-  }, [])
+      subscription.remove();
+    };
+  }, []);
 
   const loadUpdates = async () => {
     try {
@@ -97,7 +102,9 @@ const UpdateScreen = ({
 
     if (diffMins < 1) return t('screen_update_time_now');
     if (diffMins < 60)
-      return diffMins > 1 ? t("screen_update_time_minute_plural", { count: diffMins }) : t("screen_update_time_minute", { count: diffMins });
+      return diffMins > 1
+        ? t('screen_update_time_minute_plural', { count: diffMins })
+        : t('screen_update_time_minute', { count: diffMins });
     if (diffHours < 24)
       return diffMins > 1
         ? t('screen_update_time_hour_plural', { count: diffHours })
@@ -159,24 +166,21 @@ const UpdateScreen = ({
       }
     }
 
-    setScreens(prev => [
-      ...prev,
-      <ChapterInfoScreen
-        key={`update_${update.id}`}
-        workId={update.workId}
-        currentTheme={currentTheme}
-        libraryDAO={libraryDAO}
-        workDAO={workDAO}
-        setScreens={setScreens}
-        settingsDAO={settingsDAO}
-        historyDAO={historyDAO}
-        progressDAO={progressDAO}
-        kudoHistoryDAO={kudoHistoryDAO}
-        openTagSearch={openTagSearch}
-        loadChapter={loadChapterIndex}
-        chapterDAO={chapterDAO}
-      />,
-    ]);
+    navigation.push("Work", {
+      key: `update_$update.id}`,
+      workId: update.workId,
+      currentTheme: currentTheme,
+      libraryDAO: libraryDAO,
+      workDAO: workDAO,
+      setScreens: setScreens,
+      settingsDAO: settingsDAO,
+      historyDAO: historyDAO,
+      progressDAO: progressDAO,
+      kudoHistoryDAO: kudoHistoryDAO,
+      openTagSearch: openTagSearch,
+      loadChapter: loadChapterIndex,
+      chapterDAO: chapterDAO,
+    })
   };
 
   if (loading) {

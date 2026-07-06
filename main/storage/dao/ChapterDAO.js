@@ -1,5 +1,4 @@
 import { Chapter } from '../models/chapter';
-import { downloadChapter } from '../../downloads/Downloader';
 import { addToDownloadQueue } from '../../downloads/DownloadQueue';
 import { getJsonSettings } from '../jsonSettings';
 
@@ -59,17 +58,20 @@ export class ChapterDAO {
       if (existing) {
         transactionOps.push([
           'UPDATE chapters SET number = ?, name = ?, date = ? WHERE id = ?',
-          [newChap.number, newChap.name, validDate, newChap.id]
+          [newChap.number, newChap.name, validDate, newChap.id],
         ]);
       } else {
         transactionOps.push([
           'INSERT INTO chapters (id, workId, number, name, date) VALUES (?, ?, ?, ?, ?)',
-          [newChap.id, workId, newChap.number, newChap.name, validDate]
+          [newChap.id, workId, newChap.number, newChap.name, validDate],
         ]);
 
-        const jsonSetting = await getJsonSettings()
+        const jsonSetting = await getJsonSettings();
         if (jsonSetting.downloadOnUpdate && downloadOnUpdate) {
-          await addToDownloadQueue({ workId: newChap.workId, chapterId: newChap.id });
+          await addToDownloadQueue({
+            workId: newChap.workId,
+            chapterId: newChap.id,
+          });
         }
       }
     }
@@ -78,13 +80,13 @@ export class ChapterDAO {
       if (!newIds.has(oldChap.id)) {
         transactionOps.push([
           'DELETE FROM chapters WHERE id = ?',
-          [oldChap.id]
+          [oldChap.id],
         ]);
       }
     }
 
     if (transactionOps.length > 0) {
-      await this.db.transaction((tx) => {
+      await this.db.transaction(tx => {
         transactionOps.forEach(([query, params]) => {
           tx.executeSql(query, params);
         });

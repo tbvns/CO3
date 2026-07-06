@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
+  Linking,
+  Modal,
   Platform,
   StatusBar,
   StyleSheet,
   Text,
-  Modal,
   TouchableOpacity,
   View,
-  Linking,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { WebView } from 'react-native-webview';

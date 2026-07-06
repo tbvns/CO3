@@ -7,111 +7,198 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Modal,
 } from 'react-native';
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from 'react';
 import { fetchComments } from '../../web/worksScreen/fetchComments';
 import HtmlTextRenderer from '../common/HtmlTextRenderer';
 import { getJsonSettings } from '../../storage/jsonSettings';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import UserInfoScreen from '../../screens/UserInfo';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 
 export const CommentsScreen = ({
-  setCommentsVisible, currentTheme, singleChapter, workOrChapterId, setScreens,
-  workDAO, libraryDAO, historyDAO, settingsDAO, progressDAO, kudoHistoryDAO, chapterDAO,
+  setCommentsVisible,
+  currentTheme,
+  singleChapter,
+  workOrChapterId,
+  setScreens,
+  workDAO,
+  libraryDAO,
+  historyDAO,
+  settingsDAO,
+  progressDAO,
+  kudoHistoryDAO,
+  chapterDAO,
 }) => {
+  const navigation = useNavigation();
+
   const [loading, setLoading] = useState(true);
   const [cannotNext, setCannotNext] = useState(true);
-  const [step, setStep] = useState("Initializing");
+  const [step, setStep] = useState('Initializing');
   const [comments, setComments] = useState([]);
   const [preferHTML, setPreferHTML] = useState(false);
   const [minusList, setMinusList] = useState([]);
   const [page, setPage] = useState(1);
 
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
   useEffect(() => {
     asyncFetchComments();
-  }, [singleChapter, workOrChapterId, page])
+  }, [singleChapter, workOrChapterId, page]);
 
   const asyncFetchComments = async () => {
     let preferHtml = (await getJsonSettings()).preferHtml;
     setPreferHTML(preferHtml);
-    const _comments = await fetchComments(setCannotNext, setStep, preferHtml, singleChapter, workOrChapterId, page);
+    const _comments = await fetchComments(
+      setCannotNext,
+      setStep,
+      preferHtml,
+      singleChapter,
+      workOrChapterId,
+      page,
+    );
     setComments(p => [...p, ..._comments]);
     setLoading(false);
-  }
+  };
 
-  const renderAuthorPic = (authorImg) => {
-    let url = "https://archiveofourown.org/images/skins/iconsets/default/icon_user.png";
-    if (authorImg?.startsWith("https://archiveofourown.org/")) url = authorImg;
+  const renderAuthorPic = authorImg => {
+    let url =
+      'https://archiveofourown.org/images/skins/iconsets/default/icon_user.png';
+    if (authorImg?.startsWith('https://archiveofourown.org/')) url = authorImg;
 
-    return (<Image style={styles.commentPic} src={url} />)
-  }
+    return <Image style={styles.commentPic} src={url} />;
+  };
 
-  const handlePress = (comment) => {
+  const handlePress = comment => {
     if (comment.isBanner || comment.isDeleted) return;
     const commentId = comment.id;
-    if (minusList.includes(commentId)) setMinusList(p => p.filter(cId => cId !== commentId));
+    if (minusList.includes(commentId))
+      setMinusList(p => p.filter(cId => cId !== commentId));
     else setMinusList(p => [...p, commentId]);
-  }
+  };
 
   const renderItem = ({ item }) => {
     return renderComment(item);
-  }
+  };
 
   const renderComment = (comment, depth = 0) => (
-    <TouchableOpacity key={comment.id} activeOpacity={0.4} onPress={() => handlePress(comment)} style={[styles.commentContainer, minusList.includes(comment.id) && { maxHeight: 59 }, { borderColor: currentTheme.borderColor }, depth > 0 && { marginLeft: 10 }]}>
+    <TouchableOpacity
+      key={comment.id}
+      activeOpacity={0.4}
+      onPress={() => handlePress(comment)}
+      style={[
+        styles.commentContainer,
+        minusList.includes(comment.id) && { maxHeight: 59 },
+        { borderColor: currentTheme.borderColor },
+        depth > 0 && { marginLeft: 10 },
+      ]}
+    >
       {comment.isBanner ? (
-        <View style={[styles.specialCommentContainer, { backgroundColor: currentTheme.cardBackground }]}>
-          <HtmlTextRenderer extraTagsStyles={{ a: { fontSize: 14 }, p: { color: currentTheme.primaryColor, marginBottom: 0 } }} html={comment.html} currentTheme={currentTheme} />
+        <View
+          style={[
+            styles.specialCommentContainer,
+            { backgroundColor: currentTheme.cardBackground },
+          ]}
+        >
+          <HtmlTextRenderer
+            extraTagsStyles={{
+              a: { fontSize: 14 },
+              p: { color: currentTheme.primaryColor, marginBottom: 0 },
+            }}
+            html={comment.html}
+            currentTheme={currentTheme}
+          />
         </View>
       ) : comment.isDeleted ? (
-        <View style={[styles.specialCommentContainer, { backgroundColor: currentTheme.cardBackground }]}>
-          <Text style={[styles.deletedCommentText, { color: currentTheme.textColor }]}>
-            {t("component_comments_deleted")}
+        <View
+          style={[
+            styles.specialCommentContainer,
+            { backgroundColor: currentTheme.cardBackground },
+          ]}
+        >
+          <Text
+            style={[
+              styles.deletedCommentText,
+              { color: currentTheme.textColor },
+            ]}
+          >
+            {t('component_comments_deleted')}
           </Text>
-        </View>) : (
-        <View style={[styles.innerCommentContainer, { backgroundColor: currentTheme.cardBackground }]}>
+        </View>
+      ) : (
+        <View
+          style={[
+            styles.innerCommentContainer,
+            { backgroundColor: currentTheme.cardBackground },
+          ]}
+        >
           {renderAuthorPic(comment.authorImg)}
           <View style={styles.commentTextContainer}>
             {comment.authorIsDeleted ? (
-              <Text style={[styles.commentAuthor, { color: currentTheme.warningTextColor }]}>
-                {t("component_comments_author_deleted")}
+              <Text
+                style={[
+                  styles.commentAuthor,
+                  { color: currentTheme.warningTextColor },
+                ]}
+              >
+                {t('component_comments_author_deleted')}
               </Text>
             ) : (
-              <TouchableOpacity activeOpacity={0} onPress={() => {
-                comment.username ? setScreens(p => {
-                  return [...p,
-                  <UserInfoScreen
-                    username={comment.username}
-                    currentTheme={currentTheme}
-                    setScreens={setScreens}
-                    onBack={() => setScreens(prev => prev.slice(0, -1))}
-                    settingsDAO={settingsDAO}
-                    historyDAO={historyDAO}
-                    progressDAO={progressDAO}
-                    kudoHistoryDAO={kudoHistoryDAO}
-                    libraryDAO={libraryDAO}
-                    workDAO={workDAO}
-                    chapterDAO={chapterDAO}
-                  />
-                  ]
-                }) : null;
-              }}>
-                <Text style={[styles.commentAuthor, { color: currentTheme.textColor }, comment.username ? { borderBottomWidth: 1, borderBottomColor: currentTheme.textColor } : {}]}>
-                  {comment.author} {comment.authorIsGuest ? t("component_comments_author_guest") : null /* The "??" operator is sometimes broken */}
+              <TouchableOpacity
+                activeOpacity={0}
+                onPress={() => {
+                  comment.username
+                    ? (
+                      navigation.push("User", {
+                        username: comment.username,
+                        currentTheme: currentTheme,
+                        setScreens: setScreens,
+                        onBack: () => setScreens(prev => prev.slice(0, -1)),
+                        settingsDAO: settingsDAO,
+                        historyDAO: historyDAO,
+                        progressDAO: progressDAO,
+                        kudoHistoryDAO: kudoHistoryDAO,
+                        libraryDAO: libraryDAO,
+                        workDAO: workDAO,
+                        chapterDAO: chapterDAO,
+                      }))
+                    : null;
+                }}
+              >
+                <Text
+                  style={[
+                    styles.commentAuthor,
+                    { color: currentTheme.textColor },
+                    comment.username
+                      ? {
+                          borderBottomWidth: 1,
+                          borderBottomColor: currentTheme.textColor,
+                        }
+                      : {},
+                  ]}
+                >
+                  {comment.author}{' '}
+                  {
+                    comment.authorIsGuest
+                      ? t('component_comments_author_guest')
+                      : null /* The "??" operator is sometimes broken */
+                  }
                 </Text>
               </TouchableOpacity>
             )}
             {minusList.includes(comment.id) ? (
-              <Text style={[styles.commentAuthor, { color: currentTheme.secondaryTextColor }]}>
-                {t("component_comments_reduced")}
+              <Text
+                style={[
+                  styles.commentAuthor,
+                  { color: currentTheme.secondaryTextColor },
+                ]}
+              >
+                {t('component_comments_reduced')}
               </Text>
             ) : preferHTML ? (
-              <HtmlTextRenderer extraTagsStyles={
-                {
+              <HtmlTextRenderer
+                extraTagsStyles={{
                   p: {
                     fontSize: 14,
                     paddingBottom: 12,
@@ -123,24 +210,38 @@ export const CommentsScreen = ({
                   a: {
                     fontSize: 14,
                     paddingBottom: 12,
-                  }
-                }
-              } html={comment.html} currentTheme={currentTheme} />)
-              : (
-                <Text style={[styles.commentContent, { color: currentTheme.textColor }]}>
-                  {comment.content}
-                </Text>)}
+                  },
+                }}
+                html={comment.html}
+                currentTheme={currentTheme}
+              />
+            ) : (
+              <Text
+                style={[
+                  styles.commentContent,
+                  { color: currentTheme.textColor },
+                ]}
+              >
+                {comment.content}
+              </Text>
+            )}
           </View>
-        </View>)}
+        </View>
+      )}
       <View>
-        {comment.children.map((child) => renderComment(child, depth + 1))}
+        {comment.children.map(child => renderComment(child, depth + 1))}
       </View>
     </TouchableOpacity>
   );
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: currentTheme.backgroundColor },
+        ]}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={currentTheme.primaryColor} />
           <Text style={[styles.loadingText, { color: currentTheme.textColor }]}>
@@ -153,10 +254,15 @@ export const CommentsScreen = ({
 
   if (!comments || comments.length < 1) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: currentTheme.backgroundColor },
+        ]}
+      >
         <View style={styles.loadingContainer}>
           <Text style={[styles.loadingText, { color: currentTheme.textColor }]}>
-            {t("component_comments_none")}
+            {t('component_comments_none')}
           </Text>
         </View>
       </SafeAreaView>
@@ -164,13 +270,18 @@ export const CommentsScreen = ({
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.backgroundColor }]}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: currentTheme.backgroundColor },
+      ]}
+    >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => setCommentsVisible(false)}>
           <Icon name="arrow-back" size={24} color={currentTheme.textColor} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: currentTheme.textColor }]}>
-          {t("component_comments_title")}
+          {t('component_comments_title')}
         </Text>
       </View>
       <FlatList
@@ -179,17 +290,21 @@ export const CommentsScreen = ({
         data={comments}
         renderItem={renderItem}
         contentContainerStyle={styles.commentsContainer}
-        ListFooterComponent={cannotNext && (
-          <View style={styles.loadingContainer}>
-            <Text style={[styles.loadingText, { color: currentTheme.textColor }]}>
-              {t("component_comments_end")}
-            </Text>
-          </View>
-        )}
+        ListFooterComponent={
+          cannotNext && (
+            <View style={styles.loadingContainer}>
+              <Text
+                style={[styles.loadingText, { color: currentTheme.textColor }]}
+              >
+                {t('component_comments_end')}
+              </Text>
+            </View>
+          )
+        }
       />
     </SafeAreaView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {

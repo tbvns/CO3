@@ -1,5 +1,4 @@
 import { getUsername } from '../../storage/Credentials';
-import ky from 'ky';
 import { parseWorkElements } from '../browse/fetchWorks';
 import getUrl from '../requestManager';
 

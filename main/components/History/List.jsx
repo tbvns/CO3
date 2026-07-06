@@ -15,7 +15,7 @@ const HistoryList = ({
   historyDAO,
   progressDAO,
   kudoHistoryDAO,
-  chapterDAO
+  chapterDAO,
 }) => {
   const { t } = useTranslation();
 
@@ -78,7 +78,7 @@ const HistoryList = ({
               { color: currentTheme.placeholderColor },
             ]}
           >
-            {t("component_list_loading_more")}
+            {t('component_list_loading_more')}
           </Text>
         </View>
       )}
@@ -92,7 +92,7 @@ const HistoryList = ({
               { color: currentTheme.placeholderColor },
             ]}
           >
-            {t("component_list_end")}
+            {t('component_list_end')}
           </Text>
         </View>
       )}

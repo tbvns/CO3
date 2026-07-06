@@ -105,14 +105,18 @@ const QuickActionsModal = ({
         setInLibrary(false);
         Toast.show({
           type: 'success',
-          text1: t("component_quick_actions_toast_library_remove_success_title"),
-          text2: t("component_quick_actions_toast_library_remove_success_sub"),
+          text1: t(
+            'component_quick_actions_toast_library_remove_success_title',
+          ),
+          text2: t('component_quick_actions_toast_library_remove_success_sub'),
         });
       } catch (error) {
         Toast.show({
           type: 'error',
-          text1: t("component_quick_actions_toast_library_remove_failed_title"),
-          text2: error.message || t("component_quick_actions_toast_library_remove_failed_sub"),
+          text1: t('component_quick_actions_toast_library_remove_failed_title'),
+          text2:
+            error.message ||
+            t('component_quick_actions_toast_library_remove_failed_sub'),
         });
       }
     } else if (categories.length === 1) {
@@ -122,14 +126,16 @@ const QuickActionsModal = ({
         setInLibrary(true);
         Toast.show({
           type: 'success',
-          text1: t("component_quick_actions_toast_library_add_success_title"),
-          text2: t("component_quick_actions_toast_library_add_success_sub"),
+          text1: t('component_quick_actions_toast_library_add_success_title'),
+          text2: t('component_quick_actions_toast_library_add_success_sub'),
         });
       } catch (error) {
         Toast.show({
           type: 'error',
-          text1: t("component_quick_actions_toast_library_add_failed_title"),
-          text2: error.message || t("component_quick_actions_toast_library_add_failed_sub"),
+          text1: t('component_quick_actions_toast_library_add_failed_title'),
+          text2:
+            error.message ||
+            t('component_quick_actions_toast_library_add_failed_sub'),
         });
       }
     } else {
@@ -144,15 +150,17 @@ const QuickActionsModal = ({
       .then(() => {
         Toast.show({
           type: 'success',
-          text1: t("component_quick_actions_toast_mark_later_success_title"),
-          text2: t("component_quick_actions_toast_mark_later_success_sub"),
+          text1: t('component_quick_actions_toast_mark_later_success_title'),
+          text2: t('component_quick_actions_toast_mark_later_success_sub'),
         });
       })
       .catch(error => {
         Toast.show({
           type: 'error',
-          text1: t("component_quick_actions_toast_mark_later_failed_title"),
-          text2: error.message || t("component_quick_actions_toast_mark_later_failed_sub"),
+          text1: t('component_quick_actions_toast_mark_later_failed_title'),
+          text2:
+            error.message ||
+            t('component_quick_actions_toast_mark_later_failed_sub'),
         });
       });
   };
@@ -165,13 +173,15 @@ const QuickActionsModal = ({
       setInLibrary(true);
       Toast.show({
         type: 'success',
-        text1: t("component_quick_actions_toast_library_add_success_title"),
+        text1: t('component_quick_actions_toast_library_add_success_title'),
       });
     } catch (error) {
       Toast.show({
         type: 'error',
-        text1: t("component_quick_actions_toast_library_add_failed_title"),
-        text2: error.message || t("component_quick_actions_toast_library_add_failed_sub"),
+        text1: t('component_quick_actions_toast_library_add_failed_title'),
+        text2:
+          error.message ||
+          t('component_quick_actions_toast_library_add_failed_sub'),
       });
     }
   };
@@ -183,15 +193,17 @@ const QuickActionsModal = ({
       .then(() => {
         Toast.show({
           type: 'success',
-          text1: t("component_quick_actions_toast_bookmark_success_title"),
-          text2: t("component_quick_actions_toast_bookmark_success_sub"),
+          text1: t('component_quick_actions_toast_bookmark_success_title'),
+          text2: t('component_quick_actions_toast_bookmark_success_sub'),
         });
       })
       .catch(error => {
         Toast.show({
           type: 'error',
-          text1: t("component_quick_actions_toast_bookmark_failed_title"),
-          text2: error.message || t("component_quick_actions_toast_bookmark_failed_sub"),
+          text1: t('component_quick_actions_toast_bookmark_failed_title'),
+          text2:
+            error.message ||
+            t('component_quick_actions_toast_bookmark_failed_sub'),
         });
       });
   };
@@ -253,7 +265,9 @@ const QuickActionsModal = ({
                     color="white"
                   />
                   <Text style={styles.actionButtonText}>
-                    {inLibrary ? t("component_quick_actions_button_library_remove") : t("component_quick_actions_button_library_add")}
+                    {inLibrary
+                      ? t('component_quick_actions_button_library_remove')
+                      : t('component_quick_actions_button_library_add')}
                   </Text>
                 </TouchableOpacity>
 
@@ -268,7 +282,9 @@ const QuickActionsModal = ({
                   activeOpacity={0.7}
                 >
                   <Icon name="schedule" size={24} color="white" />
-                  <Text style={styles.actionButtonText}>{t("component_quick_actions_button_mark_later")}</Text>
+                  <Text style={styles.actionButtonText}>
+                    {t('component_quick_actions_button_mark_later')}
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -282,7 +298,9 @@ const QuickActionsModal = ({
                   activeOpacity={0.7}
                 >
                   <Icon name="bookmark" size={24} color="white" />
-                  <Text style={styles.actionButtonText}>{t("component_quick_actions_button_bookmark")}</Text>
+                  <Text style={styles.actionButtonText}>
+                    {t('component_quick_actions_button_bookmark')}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -296,7 +314,7 @@ const QuickActionsModal = ({
         onSelect={handleCategorySelect}
         onCancel={() => setShowCategoryModal(false)}
         theme={theme}
-        title={t("component_quick_actions_add_collection")}
+        title={t('component_quick_actions_add_collection')}
       />
     </Modal>
   );

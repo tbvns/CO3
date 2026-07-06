@@ -1,6 +1,4 @@
-import {
-  fetchChapter,
-} from '../web/worksScreen/fetchChapter';
+import { fetchChapter } from '../web/worksScreen/fetchChapter';
 import RNFS from 'react-native-fs';
 import { DeviceEventEmitter } from 'react-native';
 

@@ -1,6 +1,4 @@
 import {
-  Image,
-  Linking,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -13,7 +11,15 @@ import Toast from 'react-native-toast-message';
 import { exportDb } from '../../storage/DatabaseManager';
 import { useTranslation } from 'react-i18next';
 
-export default function StorageScreen({ setScreens, currentTheme, databaseObj }) {
+export default function StorageScreen({
+  route
+}) {
+  const {
+    setScreens,
+    currentTheme,
+    databaseObj,
+  } = route.params;
+
   function onBack() {
     setScreens(prev => {
       const newScreens = [...prev];
@@ -25,13 +31,13 @@ export default function StorageScreen({ setScreens, currentTheme, databaseObj })
   const { t } = useTranslation();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[{backgroundColor: currentTheme.backgroundColor}, styles.container]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack}>
           <Icon name="arrow-back" size={24} color={currentTheme.textColor} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: currentTheme.textColor }]}>
-          {t("screen_storage_title")}
+          {t('screen_storage_title')}
         </Text>
       </View>
       <ScrollView style={styles.content}>
@@ -40,25 +46,39 @@ export default function StorageScreen({ setScreens, currentTheme, databaseObj })
           <Text
             style={[styles.sectionTitle, { color: currentTheme.textColor }]}
           >
-            {t("screen_storage_section_database")}
+            {t('screen_storage_section_database')}
           </Text>
         </View>
-        <TouchableOpacity onPress={() => {
-          exportDb(databaseObj).then(() => {
-            Toast.show({
-              type: 'success',
-              text1: t("screen_storage_export_database_success"),
-              text2: t("screen_storage_export_database_success_sub"),
-            });
-          }).catch((err) => {
-            Toast.show({
-              type: 'error',
-              text1: t("screen_storage_export_database_error_generic"),
-              text2: err.message,
-            });
-          })
-        }}>
-          <Text style={[styles.button, { color: currentTheme.textColor, backgroundColor: currentTheme.primaryColor }]} >{t("screen_storage_button_export_database")}</Text>
+        <TouchableOpacity
+          onPress={() => {
+            exportDb(databaseObj)
+              .then(() => {
+                Toast.show({
+                  type: 'success',
+                  text1: t('screen_storage_export_database_success'),
+                  text2: t('screen_storage_export_database_success_sub'),
+                });
+              })
+              .catch(err => {
+                Toast.show({
+                  type: 'error',
+                  text1: t('screen_storage_export_database_error_generic'),
+                  text2: err.message,
+                });
+              });
+          }}
+        >
+          <Text
+            style={[
+              styles.button,
+              {
+                color: currentTheme.textColor,
+                backgroundColor: currentTheme.primaryColor,
+              },
+            ]}
+          >
+            {t('screen_storage_button_export_database')}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

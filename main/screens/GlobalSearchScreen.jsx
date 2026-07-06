@@ -1,5 +1,11 @@
-import { ScrollView, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
-import { useState, useEffect } from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useEffect, useState } from 'react';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import autoComplete from '../web/browse/autoComplete';
 import { fetchFilteredWorks } from '../web/browse/fetchWorks';
@@ -9,17 +15,18 @@ import WorkScreen from './workScreen';
 import { searchJsonPreset } from '../storage/jsonSearches';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 
 const SECTION_META = {
-  'categories': { icon: 'bookmark-box-multiple-outline' },
-  'presets': { icon: 'layers-search' },
-  'library': { icon: 'bookmark-outline' },
-  'works': { icon: 'book-outline' },
-  'all_tags': { icon: 'tag-outline' },
-  'fandoms': { icon: 'television-play' },
-  'relationships': { icon: 'heart-outline' },
-  'characters': { icon: 'account-outline' },
-  'freeform': { icon: 'text-box-outline' },
+  categories: { icon: 'bookmark-box-multiple-outline' },
+  presets: { icon: 'layers-search' },
+  library: { icon: 'bookmark-outline' },
+  works: { icon: 'book-outline' },
+  all_tags: { icon: 'tag-outline' },
+  fandoms: { icon: 'television-play' },
+  relationships: { icon: 'heart-outline' },
+  characters: { icon: 'account-outline' },
+  freeform: { icon: 'text-box-outline' },
 };
 
 function SearchItem({ value, onPress, currentTheme }) {
@@ -148,7 +155,7 @@ function SectionHeader({ sectionKey, title, count, currentTheme }) {
 function WorksList({ sectionKey, title, values, currentTheme, libraryDAO, workDAO, setScreens, settingsDAO, historyDAO, progressDAO, kudoHistoryDAO, chapterDAO}) {
   if (!values || values?.length === 0) return null;
 
-  console.log(values);
+  const navigation = useNavigation();
 
   return (
     <View style={styles.section}>
@@ -160,20 +167,18 @@ function WorksList({ sectionKey, title, values, currentTheme, libraryDAO, workDA
               work={v}
               theme={currentTheme}
               onPress={() => {
-                setScreens(prev => [...prev,
-                  <WorkScreen
-                    workId={v.id}
-                    currentTheme={currentTheme}
-                    settingsDAO={settingsDAO}
-                    workDAO={workDAO}
-                    libraryDAO={libraryDAO}
-                    setScreens={setScreens}
-                    historyDAO={historyDAO}
-                    progressDAO={progressDAO}
-                    kudoHistoryDAO={kudoHistoryDAO}
-                    chapterDAO={chapterDAO}
-                  />
-                ])
+                navigation.push("Work", {
+                  workId: v.id,
+                  currentTheme: currentTheme,
+                  settingsDAO: settingsDAO,
+                  workDAO: workDAO,
+                  libraryDAO: libraryDAO,
+                  setScreens: setScreens,
+                  historyDAO: historyDAO,
+                  progressDAO: progressDAO,
+                  kudoHistoryDAO: kudoHistoryDAO,
+                  chapterDAO: chapterDAO,
+                })
               }}
             />
             {i < Math.min(values.length, 5) - 1 && (

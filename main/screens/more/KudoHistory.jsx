@@ -18,16 +18,20 @@ import KudoHistoryList from '../../components/History/KudoList';
 import { useTranslation } from 'react-i18next';
 
 const KudoHistoryScreen = ({
-  currentTheme,
-  workDAO,
-  libraryDAO,
-  setScreens,
-  historyDAO,
-  settingsDAO,
-  progressDAO,
-  kudoHistoryDAO,
-  chapterDAO
+  route
 }) => {
+  const {
+    currentTheme,
+    workDAO,
+    libraryDAO,
+    setScreens,
+    historyDAO,
+    settingsDAO,
+    progressDAO,
+    kudoHistoryDAO,
+    chapterDAO,
+  } = route.params;
+
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -75,8 +79,8 @@ const KudoHistoryScreen = ({
           const work = await workDAO.get(item.workId);
           return {
             ...item,
-            book_title: work ? work.title : t("general_unknown_work"),
-            book_author: work ? work.author : t("general_unknown_author"),
+            book_title: work ? work.title : t('general_unknown_work'),
+            book_author: work ? work.author : t('general_unknown_author'),
           };
         } catch (error) {
           console.error(
@@ -85,8 +89,8 @@ const KudoHistoryScreen = ({
           );
           return {
             ...item,
-            book_title: t("general_unknown_work"),
-            book_author: t("general_unknown_author"),
+            book_title: t('general_unknown_work'),
+            book_author: t('general_unknown_author'),
           };
         }
       }),
@@ -183,12 +187,12 @@ const KudoHistoryScreen = ({
 
   const clearHistory = () => {
     Alert.alert(
-      t("screen_kudos_history_clear_title"),
-      t("screen_kudos_history_clear_message"),
+      t('screen_kudos_history_clear_title'),
+      t('screen_kudos_history_clear_message'),
       [
-        { text: t("general_cancel"), style: 'cancel' },
+        { text: t('general_cancel'), style: 'cancel' },
         {
-          text: t("screen_history_clear_button"),
+          text: t('screen_history_clear_button'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -297,7 +301,7 @@ const KudoHistoryScreen = ({
     return (
       <LoadingSpinner
         currentTheme={currentTheme}
-        message={t("screen_kudos_history_loading")}
+        message={t('screen_kudos_history_loading')}
       />
     );
   }
@@ -322,7 +326,7 @@ const KudoHistoryScreen = ({
           <Icon name="arrow-back" size={24} color={currentTheme.textColor} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: currentTheme.textColor }]}>
-          {t("screen_kudos_history_title")}
+          {t('screen_kudos_history_title')}
         </Text>
       </View>
 
@@ -353,8 +357,16 @@ const KudoHistoryScreen = ({
           {history.length === 0 ? (
             <EmptyState
               currentTheme={currentTheme}
-              textLine1={isFilterActive ? t("screen_kudos_history_no_entries_filter") : t("screen_kudos_history_no_entries")}
-              textLine2={isFilterActive ? t("screen_kudos_history_no_entries_filter_sub") : t("screen_kudos_history_no_entries_sub")}
+              textLine1={
+                isFilterActive
+                  ? t('screen_kudos_history_no_entries_filter')
+                  : t('screen_kudos_history_no_entries')
+              }
+              textLine2={
+                isFilterActive
+                  ? t('screen_kudos_history_no_entries_filter_sub')
+                  : t('screen_kudos_history_no_entries_sub')
+              }
             />
           ) : (
             <KudoHistoryList

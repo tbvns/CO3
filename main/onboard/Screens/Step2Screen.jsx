@@ -1,14 +1,17 @@
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
   Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
-import { availableLanguages, changeLanguage } from '../../storage/LanguageManager';
+import {
+  availableLanguages,
+  changeLanguage,
+} from '../../storage/LanguageManager';
 import { getFlagImage } from '../../utils/FlagUtils';
 
 export default function Step2({ currentTheme, setScreen }) {
@@ -21,7 +24,7 @@ export default function Step2({ currentTheme, setScreen }) {
     flag: lang.flag,
   }));
 
-  const selectLanguage = async (lng) => {
+  const selectLanguage = async lng => {
     await changeLanguage(lng);
   };
 
@@ -35,12 +38,17 @@ export default function Step2({ currentTheme, setScreen }) {
         <Text style={[styles.heading, { color: currentTheme.textColor }]}>
           {t('onboard_step2_language_title')}
         </Text>
-        <Text style={[styles.subheading, { color: currentTheme.secondaryTextColor }]}>
+        <Text
+          style={[
+            styles.subheading,
+            { color: currentTheme.secondaryTextColor },
+          ]}
+        >
           {t('onboard_step2_language_sub')}
         </Text>
 
         <View style={styles.grid}>
-          {languages.map((lang) => {
+          {languages.map(lang => {
             const isActive = lang.key === currentLng;
             return (
               <TouchableOpacity
@@ -58,12 +66,26 @@ export default function Step2({ currentTheme, setScreen }) {
                 onPress={() => selectLanguage(lang.key)}
                 activeOpacity={0.85}
               >
-                <Image source={getFlagImage(lang.flag)} style={styles.flag} resizeMode="contain" />
-                <Text style={[styles.languageLabel, { color: currentTheme.textColor }]}>
+                <Image
+                  source={getFlagImage(lang.flag)}
+                  style={styles.flag}
+                  resizeMode="contain"
+                />
+                <Text
+                  style={[
+                    styles.languageLabel,
+                    { color: currentTheme.textColor },
+                  ]}
+                >
                   {lang.label}
                 </Text>
                 {isActive && (
-                  <View style={[styles.activeBadge, { backgroundColor: currentTheme.primaryColor }]}>
+                  <View
+                    style={[
+                      styles.activeBadge,
+                      { backgroundColor: currentTheme.primaryColor },
+                    ]}
+                  >
                     <Icon name="check" size={12} color="#fff" />
                   </View>
                 )}
@@ -73,18 +95,23 @@ export default function Step2({ currentTheme, setScreen }) {
         </View>
       </ScrollView>
 
-      <View style={[styles.navRow, { borderTopColor: currentTheme.borderColor }]}>
+      <View
+        style={[styles.navRow, { borderTopColor: currentTheme.borderColor }]}
+      >
         <TouchableOpacity
           style={[styles.backButton, { borderColor: currentTheme.borderColor }]}
-          onPress={() => setScreen((prev) => Math.max(0, prev - 1))}
+          onPress={() => setScreen(prev => Math.max(0, prev - 1))}
           activeOpacity={0.7}
         >
           <Icon name="arrow-back" size={20} color={currentTheme.textColor} />
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.nextButton, { backgroundColor: currentTheme.primaryColor }]}
-          onPress={() => setScreen((prev) => prev + 1)}
+          style={[
+            styles.nextButton,
+            { backgroundColor: currentTheme.primaryColor },
+          ]}
+          onPress={() => setScreen(prev => prev + 1)}
           activeOpacity={0.85}
         >
           <Text style={styles.nextButtonText}>{t('onboard_step2_button')}</Text>

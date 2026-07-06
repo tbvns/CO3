@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { presets } from '../../babel.config';
 
 const STORAGE_KEY = 'SearchPresets';
 const TEMP_STORAGE_KEY = 'tempPreset';

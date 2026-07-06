@@ -21,25 +21,31 @@ import {
 } from '../../storage/jsonSettings';
 import { themes } from '../../utils/themes';
 import CustomDropdown from '../../components/common/CustomDropdown';
-import { pick, keepLocalCopy } from '@react-native-documents/picker';
-import { readFile } from "react-native-fs"
+import { keepLocalCopy, pick } from '@react-native-documents/picker';
 import { useTranslation } from 'react-i18next';
-import { availableLanguages, changeLanguage } from '../../storage/LanguageManager';
+import {
+  availableLanguages,
+  changeLanguage,
+} from '../../storage/LanguageManager';
 
 const PreferencesScreen = ({
-                             currentTheme,
-                             settingsDAO,
-                             setScreens,
-                             setTheme,
-                             viewMode,
-                             setViewMode,
-                             onRestartOnboarding,
-                           }) => {
+  route
+}) => {
+  const {
+    currentTheme,
+    settingsDAO,
+    setScreens,
+    setTheme,
+    viewMode,
+    setViewMode,
+    onRestartOnboarding,
+  } = route.params;
+
   // DB Settings State
   const [fontSize, setFontSize] = useState(1.0);
   const [useCustomSize, setUseCustomSize] = useState(false);
-  const [font, setFont] = useState("");
-  const [fontFamily, setFontFamily] = useState("");
+  const [font, setFont] = useState('');
+  const [fontFamily, setFontFamily] = useState('');
   const [useCustomFont, setUseCustomFont] = useState(false);
   const [theme, setLocalTheme] = useState(currentTheme.name);
   const [localViewMode, setLocalViewMode] = useState('full');
@@ -71,7 +77,7 @@ const PreferencesScreen = ({
         setFontSize(dbSettings.fontSize || 1.0);
         setUseCustomSize(dbSettings.useCustomSize || false);
         setFont(dbSettings.font || '');
-        setFontFamily(dbSettings.fontFamily || 'Helvetica')
+        setFontFamily(dbSettings.fontFamily || 'Helvetica');
         setUseCustomFont(dbSettings.useCustomFont || false);
         setLocalTheme(dbSettings.theme || 'light');
         setLocalViewMode(dbSettings.viewMode || 'full');
@@ -141,7 +147,10 @@ const PreferencesScreen = ({
     const [picked] = await pick({ type: ['font/ttf', 'font/otf'] });
     if (!picked || !picked.name) return;
 
-    keepLocalCopy({ destination: 'cachesDirectory', files: [{ uri: picked.uri, fileName: picked.name }] }).then(([dest]) => {
+    keepLocalCopy({
+      destination: 'cachesDirectory',
+      files: [{ uri: picked.uri, fileName: picked.name }],
+    }).then(([dest]) => {
       const tempFontFamily = picked.name
         .replace(/\.(?=.*\.)/g, '')
         .split('.')[0]
@@ -222,18 +231,18 @@ const PreferencesScreen = ({
     saveJsonSettingsData({ downloadOnUpdate: newValue });
   };
 
-  const handleLanguageChange = async (lng) => {
+  const handleLanguageChange = async lng => {
     await changeLanguage(lng);
   };
 
   const handleRestartOnboarding = () => {
     Alert.alert(
-      t("screen_preferences_onboarding_title"),
-      t("screen_preferences_onboarding_text"),
+      t('screen_preferences_onboarding_title'),
+      t('screen_preferences_onboarding_text'),
       [
-        { text: t("general_cancel"), style: 'cancel' },
+        { text: t('general_cancel'), style: 'cancel' },
         {
-          text: t("general_restart"),
+          text: t('general_restart'),
           style: 'destructive',
           onPress: async () => {
             await saveJsonSettingsData({ finishedOnboarding: false });
@@ -244,7 +253,7 @@ const PreferencesScreen = ({
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -257,10 +266,18 @@ const PreferencesScreen = ({
     <head>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <style>
-        ${useCustomFont ? `@font-face {font-family: '${fontFamily}'; src: url('${font}')}` : ""}
+        ${
+          useCustomFont
+            ? `@font-face {font-family: '${fontFamily}'; src: url('${font}')}`
+            : ''
+        }
 
         body {
-          font-family: ${useCustomFont ? fontFamily : "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"};
+          font-family: ${
+            useCustomFont
+              ? fontFamily
+              : "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+          };
           line-height: 1.6;
           padding: 20px;
           background-color: ${activeTheme.backgroundColor};
@@ -289,12 +306,12 @@ const PreferencesScreen = ({
       </style>
     </head>
     <body>
-      <h1>${t("screen_preferences_sample_title")}</h1>
-      <p>${t("screen_preferences_sample_text")}</p>
+      <h1>${t('screen_preferences_sample_title')}</h1>
+      <p>${t('screen_preferences_sample_text')}</p>
       <blockquote>
-        <p>${t("screen_preferences_sample_blockquotes")}</p>
+        <p>${t('screen_preferences_sample_blockquotes')}</p>
       </blockquote>
-      <p>${t("screen_preferences_sample_end")}</p>
+      <p>${t('screen_preferences_sample_end')}</p>
     </body>
     </html>
   `;
@@ -696,19 +713,19 @@ const PreferencesScreen = ({
             >
               <ViewModeButton
                 mode="full"
-                label={t("screen_preferences_label_view_mode_full")}
+                label={t('screen_preferences_label_view_mode_full')}
                 isActive={localViewMode === 'full'}
                 onPress={() => handleViewModeChange('full')}
               />
               <ViewModeButton
                 mode="med"
-                label={t("screen_preferences_label_view_mode_med")}
+                label={t('screen_preferences_label_view_mode_med')}
                 isActive={localViewMode === 'med'}
                 onPress={() => handleViewModeChange('med')}
               />
               <ViewModeButton
                 mode="small"
-                label={t("screen_preferences_label_view_mode_small")}
+                label={t('screen_preferences_label_view_mode_small')}
                 isActive={localViewMode === 'small'}
                 onPress={() => handleViewModeChange('small')}
               />
@@ -813,7 +830,7 @@ const PreferencesScreen = ({
             <Text
               style={[{ color: activeTheme.textColor }, styles.settingText]}
             >
-              {t("screen_preferences_label_check_frequency")}
+              {t('screen_preferences_label_check_frequency')}
             </Text>
             <CustomDropdown
               selectedValue={updateTime}
@@ -835,7 +852,7 @@ const PreferencesScreen = ({
             <Text
               style={[{ color: activeTheme.textColor }, styles.settingText]}
             >
-              {t("screen_preferences_label_network_restriction")}
+              {t('screen_preferences_label_network_restriction')}
             </Text>
             <CustomDropdown
               selectedValue={updateRestriction}
@@ -893,7 +910,7 @@ const PreferencesScreen = ({
             <Text
               style={[{ color: activeTheme.textColor }, styles.settingText]}
             >
-              {t("screen_preferences_label_download_while_reading")}
+              {t('screen_preferences_label_download_while_reading')}
             </Text>
             <CustomDropdown
               selectedValue={downloadWhileReading}
@@ -935,12 +952,12 @@ const PreferencesScreen = ({
                   { fontSize: 16, marginBottom: 2 },
                 ]}
               >
-                {t("screen_preferences_onboarding_button_title")}
+                {t('screen_preferences_onboarding_button_title')}
               </Text>
               <Text
                 style={{ fontSize: 13, color: activeTheme.secondaryTextColor }}
               >
-                {t("screen_preferences_onboarding_button_text")}
+                {t('screen_preferences_onboarding_button_text')}
               </Text>
             </View>
             <Icon

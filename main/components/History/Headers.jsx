@@ -25,8 +25,10 @@ const HistoryHeader = ({
           style={[styles.subtitle, { color: currentTheme.placeholderColor }]}
         >
           {isFilterActive
-            ? t("component_history_header_count_filtered", { totalCount: totalCount })
-            : t("component_history_header_count", { totalCount: totalCount })}
+            ? t('component_history_header_count_filtered', {
+                totalCount: totalCount,
+              })
+            : t('component_history_header_count', { totalCount: totalCount })}
         </Text>
       </View>
 
@@ -40,7 +42,7 @@ const HistoryHeader = ({
             onPress={onClearFilter}
           >
             <Text style={[styles.clearFilterText, { color: 'white' }]}>
-              {t("component_history_header_clear_filter")}
+              {t('component_history_header_clear_filter')}
             </Text>
           </TouchableOpacity>
         )}
@@ -59,7 +61,7 @@ const HistoryHeader = ({
                 { color: currentTheme.primaryColor },
               ]}
             >
-              {t("component_history_header_clear_history")}
+              {t('component_history_header_clear_history')}
             </Text>
           </TouchableOpacity>
         )}

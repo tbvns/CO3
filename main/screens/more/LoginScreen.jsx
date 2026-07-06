@@ -26,7 +26,9 @@ import {
 import CustomAlert from '../../components/CustomAlert';
 import { useTranslation } from 'react-i18next';
 
-const LoginScreen = ({ currentTheme, setScreens }) => {
+const LoginScreen = ({ route }) => {
+  const { currentTheme, setScreens } = route.params;
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [rememberPassword, setRememberPassword] = useState(false);
@@ -146,15 +148,18 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
         }
 
         setIsLoggedIn(true);
-        showAlert(t("general_success"), t("screen_account_login_success"));
+        showAlert(t('general_success'), t('screen_account_login_success'));
       } else {
-        showAlert(t("screen_account_login_failed"), t("screen_account_login_failed_invalid_creds_or_server_error"));
+        showAlert(
+          t('screen_account_login_failed'),
+          t('screen_account_login_failed_invalid_creds_or_server_error'),
+        );
       }
     } catch (error) {
       console.error('Login error:', error);
       showAlert(
-        t("screen_account_login_failed"),
-        t("screen_account_login_failed_generic"),
+        t('screen_account_login_failed'),
+        t('screen_account_login_failed_generic'),
       );
     } finally {
       setIsLoading(false);
@@ -172,14 +177,14 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
       setRememberPassword(false);
     } catch (error) {
       console.error('Logout error:', error);
-      showAlert(t("general_error"), t("screen_account_logout_failed"));
+      showAlert(t('general_error'), t('screen_account_logout_failed'));
     }
   };
 
   const showRememberPasswordInfo = () => {
     showAlert(
-      t("screen_account_remember_password_modal_title"),
-      t("screen_account_remember_password_modal_text"),
+      t('screen_account_remember_password_modal_title'),
+      t('screen_account_remember_password_modal_text'),
     );
   };
 
@@ -239,7 +244,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
               <Text
                 style={[styles.statusText, { color: currentTheme.textColor }]}
               >
-                {t("screen_account_logged_in_title")}
+                {t('screen_account_logged_in_title')}
               </Text>
               <Text
                 style={[
@@ -247,7 +252,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
                   { color: currentTheme.placeholderColor },
                 ]}
               >
-                {t("screen_account_logged_in_subtitle")}
+                {t('screen_account_logged_in_subtitle')}
               </Text>
             </View>
 
@@ -264,7 +269,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
                   { color: currentTheme.textColor },
                 ]}
               >
-                {t("screen_account_check_session_button")}
+                {t('screen_account_check_session_button')}
               </Text>
             </TouchableOpacity>
 
@@ -296,7 +301,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
               <Text
                 style={[styles.modalTitle, { color: currentTheme.textColor }]}
               >
-                {t("screen_account_current_session")}
+                {t('screen_account_current_session')}
               </Text>
               <View style={styles.sessionInfoContainer}>
                 <Text
@@ -305,7 +310,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
                     { color: currentTheme.placeholderColor },
                   ]}
                 >
-                  {t("screen_account_current_username")}
+                  {t('screen_account_current_username')}
                 </Text>
                 <Text
                   style={[
@@ -325,7 +330,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
                       { color: currentTheme.placeholderColor },
                     ]}
                   >
-                    {t("screen_account_current_password")}
+                    {t('screen_account_current_password')}
                   </Text>
                   <Text
                     style={[
@@ -394,7 +399,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
           <View style={styles.formContainer}>
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: currentTheme.textColor }]}>
-                {t("screen_account_username")}
+                {t('screen_account_username')}
               </Text>
               <TextInput
                 style={[
@@ -415,7 +420,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
 
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: currentTheme.textColor }]}>
-                {t("screen_account_password")}
+                {t('screen_account_password')}
               </Text>
               <TextInput
                 style={[
@@ -451,7 +456,7 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
                     { color: currentTheme.textColor },
                   ]}
                 >
-                  {t("screen_account_remember_password")}
+                  {t('screen_account_remember_password')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -475,7 +480,9 @@ const LoginScreen = ({ currentTheme, setScreens }) => {
               disabled={isLoading}
             >
               <Text style={styles.loginButtonText}>
-                {isLoading ? t("screen_account_login_loading") : t("screen_account_login")}
+                {isLoading
+                  ? t('screen_account_login_loading')
+                  : t('screen_account_login')}
               </Text>
             </TouchableOpacity>
 

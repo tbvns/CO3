@@ -1,4 +1,3 @@
-import ky from 'ky';
 import { getDownloaded, isDownloaded } from '../../downloads/Downloader';
 import getUrl from '../requestManager';
 

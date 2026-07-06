@@ -1,12 +1,12 @@
 import Animated, {
   Extrapolation,
   interpolate,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  runOnJS,
 } from 'react-native-reanimated';
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import HtmlTextRenderer from '../common/HtmlTextRenderer';
 import { LinearGradient } from 'react-native-linear-gradient';
