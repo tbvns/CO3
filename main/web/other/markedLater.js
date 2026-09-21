@@ -1,6 +1,6 @@
 import { getUsername } from '../../storage/Credentials';
 import { parseWorkElements } from '../browse/fetchWorks';
-import getUrl from '../requestManager';
+import getUrl, { postUrl } from '../requestManager';
 
 let DomParser = require('react-native-html-parser').DOMParser;
 
@@ -16,64 +16,49 @@ export async function fetchMarkedLater(page){
   return parseWorkElements(workElements);
 }
 
+
 export async function markForLater(work) {
   try {
     const workId = work.id;
-    const url = `https://archiveofourown.org/works/${workId}`;
+    const url = `https://archiveofourown.org/works/${workId}?view_adult=true`;
 
-    const pageResponse = await fetch(url, {
-      credentials: 'include',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      }
-    });
+    const html = await getUrl(url);
+    const doc = new DomParser().parseFromString(html, 'text/html');
 
-    //Fuck DOM parsing, this is easier. Imma do more of that since it works so much better
-    const html = await pageResponse.text();
-
-    const formMatch = html.match(
-      /action="([^"]*\/mark_for_later[^"]*)"/
+    const forms = Array.from(doc.getElementsByTagName('form'));
+    console.log(forms);
+    const form = forms.find(f =>
+      f.getAttribute('action')?.includes('/mark_for_later'),
     );
-    if (!formMatch) {
-      throw new Error('Mark for later form not found');
-    }
 
-    const action = formMatch[1];
+    if (!form) throw new Error('Mark for later form not found');
 
-    const tokenMatch = html.match(
-      /name="authenticity_token"\s+value="([^"]+)"/
-    );
-    if (!tokenMatch) {
-      throw new Error('Authenticity token not found');
-    }
+    const inputs = Array.from(doc.getElementsByTagName('input'));
+    const token = inputs
+      .find(i => i.getAttribute('name') === 'authenticity_token')
+      ?.getAttribute('value');
+    if (!token) throw new Error('Authenticity token not found');
 
-    const token = tokenMatch[1];
-    const markUrl = `https://archiveofourown.org${action}`;
+    const markUrl = `https://archiveofourown.org${form.getAttribute('action')}`;
 
-    const formData = new FormData();
-    formData.append('authenticity_token', token);
-    formData.append('_method', 'patch');
+    const body = new URLSearchParams({
+      authenticity_token: token,
+      _method: 'patch',
+    }).toString();
 
-    const response = await fetch(markUrl, {
-      method: 'POST',
-      body: formData,
-      credentials: 'include',
-      headers: {
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Referer': url,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      }
+    const response = await postUrl(markUrl, {
+      body,
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
 
     if (!response.ok) {
       throw new Error(
-        `Failed to mark for later: ${response.status} ${response.statusText}`
+        `Failed to mark for later: ${response.status} ${response.statusText}`,
       );
     }
 
     console.log('Marked for later successfully!');
     return true;
-
   } catch (error) {
     console.error('Error marking for later:', error);
     throw error;

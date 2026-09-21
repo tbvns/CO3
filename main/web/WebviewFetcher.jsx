@@ -1,9 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import WebView from 'react-native-webview';
-
-// --- Queue ---
 
 const queue = [];
 let triggerNext = null;
@@ -14,10 +11,19 @@ function enqueue(item) {
 }
 
 export function fetchViaWebView(url, { cfWarning = false } = {}) {
-  return new Promise((resolve, reject) => enqueue({ url, resolve, reject, cfWarning }));
+  return new Promise((resolve, reject) =>
+    enqueue({ url, resolve, reject, cfWarning, method: 'GET' }),
+  );
 }
 
-// --- Error ---
+export function postViaWebView(
+  url,
+  { body = null, headers = {}, cfWarning = false } = {},
+) {
+  return new Promise((resolve, reject) =>
+    enqueue({ url, resolve, reject, cfWarning, method: 'POST', body, headers }),
+  );
+}
 
 export class WebViewFetchError extends Error {
   constructor(status, statusText, url) {
@@ -30,11 +36,68 @@ export class WebViewFetchError extends Error {
   }
 }
 
-const CF_INTERIM_STATUSES = new Set([403, 503]);
+function isCFChallenge(headers) {
+  return headers?.['cf-mitigated'] === 'challenge';
+}
 
-export const ACCEPTED_TOS_KEY = 'accepted_tos';
+function buildGetScript(url) {
+  return `
+(async () => {
+  try {
+    const r = await fetch(${JSON.stringify(url)}, {
+      method: 'GET',
+      credentials: 'include',
+      redirect: 'follow',
+    });
+    const headers = {};
+    r.headers.forEach((v, k) => { headers[k] = v; });
+    const text = await r.text();
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      ok: true,
+      status: r.status,
+      statusText: r.statusText,
+      url: r.url,
+      headers,
+      text,
+    }));
+  } catch (e) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      ok: false,
+      error: e.message,
+    }));
+  }
+})(); true;`;
+}
 
-// --- Component ---
+function buildPostScript(url, body, headers) {
+  return `
+(async () => {
+  try {
+    const r = await fetch(${JSON.stringify(url)}, {
+      method: 'POST',
+      credentials: 'include',
+      headers: ${JSON.stringify(headers)},
+      ${body != null ? `body: ${JSON.stringify(body)},` : ''}
+    });
+    const respHeaders = {};
+    r.headers.forEach((v, k) => { respHeaders[k] = v; });
+    const text = await r.text();
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      ok: true,
+      status: r.status,
+      statusText: r.statusText,
+      url: r.url,
+      headers: respHeaders,
+      text,
+    }));
+  } catch (e) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      ok: false,
+      error: e.message,
+    }));
+  }
+})(); true;`;
+}
 
 export default function WebviewFetcher() {
   const [source, setSource] = useState(null);
@@ -43,10 +106,27 @@ export default function WebviewFetcher() {
   const webViewRef = useRef(null);
   const currentRef = useRef(null);
   const httpErrorRef = useRef(null);
+  const pendingPostRef = useRef(null);
 
   const loadCurrent = () => {
-    setVisible(false);
-    setSource({ uri: currentRef.current.url });
+    const item = currentRef.current;
+    if (!item) return;
+    const { url, method, body, headers, cfWarning } = item;
+
+    if (cfWarning) {
+      item.cfWarning = false;
+      setShowCFWarning(true);
+      setSource(null);
+      setVisible(false);
+      return;
+    }
+
+    if (method === 'POST') {
+      pendingPostRef.current = { url, body, headers };
+      setSource({ uri: new URL(url).origin + '/' });
+    } else {
+      setSource({ uri: url });
+    }
   };
 
   const processNext = () => {
@@ -58,7 +138,9 @@ export default function WebviewFetcher() {
 
   useEffect(() => {
     triggerNext = processNext;
-    return () => { triggerNext = null; };
+    return () => {
+      triggerNext = null;
+    };
   }, []);
 
   const onWarningDismiss = () => {
@@ -69,6 +151,7 @@ export default function WebviewFetcher() {
   const settle = (value, error) => {
     const item = currentRef.current;
     currentRef.current = null;
+    pendingPostRef.current = null;
     setSource(null);
     setVisible(false);
     error ? item?.reject(error) : item?.resolve(value);
@@ -76,12 +159,51 @@ export default function WebviewFetcher() {
   };
 
   const onLoadEnd = () => {
-    const err = httpErrorRef.current;
-    httpErrorRef.current = null;
-
-    if (err && !CF_INTERIM_STATUSES.has(err.status)) {
-      settle(null, new WebViewFetchError(err.status, err.statusText, err.url));
+    if (pendingPostRef.current) {
+      const { url, body, headers } = pendingPostRef.current;
+      pendingPostRef.current = null;
+      webViewRef.current?.injectJavaScript(buildPostScript(url, body, headers));
       return;
+    }
+
+    const item = currentRef.current;
+    if (item) {
+      webViewRef.current?.injectJavaScript(buildGetScript(item.url));
+    }
+  };
+
+  const onMessage = ({ nativeEvent }) => {
+    try {
+      const data = JSON.parse(nativeEvent.data);
+      if (data.ok) {
+        if (isCFChallenge(data.headers)) {
+          setVisible(true);
+          return;
+        }
+        settle(
+          {
+            status: data.status,
+            statusText: data.statusText,
+            url: data.url,
+            text: data.text,
+          },
+          null,
+        );
+      } else {
+        settle(
+          null,
+          new WebViewFetchError(
+            data.status ?? 0,
+            data.error ?? 'Unknown error',
+            currentRef.current?.url,
+          ),
+        );
+      }
+    } catch {
+      settle(
+        null,
+        new WebViewFetchError(0, 'Parse error', currentRef.current?.url),
+      );
     }
   };
 
@@ -94,11 +216,14 @@ export default function WebviewFetcher() {
   };
 
   const onError = ({ nativeEvent }) => {
-    settle(null, new WebViewFetchError(
-      nativeEvent.code ?? 0,
-      nativeEvent.description ?? 'Network error',
-      nativeEvent.url,
-    ));
+    settle(
+      null,
+      new WebViewFetchError(
+        nativeEvent.code ?? 0,
+        nativeEvent.description ?? 'Network error',
+        nativeEvent.url,
+      ),
+    );
   };
 
   return (
@@ -113,10 +238,10 @@ export default function WebviewFetcher() {
           <View style={styles.modal}>
             <Text style={styles.title}>AO3 anti-bot mode active</Text>
             <Text style={styles.body}>
-              AO3 is currently blocking automated requests. Pages will load slower
-              until the restriction lifts (up to 8 hours).{'\n\n'}
-              Some features like kudos, bookmarks and read later may not work properly
-              during this time.
+              AO3 is currently blocking automated requests. Pages will load
+              slower until the restriction lifts (up to 8 hours).{'\n\n'}
+              Some features like kudos, bookmarks and read later may not work
+              properly during this time.
             </Text>
             <Pressable style={styles.button} onPress={onWarningDismiss}>
               <Text style={styles.buttonText}>Got it</Text>
@@ -126,13 +251,16 @@ export default function WebviewFetcher() {
       </Modal>
 
       {source && (
-        <View style={[styles.webviewBase, visible ? styles.visible : styles.hidden]}>
+        <View
+          style={[styles.webviewBase, visible ? styles.visible : styles.hidden]}
+        >
           <WebView
             ref={webViewRef}
             source={source}
             onLoadEnd={onLoadEnd}
             onHttpError={onHttpError}
             onError={onError}
+            onMessage={onMessage}
             javaScriptEnabled
             domStorageEnabled
             sharedCookiesEnabled
@@ -146,10 +274,12 @@ export default function WebviewFetcher() {
 }
 
 const styles = StyleSheet.create({
-  // WebView
   webviewBase: {
     position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     zIndex: 9999,
   },
   visible: {
@@ -161,8 +291,6 @@ const styles = StyleSheet.create({
     opacity: 0,
     pointerEvents: 'none',
   },
-
-  // Modal
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',

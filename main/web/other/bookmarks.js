@@ -1,6 +1,6 @@
 import { getUsername } from '../../storage/Credentials';
 import { parseWorkElements } from '../browse/fetchWorks';
-import getUrl from '../requestManager';
+import getUrl, { postUrl } from '../requestManager';
 
 let DomParser = require('react-native-html-parser').DOMParser;
 
@@ -54,12 +54,10 @@ export async function bookmark(work) {
     const url = `https://archiveofourown.org/works/${workId}/bookmarks/new`;
     const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
 
-    const pageResponse = await fetch(url, {
+    const html = await getUrl(url, {
       credentials: 'include',
-      headers: { 'User-Agent': userAgent }
+      headers: { 'User-Agent': userAgent },
     });
-
-    const html = await pageResponse.text();
 
     const getAttributeValue = (tagString, attributeName) => {
       const regex = new RegExp(`${attributeName}="([^"]+)"`, 'i');
@@ -85,23 +83,27 @@ export async function bookmark(work) {
       throw new Error(`Extraction failed. Token: ${!!token}, Pseud: ${!!pseudId}`);
     }
 
-    const formData = new FormData();
-    formData.append('authenticity_token', token);
-    formData.append('bookmark[pseud_id]', pseudId);
-    formData.append('bookmark[private]', '0');
-    formData.append('bookmark[rec]', '0');
-    formData.append('commit', 'Create');
+    const body = new URLSearchParams({
+      authenticity_token: token,
+      'bookmark[pseud_id]': pseudId,
+      'bookmark[private]': '0',
+      'bookmark[rec]': '0',
+      commit: 'Create',
+    }).toString();
 
-    const postResponse = await fetch(`https://archiveofourown.org/works/${workId}/bookmarks`, {
-      method: 'POST',
-      body: formData,
-      credentials: 'include',
-      headers: {
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Referer': url,
-        'User-Agent': userAgent,
-      }
-    });
+    const postResponse = await postUrl(
+      `https://archiveofourown.org/works/${workId}/bookmarks`,
+      {
+        body,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          Referer: url,
+          'User-Agent': userAgent,
+        },
+      },
+    );
 
     if (postResponse.ok || postResponse.status === 302) {
       console.log('Bookmarked successfully!');

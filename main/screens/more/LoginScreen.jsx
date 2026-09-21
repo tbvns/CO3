@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import login, { validateCookie } from '../../web/account/login';
+import login, { LoginError, validateCookie } from '../../web/account/login';
 import {
   deleteCredsPasswd,
   deleteCredsToken,
@@ -28,6 +28,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppContext } from '../../app';
+
+const SESSION_PLACEHOLDER = 'cookie-jar';
 
 const LoginScreen = ({ route }) => {
   const { currentTheme } = useContext(AppContext);
@@ -61,15 +63,9 @@ const LoginScreen = ({ route }) => {
     try {
       setValidating(true);
       const storedToken = await getCredsToken();
-
-      if (storedToken) {
-        const isValid = await validateCookie(storedToken);
-        setIsLoggedIn(isValid);
-      } else {
-        setIsLoggedIn(false);
-      }
+      setIsLoggedIn(!!storedToken);
     } catch (error) {
-      console.error('Token validation error:', error);
+      console.error('Session check error:', error);
       setIsLoggedIn(false);
     } finally {
       setValidating(false);
@@ -139,33 +135,29 @@ const LoginScreen = ({ route }) => {
 
     setIsLoading(true);
     try {
-      const sessionToken = await login(username, password);
+      await login(username, password);
 
-      if (sessionToken) {
-        await setCredsToken(sessionToken);
+      await setCredsToken(SESSION_PLACEHOLDER);
 
-        if (rememberPassword) {
-          await setCredsPasswd(username, password);
-        } else {
-          await deleteCredsPasswd();
-          await setUsernameOnly(username);
-        }
-
-        setIsLoggedIn(true);
-        await setLastLogin();
-        showAlert(t('general_success'), t('screen_account_login_success'));
+      if (rememberPassword) {
+        await setCredsPasswd(username, password);
       } else {
-        showAlert(
-          t('screen_account_login_failed'),
-          t('screen_account_login_failed_invalid_creds_or_server_error'),
-        );
+        await deleteCredsPasswd();
+        await setUsernameOnly(username);
       }
+
+      await setLastLogin();
+      setIsLoggedIn(true);
+      showAlert(t('general_success'), t('screen_account_login_success'));
     } catch (error) {
       console.error('Login error:', error);
-      showAlert(
-        t('screen_account_login_failed'),
-        t('screen_account_login_failed_generic'),
-      );
+      const message =
+        error instanceof LoginError && error.code === 'BAD_CREDENTIALS'
+          ? t('screen_account_login_failed_invalid_creds', {
+              defaultValue: 'Wrong username or password',
+            })
+          : t('screen_account_login_failed_generic');
+      showAlert(t('screen_account_login_failed'), message);
     } finally {
       setIsLoading(false);
     }

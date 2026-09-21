@@ -1,62 +1,64 @@
 import { fetchKudoAuthenticityToken } from '../account/fetchAuthenticityToken';
 import { getCredsToken } from '../../storage/Credentials';
 
+const KUDOS_URL = 'https://archiveofourown.org/kudos';
+
 export default async function sendKudo(workId) {
-  try {
-    // Get the authenticity token
-    const authenticityToken = await fetchKudoAuthenticityToken(workId);
+  const authenticityToken = await fetchKudoAuthenticityToken(workId);
 
-    // Prepare the form data
-    const formData = new FormData();
-    formData.append('authenticity_token', authenticityToken);
-    formData.append('kudo[commentable_id]', workId);
-    formData.append('kudo[commentable_type]', 'Work');
-    formData.append('commit', 'Kudos ♥');
+  const body = new URLSearchParams({
+    authenticity_token: authenticityToken,
+    'kudo[commentable_id]': workId,
+    'kudo[commentable_type]': 'Work',
+    commit: 'Kudos ♥',
+  }).toString();
 
-    // Send the kudos request
-    const response = await fetch('https://archiveofourown.org/kudos', {
-      method: 'POST',
-      body: formData,
-      credentials: 'include',
-      headers: {
-        Accept:
-          'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
-        Referer: `https://archiveofourown.org/works/${workId}`,
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        Cookie: `user_credentials=1; _otwarchive_session=${await getCredsToken()}`,
-      },
-    });
+  const sessionToken = await getCredsToken();
 
-    if (!response.ok) {
-      throw new Error(
-        `Failed to send kudos: ${response.status} ${response.statusText}`,
-      );
-    }
+  const response = await fetch(KUDOS_URL, {
+    method: 'POST',
+    credentials: 'include',
+    redirect: 'follow',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.5',
+      Referer: `https://archiveofourown.org/works/${workId}`,
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+      Cookie: `user_credentials=1; _otwarchive_session=${sessionToken}`,
+    },
+    body,
+  });
 
-    // Check if kudos was successful by examining the response
-    // AO3 typically redirects back to the work page after successful kudos
-    if (response.url.includes(`/works/${workId}`)) {
-      console.log('Kudos sent successfully!');
-      return true;
-    }
-
-    const responseText = await response.text();
-    if (
-      responseText.includes('Thank you for leaving kudos!') ||
-      responseText.includes('already left kudos')
-    ) {
-      console.log('Kudos processed (may have already been given)');
-      return true;
-    }
-
-    console.warn('Kudos request completed but success unclear');
-    console.log(response);
-    return false;
-  } catch (error) {
-    console.error('Error sending kudos:', error);
-    throw error;
+  if (!response.ok) {
+    throw new Error(
+      `Failed to send kudos: ${response.status} ${response.statusText}`,
+    );
   }
+
+  let finalPath = '';
+  try {
+    finalPath = new URL(response.url).pathname;
+  } catch {
+    finalPath = response.url || '';
+  }
+  const workPath = `/works/${workId}`;
+  if (finalPath === workPath || finalPath.startsWith(`${workPath}/`)) {
+    return true;
+  }
+
+  const text = await response.text();
+  if (
+    text.includes('Thank you for leaving kudos!') ||
+    text.includes('already left kudos')
+  ) {
+    return true;
+  }
+
+  console.warn('Kudos request completed but success unclear', {
+    url: response.url,
+    status: response.status,
+  });
+  return false;
 }
