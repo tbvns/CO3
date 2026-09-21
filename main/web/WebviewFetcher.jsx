@@ -30,29 +30,6 @@ export class WebViewFetchError extends Error {
   }
 }
 
-// --- CF detection ---
-
-const CF_CHALLENGE_DETECTION = `
-  (function() {
-    const isChallenge =
-      typeof window._cf_chl_opt !== 'undefined' ||
-      !!document.querySelector('script[src*="cdn-cgi/challenge-platform"]') ||
-      !!document.querySelector('script[src*="challenges.cloudflare.com"]');
-
-    if (isChallenge) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'challenge' }));
-      return;
-    }
-
-    window.ReactNativeWebView.postMessage(JSON.stringify({
-      type: 'success',
-      body: document.documentElement.outerHTML,
-      acceptedTos: localStorage.getItem('accepted_tos'),
-    }));
-  })();
-  true;
-`;
-
 const CF_INTERIM_STATUSES = new Set([403, 503]);
 
 export const ACCEPTED_TOS_KEY = 'accepted_tos';
@@ -106,8 +83,6 @@ export default function WebviewFetcher() {
       settle(null, new WebViewFetchError(err.status, err.statusText, err.url));
       return;
     }
-
-    webViewRef.current?.injectJavaScript(CF_CHALLENGE_DETECTION);
   };
 
   const onHttpError = ({ nativeEvent }) => {
@@ -124,30 +99,6 @@ export default function WebviewFetcher() {
       nativeEvent.description ?? 'Network error',
       nativeEvent.url,
     ));
-  };
-
-  const onMessage = ({ nativeEvent }) => {
-    try {
-      const data = JSON.parse(nativeEvent.data);
-      if (data.type === 'challenge') {
-        if (currentRef.current?.cfWarning) {
-          setShowCFWarning(true);
-        } else {
-          setVisible(true);
-        }
-        return;
-      }
-      if (data.type === 'success') {
-        if (data.acceptedTos) {
-          AsyncStorage.setItem(ACCEPTED_TOS_KEY, data.acceptedTos).catch(() => {});
-        }
-        settle(data.body, null);
-        return;
-      }
-      settle(null, new WebViewFetchError(0, data.error ?? 'WebView extraction failed', source?.uri));
-    } catch (e) {
-      settle(null, e);
-    }
   };
 
   return (
@@ -182,7 +133,6 @@ export default function WebviewFetcher() {
             onLoadEnd={onLoadEnd}
             onHttpError={onHttpError}
             onError={onError}
-            onMessage={onMessage}
             javaScriptEnabled
             domStorageEnabled
             sharedCookiesEnabled

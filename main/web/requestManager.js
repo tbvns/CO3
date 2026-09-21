@@ -40,8 +40,8 @@ async function enableCFMode(domain) {
   await AsyncStorage.setItem(CF_STORAGE_KEY, JSON.stringify(map));
 }
 
-function isCFChallenge(html) {
-  return html.includes('_cf_chl_opt');
+function isCFChallenge(res) {
+  return res.headers.get('cf-mitigated') === 'challenge';
 }
 
 const cloudflareErrorCodes = [
@@ -59,7 +59,7 @@ export default async function getUrl(url, noWebview = false) {
   if (noWebview) {
     getLastLogin().then(async (time) => {
       try {
-        if (Date.now() - time > 14 * 24 * 60 * 60 * 1000) {
+        if (time !== undefined && time !== 0 && Date.now() - time > 14 * 24 * 60 * 60 * 1000) {
           Toast.show(
             {
               type: 'error',
@@ -112,9 +112,10 @@ export default async function getUrl(url, noWebview = false) {
   }
 
   try {
-    const html = await ky.get(url).text();
+    const res = await ky.get(url);
+    const html = await res.text();
 
-    if (isCFChallenge(html)) {
+    if (isCFChallenge(res)) {
       console.log(`isCfChalenged fiered with ${html}`);
       await enableCFMode(hostname);
       return fetchViaWebView(url, { cfWarning: true });
