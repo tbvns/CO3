@@ -34,7 +34,7 @@ export async function fetchBookmarks(page, username, pseud, noWebview = false) {
     let workElements = Array.from(olElements[0].getElementsByTagName("li"))
       .filter(li => li.getAttribute("class")?.includes("bookmark blurb"));
 
-    if (workElements.length === 0) {
+    if (workElements.length === 0 && olElements.length > 1) {
       workElements = Array.from(olElements[1].getElementsByTagName("li"))
         .filter(li => li.getAttribute("class")?.includes("bookmark blurb"));
     }

@@ -49,7 +49,7 @@ export default function BookmarksScreen({ route }) {
 
   useEffect(() => {
     loadInitialBookmarks();
-  }, [loadInitialBookmarks]);
+  }, []);
 
   const formatWork = work => {
     return {
