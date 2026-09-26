@@ -90,6 +90,11 @@ function wrapConnection(nitroDb) {
         await fn(txShim);
       });
     },
+    executeBatch: async ops => {
+      const commands = ops.map(([query, params = []]) => ({ query, params }));
+      const raw = await nitroDb.executeBatchAsync(commands);
+      return { rowsAffected: raw?.rowsAffected ?? 0 };
+    },
     close: async () => {
       nitroDb.close();
     },
