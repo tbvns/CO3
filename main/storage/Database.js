@@ -1,4 +1,4 @@
-import SQLite from 'react-native-sqlite-storage';
+import { open, NitroSQLiteError } from 'react-native-nitro-sqlite';
 import RNFS from 'react-native-fs';
 import { Platform } from 'react-native';
 import {
@@ -9,11 +9,93 @@ import {
   from5to6,
 } from './dbMigration';
 
-SQLite.enablePromise(true);
-
 const TARGET_VERSION = 6;
 
 let instance = null;
+
+const DB_FILE_NAME = 'library.db';
+
+function getLegacyDbPath() {
+  return Platform.select({
+    android: `/data/data/com.co3/databases/${DB_FILE_NAME}`,
+    ios: `${RNFS.LibraryDirectoryPath}/LocalDatabase/${DB_FILE_NAME}`,
+  });
+}
+
+function getNitroDbPath() {
+  return `${RNFS.DocumentDirectoryPath}/${DB_FILE_NAME}`;
+}
+
+async function migrateLegacyDatabaseFileIfNeeded() {
+  try {
+    const legacyPath = getLegacyDbPath();
+    const nitroPath = getNitroDbPath();
+
+    const nitroExists = await RNFS.exists(nitroPath);
+    if (nitroExists) {
+      return;
+    }
+
+    const legacyExists = await RNFS.exists(legacyPath);
+    if (!legacyExists) {
+      return;
+    }
+
+    console.log(`Migrating legacy database from ${legacyPath} to ${nitroPath}`);
+
+    const nitroDir = nitroPath.substring(0, nitroPath.lastIndexOf('/'));
+    await RNFS.mkdir(nitroDir);
+    await RNFS.copyFile(legacyPath, nitroPath);
+
+    for (const suffix of ['-wal', '-shm']) {
+      const legacySidecar = `${legacyPath}${suffix}`;
+      const nitroSidecar = `${nitroPath}${suffix}`;
+      if (await RNFS.exists(legacySidecar)) {
+        await RNFS.copyFile(legacySidecar, nitroSidecar);
+      }
+    }
+
+    console.log('Legacy database migration complete.');
+  } catch (error) {
+    console.error('Legacy database migration failed:', error);
+  }
+}
+
+function toResultSet(raw) {
+  const rows = raw?.results ?? [];
+  return {
+    rows: {
+      length: rows.length,
+      item: i => rows[i],
+      raw: () => rows,
+    },
+    rowsAffected: raw?.rowsAffected ?? 0,
+    insertId: raw?.insertId,
+  };
+}
+
+function wrapConnection(nitroDb) {
+  return {
+    executeSql: async (sql, params = []) => {
+      const raw = await nitroDb.executeAsync(sql, params);
+      return [toResultSet(raw)];
+    },
+    transaction: async fn => {
+      await nitroDb.transaction(async tx => {
+        const txShim = {
+          executeSql: (sql, params = []) => {
+            tx.execute(sql, params);
+          },
+        };
+        await fn(txShim);
+      });
+    },
+    close: async () => {
+      nitroDb.close();
+    },
+    _nitroDb: nitroDb,
+  };
+}
 
 class Database {
   constructor() {
@@ -32,10 +114,13 @@ class Database {
     if (this.db) {
       return this.db;
     }
-    this.db = await SQLite.openDatabase({
+
+    await migrateLegacyDatabaseFileIfNeeded();
+    const nitroDb = open({
       name: 'library.db',
-      location: 'default',
     });
+
+    this.db = wrapConnection(nitroDb);
 
     await this.initializeSchema();
     await this.runMigrations();
@@ -222,7 +307,6 @@ class Database {
   }
 }
 
-
 export async function exportDb(db) {
   let dbWasOpen = !!db.db;
 
@@ -289,4 +373,5 @@ export async function clearUnusedCache(db) {
   }
 }
 
+export { NitroSQLiteError };
 export const database = new Database();
