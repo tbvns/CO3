@@ -76,7 +76,7 @@ android {
 
 dependencies {
     implementation "com.facebook.react:react-android"
-    implementation "androidx.work:work-runtime:2.11.2"
+    implementation "androidx.work:work-runtime:2.12.0"
     implementation "androidx.lifecycle:lifecycle-process:2.11.0"
 
     if (hermesEnabled.toBoolean()) {
