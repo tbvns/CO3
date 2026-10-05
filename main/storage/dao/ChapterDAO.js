@@ -49,6 +49,11 @@ export class ChapterDAO {
 
     const transactionOps = [];
     const newIds = new Set();
+    const downloadTargets = [];
+
+    const jsonSetting = await getJsonSettings();
+    const shouldQueueDownloads =
+      jsonSetting.downloadOnUpdate && downloadOnUpdate;
 
     for (const newChap of newChapters) {
       newIds.add(newChap.id);
@@ -66,9 +71,8 @@ export class ChapterDAO {
           [newChap.id, workId, newChap.number, newChap.name, validDate],
         ]);
 
-        const jsonSetting = await getJsonSettings();
-        if (jsonSetting.downloadOnUpdate && downloadOnUpdate) {
-          await addToDownloadQueue({
+        if (shouldQueueDownloads) {
+          downloadTargets.push({
             workId: newChap.workId,
             chapterId: newChap.id,
           });
@@ -86,11 +90,19 @@ export class ChapterDAO {
     }
 
     if (transactionOps.length > 0) {
-      await this.db.transaction(tx => {
-        transactionOps.forEach(([query, params]) => {
-          tx.executeSql(query, params);
+      if (this.db.executeBatch) {
+        await this.db.executeBatch(transactionOps);
+      } else {
+        await this.db.transaction(tx => {
+          transactionOps.forEach(([query, params]) => {
+            tx.executeSql(query, params);
+          });
         });
-      });
+      }
+    }
+
+    for (const target of downloadTargets) {
+      await addToDownloadQueue(target);
     }
   }
 
