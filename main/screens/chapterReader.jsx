@@ -21,6 +21,7 @@ import Toast from 'react-native-toast-message';
 import { useTranslation } from 'react-i18next';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
 const PULL_THRESHOLD = 150;
 const PROGRESS_SAVE_DEBOUNCE = 1000;
@@ -106,6 +107,12 @@ const ChapterReader = ({
   const webViewRef = useRef(null);
   const progressSaveTimeoutRef = useRef(null);
   const lastSavedProgressRef = useRef(0);
+
+  const navigation = useNavigation();
+
+  function onBack() {
+    navigation.goBack();
+  }
 
   // Apply the word replacer rule
   useEffect(() => {
@@ -544,21 +551,31 @@ const ChapterReader = ({
       pointerEvents={barsVisible ? 'auto' : 'none'}
     >
       <View style={styles.titleContainer}>
-        <Text
-          style={[styles.workTitle, { color: currentTheme.textColor }]}
-          numberOfLines={1}
-        >
-          {workTitle}
-        </Text>
-        <Text
-          style={[
-            styles.chapterTitle,
-            { color: currentTheme.secondaryTextColor },
-          ]}
-          numberOfLines={1}
-        >
-          {chapterTitle}
-        </Text>
+        <TouchableOpacity style={styles.backTouchable} onPress={onBack}>
+          <Icon
+            name="arrow-back"
+            size={24}
+            style={[styles.backButton, { color: currentTheme.textColor }]}
+            color={currentTheme.textColor}
+          />
+        </TouchableOpacity>
+        <View>
+          <Text
+            style={[styles.workTitle, { color: currentTheme.textColor }]}
+            numberOfLines={1}
+          >
+            {workTitle}
+          </Text>
+          <Text
+            style={[
+              styles.chapterTitle,
+              { color: currentTheme.secondaryTextColor },
+            ]}
+            numberOfLines={1}
+          >
+            {chapterTitle}
+          </Text>
+        </View>
         {isIncognitoMode && (
           <Text
             style={[
@@ -783,6 +800,9 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     alignItems: 'center',
+    textAlignVertical: 'center',
+    flexDirection: 'row',
+    flex: 1,
   },
   workTitle: {
     fontSize: 18,
@@ -887,6 +907,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 14,
     fontWeight: '500',
+  },
+  backTouchable: {
+    paddingLeft: 4,
+    paddingRight: 16,
   },
 });
 
