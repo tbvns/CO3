@@ -152,10 +152,10 @@ export function parseWorkElements(workElements) {
     const categorizedTags = categorizeTagsByClass(workElement);
 
     const allTags = [
-      ...categorizedTags.fandoms,
-      ...categorizedTags.relationships,
-      ...categorizedTags.characters,
-      ...categorizedTags.freeforms
+      ...(categorizedTags.fandoms ?? []),
+      ...(categorizedTags.relationships ?? []),
+      ...(categorizedTags.characters ?? []),
+      ...(categorizedTags.freeforms ?? []),
     ];
 
     const summaryContainer = workElement.getElementsByClassName("userstuff summary")[0];

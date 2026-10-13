@@ -15,7 +15,6 @@ import {
   Linking,
   PermissionsAndroid,
   Platform,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
@@ -47,6 +46,7 @@ import { KudoHistoryDAO } from './storage/dao/KudosHistoryDAO';
 import CustomToast from './components/common/CustomToast';
 import {
   SafeAreaProvider,
+  SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import SystemNavigationBar from 'react-native-system-navigation-bar';

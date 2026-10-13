@@ -94,11 +94,13 @@ export default function BookmarksScreen({ route }) {
     try {
       setLoading(true);
       setCurrentPage(1);
-      const res = pseud
-        ? await fetchBookmarks(1, username, pseud)
-        : username
-        ? await fetchBookmarks(1, username)
-        : await fetchBookmarks(1);
+      let res;
+      console.log("Borked");
+      if (pseud) {
+        res = await fetchBookmarks(1, usrname, pseud);
+      } else {
+        res = await fetchBookmarks(1, usrname);
+      }
       setBookmarks(res || []);
       setHasMore((res?.length || 0) === PAGE_SIZE);
     } catch (error) {

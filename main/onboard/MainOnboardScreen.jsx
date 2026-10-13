@@ -1,10 +1,11 @@
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useEffect, useState } from 'react';
 import Step1 from './Screens/Step1Screen';
 import Step2 from './Screens/Step2Screen';
 import Step3 from './Screens/Step3Screen';
 import Step4 from './Screens/Step4Screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function MainOnboardScreen({
   setCurrentTheme,
