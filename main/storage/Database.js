@@ -324,9 +324,11 @@ export async function exportDb(db) {
     const exportFileName = 'CO3-Database-Export.db';
 
     const dbPath = Platform.select({
-      android: `/data/data/com.co3/databases/${dbFileName}`,
+      android: getNitroDbPath(),
       ios: `${RNFS.LibraryDirectoryPath}/LocalDatabase/${dbFileName}`,
     });
+
+    console.log(getNitroDbPath());
 
     const exportPath = Platform.select({
       android: `${RNFS.DownloadDirectoryPath}/${exportFileName}`,

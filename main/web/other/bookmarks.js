@@ -52,7 +52,6 @@ export async function bookmark(work) {
   try {
     const workId = work.id;
     const url = `https://archiveofourown.org/works/${workId}/bookmarks/new`;
-    const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
 
     const html = await getUrl(url, {
       credentials: 'include',
@@ -100,7 +99,6 @@ export async function bookmark(work) {
           Accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
           Referer: url,
-          'User-Agent': userAgent,
         },
       },
     );

@@ -3,6 +3,8 @@ import { Platform } from 'react-native';
 import RNFS from 'react-native-fs';
 import JSZip from 'jszip';
 
+const DB_FILE_NAME = 'library.db';
+
 async function dumpAsyncStorage() {
   try {
     const keys = await AsyncStorage.getAllKeys();
@@ -36,7 +38,7 @@ async function restoreAsyncStorage(dataObject, { clearFirst = false } = {}) {
 
 function getDbPath() {
   return Platform.select({
-    android: `/data/data/com.co3/databases/library.db`,
+    android: `${RNFS.DocumentDirectoryPath}/${DB_FILE_NAME}`,
     ios: `${RNFS.LibraryDirectoryPath}/LocalDatabase/library.db`,
   });
 }

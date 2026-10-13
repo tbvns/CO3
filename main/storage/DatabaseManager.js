@@ -371,38 +371,36 @@ export async function exportDb(db) {
       await db.close();
     }
 
-    if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      const dbFileName = 'library.db';
-      const exportFileName = 'CO3-DatabaseManager-Export.db';
+    const dbFileName = 'library.db';
+    const exportFileName = 'CO3-Database-Export.db';
 
-      const dbPath = Platform.select({
-        android: `/data/data/com.co3/databases/${dbFileName}`,
-        ios: `${RNFS.LibraryDirectoryPath}/LocalDatabase/${dbFileName}`,
-      });
+    const dbPath = Platform.select({
+      android: getNitroDbPath(),
+      ios: `${RNFS.LibraryDirectoryPath}/LocalDatabase/${dbFileName}`,
+    });
 
-      const exportPath = Platform.select({
-        android: `${RNFS.DownloadDirectoryPath}/${exportFileName}`,
-        ios: `${RNFS.DocumentDirectoryPath}/${exportFileName}`,
-      });
+    console.log("nitrodb:", getNitroDbPath());
 
-      const exportDir = Platform.select({
-        android: RNFS.DownloadDirectoryPath,
-        ios: RNFS.DocumentDirectoryPath,
-      });
+    const exportPath = Platform.select({
+      android: `${RNFS.DownloadDirectoryPath}/${exportFileName}`,
+      ios: `${RNFS.DocumentDirectoryPath}/${exportFileName}`,
+    });
 
-      await RNFS.mkdir(exportDir, { NSURLIsExcludedFromBackupKey: false });
-      await RNFS.copyFile(dbPath, exportPath);
+    const exportDir = Platform.select({
+      android: RNFS.DownloadDirectoryPath,
+      ios: RNFS.DocumentDirectoryPath,
+    });
 
-      if (dbWasOpen) {
-        await db.open();
-      }
+    await RNFS.mkdir(exportDir, { NSURLIsExcludedFromBackupKey: false });
+    await RNFS.copyFile(dbPath, exportPath);
 
-      return exportPath;
-    } else {
-      throw new Error('Desktop export not implemented yet');
+    if (dbWasOpen) {
+      await db.open();
     }
+
+    return exportPath;
   } catch (error) {
-    console.error('DatabaseManager export failed:', error);
+    console.error('Database export failed:', error);
     if (dbWasOpen) {
       try {
         await db.open();

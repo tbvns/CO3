@@ -128,12 +128,14 @@ export default function StorageScreen({ route }) {
     exportBackup(databaseObj).then(() => {
       Toast.show({
         type: 'success',
-        text1: "yay it worked"
-      })
+        text1: t('screen_storage_button_create_backup_success_1'),
+        text2: t('screen_storage_button_create_backup_success_2'),
+      });
     }).catch(err => {
       Toast.show({
-        type: 'success',
-        text1: 'noooo it broke',
+        type: 'error',
+        text1: t("screen_storage_button_create_backup_err_1"),
+        text2: t("screen_storage_button_create_backup_err_2"),
       });
     })
   }
