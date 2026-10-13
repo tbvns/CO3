@@ -93,7 +93,8 @@ function toResultSet(raw) {
 function wrapNitroConnection(nitroDb) {
   return {
     executeSql: async (sql, params = []) => {
-      const raw = await nitroDb.executeAsync(sql, params);
+      const safeParams = params.map(p => (p === undefined ? null : p));
+      const raw = await nitroDb.executeAsync(sql, safeParams);
       return [toResultSet(raw)];
     },
     transaction: async fn => {
