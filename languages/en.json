@@ -436,6 +436,7 @@
   "screen_user_profile_works_button": "Works",
 
   "screen_work_loading": "Loading work information...",
+  "screen_work_loading_chapter": "Loading chapter...",
   "screen_work_not_found": "Work not found",
   "screen_work_add_to_library": "Add to Library",
   "screen_work_in_library": "In Library",

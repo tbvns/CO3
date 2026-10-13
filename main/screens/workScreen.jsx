@@ -48,6 +48,7 @@ import { useTranslation } from 'react-i18next';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
+import CustomAlert from '../components/CustomAlert';
 
 const NATIVE_DOWNLOAD_FORMATS = ['azw3', 'epub', 'mobi', 'pdf', 'html'];
 
@@ -504,6 +505,7 @@ const ChapterInfoScreen = ({ route }) => {
   const [chapters, setChapters] = useState([]);
   const [chapterProgress, setChapterProgress] = useState({});
   const [loading, setLoading] = useState(true);
+  const [chapterLoading, setChapterLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -837,6 +839,7 @@ const ChapterInfoScreen = ({ route }) => {
   const handleChapterPress = useCallback(
     async (chapter, originalIndex) => {
       try {
+        setChapterLoading(true);
         const existingWork = await workDAO.get(workId);
         if (!existingWork) {
           await workDAO.add(work);
@@ -871,7 +874,7 @@ const ChapterInfoScreen = ({ route }) => {
           title: c.name,
         }));
 
-        navigation.push('Reader', {
+        await navigation.push('Reader', {
           key: chapter.id,
           initialChapterData: initialChapterData,
           currentTheme: currentTheme,
@@ -887,7 +890,17 @@ const ChapterInfoScreen = ({ route }) => {
           workDAO: workDAO,
         });
       } catch (error) {
+        setChapterLoading(false);
+        Toast.show({
+          type: 'error',
+          text1: t('screen_work_toast_failed_to_load_chapter'),
+          text2: error.message,
+        });
         console.error('Error opening chapter reader:', error);
+      } finally {
+        setTimeout(() => {
+          setChapterLoading(false);
+        }, 400)
       }
     },
     [
@@ -1396,6 +1409,24 @@ const ChapterInfoScreen = ({ route }) => {
           <ActivityIndicator size="large" color={currentTheme.primaryColor} />
           <Text style={[styles.loadingText, { color: currentTheme.textColor }]}>
             {t('screen_work_loading')}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (chapterLoading) {
+    return (
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: currentTheme.backgroundColor },
+        ]}
+      >
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={currentTheme.primaryColor} />
+          <Text style={[styles.loadingText, { color: currentTheme.textColor }]}>
+            {t('screen_work_loading_chapter')}
           </Text>
         </View>
       </SafeAreaView>
